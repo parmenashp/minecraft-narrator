@@ -133,7 +133,9 @@ dependencies {
     // then special handling is done to allow a setup of a vanilla dependency without the use of an external repository.
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    minecraftLibrary jarJar(group: 'org.json', name: 'json', version: '[20231013]')
+    minecraftLibrary group: 'org.apache.logging.log4j', name: 'log4j-api', version: '[2.22.0]'
+    minecraftLibrary group: 'org.apache.logging.log4j', name: 'log4j-core', version: '[2.22.0]'
+
 
     // Example mod dependency with JEI - using fg.deobf() ensures the dependency is remapped to your development mappings
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime

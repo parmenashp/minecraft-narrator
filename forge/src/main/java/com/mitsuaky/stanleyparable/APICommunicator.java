@@ -6,20 +6,21 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import org.json.JSONObject;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class APICommunicator {
 
     private static final String API_URL = "http://127.0.0.1:5000/event";
+    private static final Logger LOGGER = LogManager.getLogger(APICommunicator.class);
 
-    public static JSONObject sendEvent(JSONObject event) {
+    public static JsonObject sendEvent(JsonObject event) {
+        HttpURLConnection connection = null;
         try {
-            System.out.println("Sending event to server: " + event); // Log para verificar o evento enviado
-            URL url = new URL(API_URL);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json; utf-8");
-            connection.setDoOutput(true);
+            connection = initializeConnection();
+            LOGGER.info("Sending event to server: " + event);
 
             try (OutputStream os = connection.getOutputStream()) {
                 byte[] input = event.toString().getBytes(StandardCharsets.UTF_8);
@@ -34,13 +35,25 @@ public class APICommunicator {
                     response.append(responseLine.trim());
                 }
             }
-            System.out.println("Response from server: " + response); // Log para verificar a resposta
-            return new JSONObject(response.toString());
+            LOGGER.info("Response from server: " + response);
+            return JsonParser.parseString(response.toString()).getAsJsonObject();
 
         } catch (Exception e) {
-            System.err.println("Error in sending event to server: " + e.getMessage()); // Log de erro
-            e.printStackTrace();
+            LOGGER.error("Error in sending event to server: " + e.getMessage(), e);
             return null;
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
+    }
+
+    private static HttpURLConnection initializeConnection() throws Exception {
+        URL url = new URL(API_URL);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "application/json; utf-8");
+        connection.setDoOutput(true);
+        return connection;
     }
 }
