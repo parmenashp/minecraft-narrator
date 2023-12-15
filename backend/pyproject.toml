@@ -11,8 +11,13 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.11"
 flask = "^3.0.0"
-mcpi = {path = "../mcpi", develop = true}
+openai = "^1.3.9"
+fastapi = "^0.105.0"
+pydantic = "^2.5.2"
+uvicorn = "^0.24.0.post1"
 
+[tool.black]
+line-length = 120
 
 [build-system]
 requires = ["poetry-core"]

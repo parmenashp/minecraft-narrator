@@ -1,45 +1,47 @@
-from flask import Flask, request, jsonify
+import fastapi
 
-app = Flask(__name__)
+from src import models
+from src.models import Event, Action, OutgoingAction, IncomingEvent
+from src.handler import event_handler
 
-
-@app.route("/event", methods=["POST"])
-def handle_event():
-    if not request.is_json:
-        return jsonify(error="Formato inválido"), 400
-
-    event_data = request.get_json()
-
-    if "event" not in event_data:
-        return jsonify(error="Campo 'event' não encontrado"), 400
-
-    event = event_data["event"]
-
-    def handle_item_craft(event_detail):
-        item_id = event_detail.get("item")
-        if item_id:
-            return jsonify(action="chat", text=f"Item com ID {item_id} foi criado")
-        else:
-            return jsonify(error="ID do item não fornecido"), 400
-
-    def handle_block_break(event_detail):
-        block_id = event_detail.get("block")
-        if block_id:
-            return jsonify(action="chat", text=f"Bloco com ID {block_id} foi quebrado")
-        else:
-            return jsonify(error="ID do bloco não fornecido"), 400
-
-    event_handlers = {
-        "item.craft": handle_item_craft,
-        "block.break": handle_block_break,
-    }
-
-    handler = event_handlers.get(event["name"])
-    if handler:
-        return handler(event)
-    else:
-        return jsonify(error="Evento desconhecido"), 400
+app = fastapi.FastAPI()
 
 
-if __name__ == "__main__":
-    app.run(debug=True)
+@app.post("/event")
+async def handle_event(event: IncomingEvent) -> OutgoingAction:
+    print("in:", event)
+    r = await event_handler.handle(event)
+    print("out", r)
+    return r
+
+
+@event_handler.register(Event.ITEM_CRAFTED)
+async def handle_item_crafted(event: IncomingEvent[models.ItemCraftedEventData]):
+    return OutgoingAction(
+        action=Action.SEND_CHAT,
+        data={"text": f"Item com ID {event.data['item']} foi criado com quantidade {event.data['amount']}"},
+    )
+
+
+@event_handler.register(Event.BLOCK_BROKEN)
+async def handle_block_broken(event: IncomingEvent[models.BlockBrokenEventData]):
+    return OutgoingAction(
+        action=Action.SEND_CHAT,
+        data={"text": f"Block com ID {event.data['block']} foi quebrado com ferramenta {event.data['tool']}"},
+    )
+
+
+@event_handler.register(Event.PLAYER_DEATH)
+async def handle_player_death(event: IncomingEvent[models.PlayerDeathEventData]):
+    return OutgoingAction(
+        action=Action.SEND_CHAT,
+        data={"text": f"Player morreu por {event.data['cause']}"},
+    )
+
+
+@event_handler.register(Event.ADVANCEMENT)
+async def handle_achievement(event: IncomingEvent[models.AdvancementEventData]):
+    return OutgoingAction(
+        action=Action.SEND_CHAT,
+        data={"text": f"Achievement {event.data['advancement']} foi desbloqueado"},
+    )
