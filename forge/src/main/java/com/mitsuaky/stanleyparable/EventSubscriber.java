@@ -7,8 +7,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.entity.player.AdvancementEvent;
+import net.minecraftforge.event.entity.player.AdvancementEvent.AdvancementEarnEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -63,9 +64,17 @@ public class EventSubscriber {
             return id.toString();
         }
 
+        public static String getAsID(net.minecraft.world.level.block.Block block) {
+            final ResourceLocation id = BuiltInRegistries.BLOCK.getKey(block);
+            return id.toString();
+        }
+
         @SubscribeEvent
         public static void onItemCrafted(PlayerEvent.ItemCraftedEvent event) {
             LOGGER.debug("ItemCraftedEvent triggered");
+                LOGGER.debug("ItemCraftedEvent triggered but not in crafting phase");
+                return;
+            }
             if (event.getEntity() == null || event.getCrafting().isEmpty()) {
                 LOGGER.debug("ItemCraftedEvent triggered without valid entity or crafting item");
                 return;
@@ -88,14 +97,17 @@ public class EventSubscriber {
             }
 
             String tool = getAsID(event.getPlayer().getMainHandItem().getItem());
+            String block = getAsID(event.getState().getBlock());
             Player player = event.getPlayer();
-            BlockBrokenEventData eventData = new BlockBrokenEventData(event.getState().getBlock().getDescriptionId(), tool);
+            BlockBrokenEventData eventData = new BlockBrokenEventData(block, tool);
             IncomingEvent<BlockBrokenEventData> incomingEvent = new IncomingEvent<>(Event.BLOCK_BROKEN, eventData);
             processApiResponse(player, event, incomingEvent.toJson());
         }
 
         @SubscribeEvent
         public static void onPlayerDeath(LivingDeathEvent event) {
+            event.setCanceled(false);
+            event.notifyAll();
             LOGGER.debug("LivingDeathEvent triggered");
             if (event.getEntity() == null || !(event.getEntity() instanceof Player player)) {
                 LOGGER.debug("LivingDeathEvent triggered but is not a player");
@@ -109,8 +121,10 @@ public class EventSubscriber {
         }
 
         @SubscribeEvent
-        public static void onAchievement(AdvancementEvent event) {
+        public static void onAchievement(AdvancementEarnEvent event) {
             LOGGER.debug("AdvancementEvent triggered");
+            event.setCanceled(false);
+            event.notifyAll();
             if (event.getEntity() == null) {
                 LOGGER.debug("AdvancementEvent triggered without valid player");
                 return;
