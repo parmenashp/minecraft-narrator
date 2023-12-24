@@ -25,7 +25,8 @@ public class EventSubscriber {
         ITEM_CRAFTED("item_crafted"),
         BLOCK_BROKEN("block_broken"),
         PLAYER_DEATH("player_death"),
-        ADVANCEMENT("advancement");
+        ADVANCEMENT("advancement"),
+        ITEM_PICKUP("item_pickup");
 
         private final String value;
 
@@ -130,6 +131,22 @@ public class EventSubscriber {
             processApiResponse(event.getEntity(), event, incomingEvent.toJson());
         }
 
+        @SubscribeEvent
+        public static void onItemPickup(PlayerEvent.ItemPickupEvent event) {
+            LOGGER.debug("ItemPickupEvent triggered");
+            if (event.getEntity() == null || event.getStack().isEmpty()) {
+                LOGGER.debug("ItemPickupEvent triggered without valid player or item");
+                return;
+            }
+
+            String item = getAsID(event.getStack().getItem());
+            int amount = event.getStack().getCount();
+            Player player = event.getEntity();
+            ItemPickupEventData eventData = new ItemPickupEventData(item, amount);
+            IncomingEvent<ItemPickupEventData> incomingEvent = new IncomingEvent<>(Event.ITEM_PICKUP, eventData);
+            processApiResponse(player, event, incomingEvent.toJson());
+        }
+
         private static void processApiResponse(Player player, net.minecraftforge.eventbus.api.Event event, JsonObject jsonEvent) {
             JsonObject response = APICommunicator.sendEvent(jsonEvent);
             if (response != null) {
@@ -230,6 +247,23 @@ public class EventSubscriber {
         JsonObject toJson() {
             JsonObject json = new JsonObject();
             json.addProperty("advancement", advancement);
+            return json;
+        }
+    }
+
+    class ItemPickupEventData extends BaseEventData {
+        String item;
+        int amount;
+
+        ItemPickupEventData(String item, int amount) {
+            this.item = item;
+            this.amount = amount;
+        }
+
+        JsonObject toJson() {
+            JsonObject json = new JsonObject();
+            json.addProperty("item", item);
+            json.addProperty("amount", amount);
             return json;
         }
     }
