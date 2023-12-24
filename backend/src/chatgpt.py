@@ -2,6 +2,14 @@ import os
 import openai
 
 
+# Apenas para testes locais sem a API do OpenAI
+class TestChatGPT:
+    def __init__(self):
+        pass
+
+    async def ask(self, text: str) -> str:
+        return text
+
 class ChatGPT:
     def __init__(self, api_key):
         self.client = openai.AsyncOpenAI(
@@ -41,6 +49,22 @@ class ChatGPT:
                     "role": "assistant",
                     "content": "E com um simples arranjo de tábuas, Felps criou uma porta. Não apenas qualquer porta, mas uma que simboliza o limiar entre a selvageria do mundo externo e o conforto questionável de sua morada improvisada. Uma escolha arquitetônica ousada ou um mero instinto de autopreservação? Só o tempo dirá... ou talvez a próxima horda de zumbis que bater à porta.",
                 },
+                {
+                    "role": "assistant",
+                    "content": 'Jogador "Felps" pegou 1 "minecraft:diamond"'
+                },
+                {
+                    "role": "assistant",
+                    "content": "Felps encontrou um diamante. Um diamante! Um dos materiais mais raros e valiosos do mundo. Um tesouro que certamente será usado para criar algo de valor inestimável, como uma espada ou uma picareta. Ou talvez um chapéu de diamante. Isso é um grande passo para Felps na sua aventura no Minecraft.",
+                },
+                {
+                    "role": "assistant",
+                    "content": 'Jogador "Felps" pegou 1 "minecraft:oak_log"'
+                },
+                {
+                    "role": "assistant",
+                    "content": "Felps encontrou um tronco de madeira. Um material comum e abundante.",
+                },
                 {"role": "user", "content": text},
             ],
             temperature=1,
@@ -53,4 +77,8 @@ class ChatGPT:
         return response.choices[0].message.content  # type: ignore
 
 
-chat = ChatGPT(os.environ["OPENAI_API_KEY"])
+if "OPENAI_API_KEY" in os.environ:
+    chat = ChatGPT(os.environ["OPENAI_API_KEY"])
+else:
+    chat = TestChatGPT()
+
