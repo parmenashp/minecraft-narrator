@@ -72,9 +72,7 @@ public class EventSubscriber {
         @SubscribeEvent
         public static void onItemCrafted(PlayerEvent.ItemCraftedEvent event) {
             LOGGER.debug("ItemCraftedEvent triggered");
-                LOGGER.debug("ItemCraftedEvent triggered but not in crafting phase");
-                return;
-            }
+            LOGGER.debug("ItemCraftedEvent triggered but not in crafting phase");
             if (event.getEntity() == null || event.getCrafting().isEmpty()) {
                 LOGGER.debug("ItemCraftedEvent triggered without valid entity or crafting item");
                 return;
@@ -107,7 +105,6 @@ public class EventSubscriber {
         @SubscribeEvent
         public static void onPlayerDeath(LivingDeathEvent event) {
             event.setCanceled(false);
-            event.notifyAll();
             LOGGER.debug("LivingDeathEvent triggered");
             if (event.getEntity() == null || !(event.getEntity() instanceof Player player)) {
                 LOGGER.debug("LivingDeathEvent triggered but is not a player");
@@ -123,8 +120,6 @@ public class EventSubscriber {
         @SubscribeEvent
         public static void onAchievement(AdvancementEarnEvent event) {
             LOGGER.debug("AdvancementEvent triggered");
-            event.setCanceled(false);
-            event.notifyAll();
             if (event.getEntity() == null) {
                 LOGGER.debug("AdvancementEvent triggered without valid player");
                 return;
