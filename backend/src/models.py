@@ -15,6 +15,7 @@ class Event(StrEnum):
     BLOCK_BROKEN = "block_broken"
     PLAYER_DEATH = "player_death"
     ADVANCEMENT = "advancement"
+    ITEM_PICKUP = "item_pickup"
 
 
 class ItemCraftedEventData(BaseEventData):
@@ -33,6 +34,10 @@ class PlayerDeathEventData(BaseEventData):
 
 class AdvancementEventData(BaseEventData):
     advancement: str
+
+class ItemPickupEventData(BaseEventData):
+    item: str
+    amount: int
 
 
 class IncomingEvent(BaseModel, Generic[DataT]):
