@@ -64,3 +64,14 @@ async def handle_achievement(event: IncomingEvent[models.AdvancementEventData]):
         action=Action.SEND_CHAT,
         data={"text": f'Jogador "Felps" ganhou a conquista "{event.data["advancement"]}"'},
     )
+
+
+@event_handler.register(Event.ITEM_PICKUP)
+async def handle_item_pickup(event: IncomingEvent[models.ItemPickupEventData]):
+    text = f'Jogador "Felps" pegou {event.data["amount"]} "{event.data["item"]}"'
+    # chat_response = await chat.ask(text)
+    chat_response = text
+    return OutgoingAction(
+        action=Action.SEND_CHAT,
+        data={"text": chat_response},
+    )
