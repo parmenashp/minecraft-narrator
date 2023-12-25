@@ -10,6 +10,7 @@ class TestChatGPT:
     async def ask(self, text: str) -> str:
         return text
 
+
 class ChatGPT:
     def __init__(self, api_key):
         self.client = openai.AsyncOpenAI(
