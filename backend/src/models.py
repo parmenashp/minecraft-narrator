@@ -13,6 +13,7 @@ DataT = TypeVar("DataT", bound=BaseEventData)
 class Event(StrEnum):
     ITEM_CRAFTED = "item_crafted"
     BLOCK_BROKEN = "block_broken"
+    BLOCK_PLACED = "block_placed"
     PLAYER_DEATH = "player_death"
     ADVANCEMENT = "advancement"
     ITEM_PICKUP = "item_pickup"
@@ -27,6 +28,10 @@ class ItemCraftedEventData(BaseEventData):
 class BlockBrokenEventData(BaseEventData):
     block: str
     tool: str
+
+
+class BlockPlacedEventData(BaseEventData):
+    block: str
 
 
 class PlayerDeathEventData(BaseEventData):
