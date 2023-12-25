@@ -16,6 +16,7 @@ class Event(StrEnum):
     PLAYER_DEATH = "player_death"
     ADVANCEMENT = "advancement"
     ITEM_PICKUP = "item_pickup"
+    MOB_KILLED = "mob_killed"
 
 
 class ItemCraftedEventData(BaseEventData):
@@ -35,9 +36,15 @@ class PlayerDeathEventData(BaseEventData):
 class AdvancementEventData(BaseEventData):
     advancement: str
 
+
 class ItemPickupEventData(BaseEventData):
     item: str
     amount: int
+
+
+class MobKilledEventData(BaseEventData):
+    mob: str
+    weapon: str
 
 
 class IncomingEvent(BaseModel, Generic[DataT]):

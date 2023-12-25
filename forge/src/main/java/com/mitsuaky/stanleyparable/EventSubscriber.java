@@ -1,9 +1,9 @@
 package com.mitsuaky.stanleyparable;
 
 import com.google.gson.JsonObject;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.api.distmarker.Dist;
@@ -28,8 +28,8 @@ public class EventSubscriber {
         BLOCK_BROKEN("block_broken"),
         PLAYER_DEATH("player_death"),
         ADVANCEMENT("advancement"),
-        ITEM_PICKUP("item_pickup");
-
+        ITEM_PICKUP("item_pickup"),
+        MOB_KILLED("mob_killed");
         private final String value;
 
         Event(String value) {
@@ -62,14 +62,20 @@ public class EventSubscriber {
         }
     }
 
-    public static String getAsID(Item item) {
-        final ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
-        return id.toString();
+    public static String getAsId(Item item) {
+        return item.getDescriptionId();
     }
 
-    public static String getAsID(net.minecraft.world.level.block.Block block) {
-        final ResourceLocation id = BuiltInRegistries.BLOCK.getKey(block);
-        return id.toString();
+    public static String getAsId(net.minecraft.world.level.block.Block block) {
+        return block.getDescriptionId();
+    }
+
+    public static String getAsId(Entity entity) {
+        return entity.getType().getDescriptionId();
+    }
+
+    public static String getAsId(AdvancementHolder advancement) {
+        return advancement.id().toString();
     }
 
     @SubscribeEvent
@@ -81,7 +87,7 @@ public class EventSubscriber {
             return;
         }
 
-        String item = getAsID(event.getCrafting().getItem());
+        String item = getAsId(event.getCrafting().getItem());
         int amount = event.getCrafting().getCount();
         Player player = event.getEntity();
         ItemCraftedEventData eventData = new ItemCraftedEventData(item, amount);
@@ -97,8 +103,8 @@ public class EventSubscriber {
             return;
         }
 
-        String tool = getAsID(event.getPlayer().getMainHandItem().getItem());
-        String block = getAsID(event.getState().getBlock());
+        String tool = getAsId(event.getPlayer().getMainHandItem().getItem());
+        String block = getAsId(event.getState().getBlock());
         Player player = event.getPlayer();
         BlockBrokenEventData eventData = new BlockBrokenEventData(block, tool);
         IncomingEvent<BlockBrokenEventData> incomingEvent = new IncomingEvent<>(Event.BLOCK_BROKEN, eventData);
@@ -108,7 +114,7 @@ public class EventSubscriber {
     @SubscribeEvent
     public static void onPlayerDeath(LivingDeathEvent event) {
         event.setCanceled(false);
-        LOGGER.debug("LivingDeathEvent triggered");
+        LOGGER.debug("Player LivingDeathEvent triggered");
         if (event.getEntity() == null || !(event.getEntity() instanceof Player player)) {
             LOGGER.debug("LivingDeathEvent triggered but is not a player");
             return;
@@ -128,7 +134,13 @@ public class EventSubscriber {
             return;
         }
 
-        AdvancementEventData eventData = new AdvancementEventData(event.getAdvancement().toString());
+        AdvancementHolder advancement = event.getAdvancement();
+        if (advancement.value().rewards().getRecipes().length > 0) {
+            LOGGER.debug("AdvancementEvent triggered but is a recipe");
+            return;
+        }
+
+        AdvancementEventData eventData = new AdvancementEventData(getAsId(event.getAdvancement()));
         IncomingEvent<AdvancementEventData> incomingEvent = new IncomingEvent<>(Event.ADVANCEMENT, eventData);
         processApiResponse(event.getEntity(), event, incomingEvent.toJson());
     }
@@ -141,11 +153,26 @@ public class EventSubscriber {
             return;
         }
 
-        String item = getAsID(event.getStack().getItem());
+        String item = getAsId(event.getStack().getItem());
         int amount = event.getStack().getCount();
         Player player = event.getEntity();
         ItemPickupEventData eventData = new ItemPickupEventData(item, amount);
         IncomingEvent<ItemPickupEventData> incomingEvent = new IncomingEvent<>(Event.ITEM_PICKUP, eventData);
+        processApiResponse(player, event, incomingEvent.toJson());
+    }
+
+    @SubscribeEvent
+    public static void onMobKilled(LivingDeathEvent event) {
+        LOGGER.debug("MobKilledEvent triggered");
+        if (event.getEntity() == null || event.getSource().getEntity() == null || !(event.getSource().getEntity() instanceof Player player)) {
+            LOGGER.debug("MobKilledEvent triggered without valid player or mob");
+            return;
+        }
+
+        String mob = getAsId(event.getEntity());
+        String weapon = getAsId(player.getMainHandItem().getItem());
+        MobKilledEventData eventData = new MobKilledEventData(mob, weapon);
+        IncomingEvent<MobKilledEventData> incomingEvent = new IncomingEvent<>(Event.MOB_KILLED, eventData);
         processApiResponse(player, event, incomingEvent.toJson());
     }
 
@@ -279,6 +306,23 @@ class ItemPickupEventData extends BaseEventData {
         JsonObject json = new JsonObject();
         json.addProperty("item", item);
         json.addProperty("amount", amount);
+        return json;
+    }
+}
+
+class MobKilledEventData extends BaseEventData {
+    String mob;
+    String weapon;
+
+    MobKilledEventData(String mob, String weapon) {
+        this.mob = mob;
+        this.weapon = weapon;
+    }
+
+    JsonObject toJson() {
+        JsonObject json = new JsonObject();
+        json.addProperty("mob", mob);
+        json.addProperty("weapon", weapon);
         return json;
     }
 }

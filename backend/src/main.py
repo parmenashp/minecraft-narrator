@@ -75,3 +75,14 @@ async def handle_item_pickup(event: IncomingEvent[models.ItemPickupEventData]):
         action=Action.SEND_CHAT,
         data={"text": chat_response},
     )
+
+
+@event_handler.register(Event.MOB_KILLED)
+async def handle_mob_killed(event: IncomingEvent[models.MobKilledEventData]):
+    text = f'Jogador "Felps" matou "{event.data["mob"]}" com "{event.data["weapon"]}"'
+    # chat_response = await chat.ask(text)
+    chat_response = text
+    return OutgoingAction(
+        action=Action.SEND_CHAT,
+        data={"text": chat_response},
+    )
