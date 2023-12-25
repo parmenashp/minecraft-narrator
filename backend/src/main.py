@@ -12,6 +12,9 @@ app = fastapi.FastAPI()
 async def handle_event(event: IncomingEvent) -> OutgoingAction:
     print("in:", event)
     r = await event_handler.handle(event)
+    text = r.data["text"]
+    # chat_response = await chat.ask(text)
+    # r.data["text"] = chat_response
     print("out:", r)
     return r
 
@@ -24,7 +27,6 @@ async def ask(text: str) -> str:
 @event_handler.register(Event.ITEM_CRAFTED)
 async def handle_item_crafted(event: IncomingEvent[models.ItemCraftedEventData]):
     text = f'Jogador "Felps" craftou o item "{event.data["item"]}"'
-    # chat_response = await chat.ask(text)
     chat_response = text
     return OutgoingAction(
         action=Action.SEND_CHAT,
@@ -38,7 +40,6 @@ async def handle_block_broken(event: IncomingEvent[models.BlockBrokenEventData])
         event.data["tool"] = "as próprias mãos"
 
     text = f'Jogador "Felps" quebrou o bloco "{event.data["block"]}" com "{event.data["tool"]}"'
-    # chat_response = await chat.ask(text)
     chat_response = text
     return OutgoingAction(
         action=Action.SEND_CHAT,
@@ -60,7 +61,6 @@ async def handle_block_placed(event: IncomingEvent[models.BlockPlacedEventData])
 @event_handler.register(Event.PLAYER_DEATH)
 async def handle_player_death(event: IncomingEvent[models.PlayerDeathEventData]):
     text = f'Jogador "Felps" morreu por "{event.data["cause"]}"'
-    # chat_response = await chat.ask(text)
     chat_response = text
     return OutgoingAction(
         action=Action.SEND_CHAT,
@@ -79,7 +79,6 @@ async def handle_achievement(event: IncomingEvent[models.AdvancementEventData]):
 @event_handler.register(Event.ITEM_PICKUP)
 async def handle_item_pickup(event: IncomingEvent[models.ItemPickupEventData]):
     text = f'Jogador "Felps" pegou {event.data["amount"]} "{event.data["item"]}"'
-    # chat_response = await chat.ask(text)
     chat_response = text
     return OutgoingAction(
         action=Action.SEND_CHAT,
@@ -90,7 +89,6 @@ async def handle_item_pickup(event: IncomingEvent[models.ItemPickupEventData]):
 @event_handler.register(Event.MOB_KILLED)
 async def handle_mob_killed(event: IncomingEvent[models.MobKilledEventData]):
     text = f'Jogador "Felps" matou "{event.data["mob"]}" com "{event.data["weapon"]}"'
-    # chat_response = await chat.ask(text)
     chat_response = text
     return OutgoingAction(
         action=Action.SEND_CHAT,

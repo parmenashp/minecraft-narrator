@@ -42,3 +42,17 @@ class CooldownManager:
             return True
 
         return False
+
+    def check_individual_cooldown(self, event: Event) -> bool:
+        """
+        Check individual cooldown and return True if it is active, False otherwise
+        """
+        if event in self.bypass_cooldowns:
+            print("Bypassing cooldown for event: ", event)
+            return False
+
+        if self.is_on_cooldown(event):
+            print("Cooldown active for event: ", event, self.get_cooldown_remaining(event))
+            return True
+
+        return False
