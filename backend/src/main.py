@@ -1,4 +1,3 @@
-from calendar import c
 import fastapi
 
 from src import models
@@ -39,6 +38,17 @@ async def handle_block_broken(event: IncomingEvent[models.BlockBrokenEventData])
         event.data["tool"] = "as próprias mãos"
 
     text = f'Jogador "Felps" quebrou o bloco "{event.data["block"]}" com "{event.data["tool"]}"'
+    # chat_response = await chat.ask(text)
+    chat_response = text
+    return OutgoingAction(
+        action=Action.SEND_CHAT,
+        data={"text": chat_response},
+    )
+
+
+@event_handler.register(Event.BLOCK_PLACED)
+async def handle_block_placed(event: IncomingEvent[models.BlockPlacedEventData]):
+    text = f'Jogador "Felps" colocou o bloco "{event.data["block"]}"'
     # chat_response = await chat.ask(text)
     chat_response = text
     return OutgoingAction(

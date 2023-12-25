@@ -26,6 +26,7 @@ public class EventSubscriber {
     public enum Event {
         ITEM_CRAFTED("item_crafted"),
         BLOCK_BROKEN("block_broken"),
+        BLOCK_PLACED("block_placed"),
         PLAYER_DEATH("player_death"),
         ADVANCEMENT("advancement"),
         ITEM_PICKUP("item_pickup"),
@@ -108,6 +109,21 @@ public class EventSubscriber {
         Player player = event.getPlayer();
         BlockBrokenEventData eventData = new BlockBrokenEventData(block, tool);
         IncomingEvent<BlockBrokenEventData> incomingEvent = new IncomingEvent<>(Event.BLOCK_BROKEN, eventData);
+        processApiResponse(player, event, incomingEvent.toJson());
+    }
+
+    @SubscribeEvent
+    public static void onBlockPlace(BlockEvent.EntityPlaceEvent event) {
+        LOGGER.debug("BlockPlaceEvent triggered");
+        if (event.getEntity() == null || event.getPlacedBlock().isAir()) {
+            LOGGER.debug("BlockPlaceEvent triggered without valid player or block state");
+            return;
+        }
+
+        String block = getAsId(event.getPlacedBlock().getBlock());
+        Player player = event.getEntity() instanceof Player ? (Player) event.getEntity() : null;
+        BlockPlacedEventData eventData = new BlockPlacedEventData(block);
+        IncomingEvent<BlockPlacedEventData> incomingEvent = new IncomingEvent<>(Event.BLOCK_PLACED, eventData);
         processApiResponse(player, event, incomingEvent.toJson());
     }
 
@@ -261,6 +277,20 @@ class BlockBrokenEventData extends BaseEventData {
         JsonObject json = new JsonObject();
         json.addProperty("block", block);
         json.addProperty("tool", tool);
+        return json;
+    }
+}
+
+class BlockPlacedEventData extends BaseEventData {
+    String block;
+
+    BlockPlacedEventData(String block) {
+        this.block = block;
+    }
+
+    JsonObject toJson() {
+        JsonObject json = new JsonObject();
+        json.addProperty("block", block);
         return json;
     }
 }
