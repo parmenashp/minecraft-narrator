@@ -43,7 +43,7 @@ class EventHandler:
 
         outgoing_action.data["text"] = '\n'.join(self._queue.all())
 
-        self._cd_manager.add_cooldown(event.event, 1200)  # Individual cd, 20 min
+        self._cd_manager.add_cooldown(event.event, 5*60)  # Individual cd, 5 min
         self._cd_manager.add_cooldown("GLOBAL_COOLDOWN", random.randint(30, 60))  # Global cd, 30-60 sec
 
         return outgoing_action

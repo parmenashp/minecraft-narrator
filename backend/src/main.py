@@ -12,9 +12,11 @@ app = fastapi.FastAPI()
 async def handle_event(event: IncomingEvent) -> OutgoingAction:
     print("in:", event)
     r = await event_handler.handle(event)
+    if r.action == Action.IGNORE:
+        return r
     text = r.data["text"]
-    # chat_response = await chat.ask(text)
-    # r.data["text"] = chat_response
+    chat_response = await chat.ask(text)
+    r.data["text"] = chat_response
     print("out:", r)
     return r
 
@@ -27,6 +29,7 @@ async def ask(text: str) -> str:
 @event_handler.register(Event.ITEM_CRAFTED)
 async def handle_item_crafted(event: IncomingEvent[models.ItemCraftedEventData]):
     text = f'Jogador "Felps" craftou o item "{event.data["item"]}"'
+    # chat_response = await chat.ask(text)
     chat_response = text
     return OutgoingAction(
         action=Action.SEND_CHAT,
