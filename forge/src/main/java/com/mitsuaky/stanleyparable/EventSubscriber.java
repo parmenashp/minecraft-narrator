@@ -115,7 +115,7 @@ public class EventSubscriber {
     @SubscribeEvent
     public static void onBlockPlace(BlockEvent.EntityPlaceEvent event) {
         LOGGER.debug("BlockPlaceEvent triggered");
-        if (event.getEntity() == null || event.getPlacedBlock().isAir()) {
+        if (event.getEntity() == null || event.getPlacedBlock().isAir() || !(event.getEntity() instanceof Player)) {
             LOGGER.debug("BlockPlaceEvent triggered without valid player or block state");
             return;
         }
