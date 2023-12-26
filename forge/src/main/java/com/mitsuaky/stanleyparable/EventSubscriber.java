@@ -2,6 +2,7 @@ package com.mitsuaky.stanleyparable;
 
 import com.google.gson.JsonObject;
 import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -155,8 +156,8 @@ public class EventSubscriber {
             LOGGER.debug("AdvancementEvent triggered but is a recipe");
             return;
         }
-
-        AdvancementEventData eventData = new AdvancementEventData(getAsId(event.getAdvancement()));
+        String advancementTitle = event.getAdvancement().value().display().map(DisplayInfo::getTitle).map(Component::getString).orElse("");
+        AdvancementEventData eventData = new AdvancementEventData(advancementTitle);
         IncomingEvent<AdvancementEventData> incomingEvent = new IncomingEvent<>(Event.ADVANCEMENT, eventData);
         processApiResponse(event.getEntity(), event, incomingEvent.toJson());
     }
