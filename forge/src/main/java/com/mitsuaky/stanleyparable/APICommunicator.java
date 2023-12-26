@@ -22,7 +22,7 @@ public class APICommunicator {
     public static CompletableFuture<JsonObject> sendEventAsync(JsonObject event) {
         LOGGER.info("Making async API call to server: " + event);
         CompletableFuture<JsonObject> future = CompletableFuture.supplyAsync(() -> sendEvent(event));
-        future.completeOnTimeout(null, 1, TimeUnit.SECONDS);
+        future.completeOnTimeout(null, 20, TimeUnit.SECONDS);
         return future;
     }
 
