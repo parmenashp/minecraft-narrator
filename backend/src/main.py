@@ -39,7 +39,7 @@ async def handle_item_crafted(event: IncomingEvent[models.ItemCraftedEventData])
 
 @event_handler.register(Event.BLOCK_BROKEN)
 async def handle_block_broken(event: IncomingEvent[models.BlockBrokenEventData]):
-    if event.data["tool"] == "minecraft:air":
+    if event.data["tool"] == "block.minecraft.air":
         event.data["tool"] = "as próprias mãos"
 
     text = f'Jogador "Felps" quebrou o bloco "{event.data["block"]}" com "{event.data["tool"]}"'
