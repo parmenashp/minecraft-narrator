@@ -137,7 +137,7 @@ public class EventSubscriber {
             return;
         }
 
-        String deathCause = event.getSource().getMsgId();
+        String deathCause = event.getSource().getLocalizedDeathMessage(event.getEntity()).getString();
         PlayerDeathEventData eventData = new PlayerDeathEventData(deathCause);
         IncomingEvent<PlayerDeathEventData> incomingEvent = new IncomingEvent<>(Event.PLAYER_DEATH, eventData);
         processApiResponse(player, event, incomingEvent.toJson());

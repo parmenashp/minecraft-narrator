@@ -7,6 +7,7 @@ gpt_config = {
     "top_p": 0.5,
     "frequency_penalty": 0.5,
     "presence_penalty": 1.3,
+    "stop": ["\n"],
 }
 
 messages = [
@@ -99,6 +100,7 @@ class FreeChatGPT:
             top_p=gpt_config["top_p"],
             frequency_penalty=gpt_config["frequency_penalty"],
             presence_penalty=gpt_config["presence_penalty"],
+            stop=gpt_config["stop"],
         )
 
         return response.choices[0].message.content  # type: ignore
@@ -119,6 +121,7 @@ class ChatGPT:
             top_p=gpt_config["top_p"],
             frequency_penalty=gpt_config["frequency_penalty"],
             presence_penalty=gpt_config["presence_penalty"],
+            stop=gpt_config["stop"],
         )
 
         return response.choices[0].message.content  # type: ignore

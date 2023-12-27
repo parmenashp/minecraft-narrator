@@ -91,6 +91,8 @@ async def handle_item_pickup(event: IncomingEvent[models.ItemPickupEventData]):
 
 @event_handler.register(Event.MOB_KILLED)
 async def handle_mob_killed(event: IncomingEvent[models.MobKilledEventData]):
+    if event.data["weapon"] == "block.minecraft.air":
+        event.data["weapon"] = "as próprias mãos"
     text = f'Jogador "Felps" matou "{event.data["mob"]}" com "{event.data["weapon"]}"'
     chat_response = text
     return OutgoingAction(
