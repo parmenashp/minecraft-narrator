@@ -140,7 +140,6 @@ public class EventSubscriber {
 
         String deathCause = event.getSource().getMsgId();
         PlayerDeathEventData eventData = new PlayerDeathEventData(deathCause);
-        LOGGER.debug(eventData);
         IncomingEvent<PlayerDeathEventData> incomingEvent = new IncomingEvent<>(Event.PLAYER_DEATH, eventData);
         processApiResponse(player, event, incomingEvent.toJson());
     }
@@ -172,7 +171,6 @@ public class EventSubscriber {
             return;
         }
         String dimension = event.getTo().location().toString();
-        LOGGER.debug(dimension);
         DimensionChangeEventData eventData = new DimensionChangeEventData(dimension);
         IncomingEvent<DimensionChangeEventData> incomingEvent = new IncomingEvent<>(Event.DIMENSION_CHANGED, eventData);
         processApiResponse(event.getEntity(), event, incomingEvent.toJson());
