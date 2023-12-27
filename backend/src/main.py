@@ -97,3 +97,11 @@ async def handle_mob_killed(event: IncomingEvent[models.MobKilledEventData]):
         action=Action.SEND_CHAT,
         data={"text": chat_response},
     )
+
+
+@event_handler.register(Event.DIMENSION_CHANGED)
+async def handle_dimension_changed(event: IncomingEvent[models.DimensionChangedEventData]):
+    return OutgoingAction(
+        action=Action.SEND_CHAT,
+        data={"text": f'Jogador "Felps" entrou na dimensão "{event.data["dimension"]}"'},
+    )

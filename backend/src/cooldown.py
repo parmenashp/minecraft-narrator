@@ -5,7 +5,11 @@ from src.models import Event
 class CooldownManager:
     def __init__(self):
         self.cooldowns = {}
-        self.bypass_cooldowns = [Event.PLAYER_DEATH, Event.ADVANCEMENT]
+        self.bypass_cooldowns = [
+            Event.PLAYER_DEATH,
+            Event.ADVANCEMENT,
+            Event.DIMENSION_CHANGED,
+        ]
 
     def add_cooldown(self, name, duration: int):
         self.cooldowns[name] = time.time() + duration
