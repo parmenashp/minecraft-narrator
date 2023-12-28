@@ -1,17 +1,20 @@
 import fastapi
 
 from src import models
-from src.models import Event, Action, OutgoingAction, IncomingEvent
+from src.models import Event, Action, OutgoingAction, IncomingEvent, Pong, Config
 from src.handler import event_handler
 from src.chatgpt import chat
+from src.config import GlobalConfig
 
 app = fastapi.FastAPI()
+
+config = GlobalConfig()
 
 
 @app.post("/event")
 async def handle_event(event: IncomingEvent) -> OutgoingAction:
     print("in:", event)
-    r = await event_handler.handle(event)
+    r = await event_handler.handle(event, config)
     if r.action == Action.IGNORE:
         return r
     text = r.data["text"]
@@ -19,6 +22,19 @@ async def handle_event(event: IncomingEvent) -> OutgoingAction:
     r.data["text"] = chat_response
     print("out:", r)
     return r
+
+
+@app.get("/ping")
+async def ping():
+    return Pong(text="pong")
+
+
+@app.post("/config")
+async def config(req_config: Config):
+    config.cooldown_individual = req_config.cooldown_individual
+    config.cooldown_global = req_config.cooldown_global
+    print("config.py:", config)
+    return
 
 
 @app.get("/ask")
