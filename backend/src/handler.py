@@ -30,21 +30,19 @@ class EventHandler:
             raise HTTPException(status_code=404, detail="Evento não encontrado")
 
         outgoing_action = await handler(event)
+        self._queue.put(outgoing_action.data["text"])
 
         print(global_config.cooldown_individual)
 
         if self._cd_manager.check_all_cooldown(event.event):
-            if not self._cd_manager.check_individual_cooldown(event.event):
-                self._queue.put(outgoing_action.data["text"])
-
             return OutgoingAction(
                 action=Action.IGNORE,
                 data={"text": "Aguardando cooldown"},
             )
 
-        self._queue.put(outgoing_action.data["text"])
-
         outgoing_action.data["text"] = '\n'.join(self._queue.all())
+        print(self._queue.all())
+        self._queue.clear()
 
         self._cd_manager.add_cooldown(event.event, global_config.cooldown_individual*60)  # Individual cd, 5 min
         self._cd_manager.add_cooldown("GLOBAL_COOLDOWN", global_config.cooldown_global + random.randint(0, 30))  # Global cd, 30 sec to 1 min

@@ -11,3 +11,6 @@ class Queue:
 
     def all(self):
         return self._queue
+
+    def clear(self):
+        self._queue.clear()
