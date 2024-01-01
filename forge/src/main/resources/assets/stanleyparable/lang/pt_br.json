@@ -1,0 +1,7 @@
+{
+  "gui.stanleyparable.apply": "Aplicar",
+  "gui.stanleyparable.cooldown_event": "Cooldown de Evento em minutos: ",
+  "gui.stanleyparable.cooldown_global": "Cooldown Global em segundos: ",
+  "gui.stanleyparable.send_to_chat": "Aparecer no Chat",
+  "gui.stanleyparable.config.title": "Configurações do narrador"
+}

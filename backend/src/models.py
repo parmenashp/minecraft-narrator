@@ -57,9 +57,16 @@ class IncomingEvent(BaseModel, Generic[DataT]):
     data: dict
 
 
+class Pong(BaseModel, Generic[DataT]):
+    text: str
+
+
+class Config(BaseModel, Generic[DataT]):
+    cooldown_individual: int
+    cooldown_global: int
+
+
 # ==== Outgoing ====
-
-
 class Action(StrEnum):
     IGNORE = "ignore"
     CANCEL_EVENT = "cancel_event"

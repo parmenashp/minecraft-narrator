@@ -15,28 +15,28 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class APICommunicator {
-
-    private static final String API_URL = "http://127.0.0.1:5000/event";
+    private static final String API_URL = "http://127.0.0.1:5000/";
     private static final Logger LOGGER = LogManager.getLogger(APICommunicator.class);
 
-    public static CompletableFuture<JsonObject> sendEventAsync(JsonObject event) {
+    public static CompletableFuture<JsonObject> sendRequestAsync(String method, String path, JsonObject event) throws RuntimeException {
         LOGGER.info("Making async API call to server: " + event);
-        CompletableFuture<JsonObject> future = CompletableFuture.supplyAsync(() -> sendEvent(event));
-        future.completeOnTimeout(null, 20, TimeUnit.SECONDS);
+        CompletableFuture<JsonObject> future = CompletableFuture.supplyAsync(() -> sendRequest(method, path, event));
+        future.orTimeout(20, TimeUnit.SECONDS);
         return future;
     }
 
-    public static JsonObject sendEvent(JsonObject event) {
+    public static JsonObject sendRequest(String method, String path, JsonObject event) throws RuntimeException {
         HttpURLConnection connection = null;
         try {
-            connection = initializeConnection();
+            connection = initializeConnection(method, path);
             LOGGER.info("Sending event to server: " + event);
-            try (OutputStream os = connection.getOutputStream()) {
-                byte[] input = event.toString().getBytes(StandardCharsets.UTF_8);
-                os.write(input, 0, input.length);
-            } catch (Exception ex) {
-                LOGGER.error("Exception during API call: " + ex.getMessage(), ex);
-                return null;
+            if (event != null) {
+                try (OutputStream os = connection.getOutputStream()) {
+                    byte[] input = event.toString().getBytes(StandardCharsets.UTF_8);
+                    os.write(input, 0, input.length);
+                } catch (Exception ex) {
+                    throw new RuntimeException("Could not send event to server: " + ex.getMessage(), ex);
+                }
             }
 
             try (BufferedReader br = new BufferedReader(
@@ -46,15 +46,12 @@ public class APICommunicator {
                 while ((responseLine = br.readLine()) != null) {
                     response.append(responseLine.trim());
                 }
-                LOGGER.info("Response from server: " + response.toString());
                 return JsonParser.parseString(response.toString()).getAsJsonObject();
             } catch (Exception ex) {
-                LOGGER.error("Exception during API call: " + ex.getMessage(), ex);
-                return null;
+                throw new RuntimeException("Could not read response from server: " + ex.getMessage(), ex);
             }
         } catch (Exception ex) {
-            LOGGER.error("Exception during API call: " + ex.getMessage(), ex);
-            return null;
+            throw new RuntimeException("Could not send request to server: " + ex.getMessage(), ex);
         } finally {
             if (connection != null) {
                 connection.disconnect();
@@ -62,10 +59,10 @@ public class APICommunicator {
         }
     }
 
-    private static HttpURLConnection initializeConnection() throws Exception {
-        URL url = new URL(API_URL);
+    private static HttpURLConnection initializeConnection(String method, String path) throws Exception {
+        URL url = new URL(API_URL + path);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("POST");
+        connection.setRequestMethod(method);
         connection.setRequestProperty("Content-Type", "application/json; utf-8");
         connection.setDoOutput(true);
         return connection;
