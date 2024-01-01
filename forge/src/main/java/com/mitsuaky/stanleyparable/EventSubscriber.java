@@ -35,7 +35,9 @@ public class EventSubscriber {
         PLAYER_DEATH("player_death"),
         ADVANCEMENT("advancement"),
         ITEM_PICKUP("item_pickup"),
-        MOB_KILLED("mob_killed");
+        MOB_KILLED("mob_killed"),
+        DIMENSION_CHANGED("dimension_changed");
+
         private final String value;
 
         Event(String value) {
@@ -176,6 +178,19 @@ public class EventSubscriber {
 
         AdvancementEventData eventData = new AdvancementEventData(getAsId(event.getAdvancement()));
         IncomingEvent<AdvancementEventData> incomingEvent = new IncomingEvent<>(Event.ADVANCEMENT, eventData);
+        processApiResponse(event.getEntity(), event, incomingEvent.toJson());
+    }
+
+    @SubscribeEvent
+    public static void onDimensionChange(PlayerEvent.PlayerChangedDimensionEvent event) {
+        LOGGER.debug("DimensionChangeEvent triggered");
+        if (event.getEntity() == null || !(event.getEntity() instanceof Player)) {
+            LOGGER.debug("DimensionChangeEvent triggered without valid player");
+            return;
+        }
+        String dimension = event.getTo().location().toString();
+        DimensionChangeEventData eventData = new DimensionChangeEventData(dimension);
+        IncomingEvent<DimensionChangeEventData> incomingEvent = new IncomingEvent<>(Event.DIMENSION_CHANGED, eventData);
         processApiResponse(event.getEntity(), event, incomingEvent.toJson());
     }
 
@@ -339,6 +354,20 @@ class AdvancementEventData extends BaseEventData {
     JsonObject toJson() {
         JsonObject json = new JsonObject();
         json.addProperty("advancement", advancement);
+        return json;
+    }
+}
+
+class DimensionChangeEventData extends BaseEventData {
+    String dimension;
+
+    DimensionChangeEventData(String dimension) {
+        this.dimension = dimension;
+    }
+
+    JsonObject toJson() {
+        JsonObject json = new JsonObject();
+        json.addProperty("dimension", dimension);
         return json;
     }
 }
