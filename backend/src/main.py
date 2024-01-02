@@ -8,13 +8,13 @@ from src.config import GlobalConfig
 
 app = fastapi.FastAPI()
 
-config = GlobalConfig()
+global_config = GlobalConfig()
 
 
 @app.post("/event")
 async def handle_event(event: IncomingEvent) -> OutgoingAction:
     print("in:", event)
-    r = await event_handler.handle(event, config)
+    r = await event_handler.handle(event, global_config)
     if r.action == Action.IGNORE:
         return r
     text = r.data["text"]
@@ -31,9 +31,9 @@ async def ping():
 
 @app.post("/config")
 async def config(req_config: Config):
-    config.cooldown_individual = req_config.cooldown_individual
-    config.cooldown_global = req_config.cooldown_global
-    print("config.py:", config)
+    global_config.set_cooldown_individual(req_config.cooldown_individual)
+    global_config.set_cooldown_global(req_config.cooldown_global)
+    print("config.py:", global_config)
     return
 
 
