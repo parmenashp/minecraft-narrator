@@ -32,7 +32,7 @@ class EventHandler:
         outgoing_action = await handler(event)
         self._queue.put(outgoing_action.data["text"])
 
-        print(global_config.cooldown_individual)
+        print(global_config)
 
         if self._cd_manager.check_all_cooldown(event.event):
             return OutgoingAction(
@@ -44,8 +44,8 @@ class EventHandler:
         print(self._queue.all())
         self._queue.clear()
 
-        self._cd_manager.add_cooldown(event.event, global_config.cooldown_individual*60)  # Individual cd, 5 min
-        self._cd_manager.add_cooldown("GLOBAL_COOLDOWN", global_config.cooldown_global + random.randint(0, 30))  # Global cd, 30 sec to 1 min
+        self._cd_manager.add_cooldown(event.event, global_config.get_cooldown_individual()*60)  # Individual cd, 5 min
+        self._cd_manager.add_cooldown("GLOBAL_COOLDOWN", global_config.get_cooldown_global() + random.randint(0, 30))  # Global cd, 30 sec to 1 min
 
         return outgoing_action
 
