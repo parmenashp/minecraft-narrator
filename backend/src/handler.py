@@ -4,6 +4,7 @@ from src.cooldown import CooldownManager
 from src.models import IncomingEvent, Event, OutgoingAction, Action
 from typing import Callable, TypeVar, Awaitable
 from src.queue import Queue
+from src.config import GlobalConfig
 
 T = TypeVar("T", bound=IncomingEvent)
 
@@ -23,13 +24,15 @@ class EventHandler:
 
         return decorator
 
-    async def handle(self, event: IncomingEvent) -> OutgoingAction:
+    async def handle(self, event: IncomingEvent, global_config: GlobalConfig) -> OutgoingAction:
         handler = self._handlers.get(event.event)
         if not handler:
             raise HTTPException(status_code=404, detail="Evento não encontrado")
 
         outgoing_action = await handler(event)
         self._queue.put(outgoing_action.data["text"])
+
+        print(global_config)
 
         if self._cd_manager.check_all_cooldown(event.event):
             return OutgoingAction(
@@ -41,8 +44,8 @@ class EventHandler:
         print(self._queue.all())
         self._queue.clear()
 
-        self._cd_manager.add_cooldown(event.event, 5*60)  # Individual cd, 5 min
-        self._cd_manager.add_cooldown("GLOBAL_COOLDOWN", random.randint(30, 60))  # Global cd, 30-60 sec
+        self._cd_manager.add_cooldown(event.event, global_config.get_cooldown_individual()*60)  # Individual cd, 5 min
+        self._cd_manager.add_cooldown("GLOBAL_COOLDOWN", global_config.get_cooldown_global() + random.randint(0, 30))  # Global cd, 30 sec to 1 min
 
         return outgoing_action
 

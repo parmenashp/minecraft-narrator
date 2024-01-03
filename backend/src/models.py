@@ -18,6 +18,7 @@ class Event(StrEnum):
     ADVANCEMENT = "advancement"
     ITEM_PICKUP = "item_pickup"
     MOB_KILLED = "mob_killed"
+    DIMENSION_CHANGED = "dimension_changed"
 
 
 class ItemCraftedEventData(BaseEventData):
@@ -52,14 +53,25 @@ class MobKilledEventData(BaseEventData):
     weapon: str
 
 
+class DimensionChangedEventData(BaseEventData):
+    dimension: str
+
+
 class IncomingEvent(BaseModel, Generic[DataT]):
     event: Event
     data: dict
 
 
+class Pong(BaseModel, Generic[DataT]):
+    text: str
+
+
+class Config(BaseModel, Generic[DataT]):
+    cooldown_individual: int
+    cooldown_global: int
+
+
 # ==== Outgoing ====
-
-
 class Action(StrEnum):
     IGNORE = "ignore"
     CANCEL_EVENT = "cancel_event"

@@ -1,13 +1,18 @@
 package com.mitsuaky.stanleyparable;
 
 import com.google.gson.JsonObject;
+import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.DisplayInfo;
+import net.minecraft.client.Minecraft;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RegisterClientCommandsEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.AdvancementEvent.AdvancementEarnEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -31,7 +36,9 @@ public class EventSubscriber {
         PLAYER_DEATH("player_death"),
         ADVANCEMENT("advancement"),
         ITEM_PICKUP("item_pickup"),
-        MOB_KILLED("mob_killed");
+        MOB_KILLED("mob_killed"),
+        DIMENSION_CHANGED("dimension_changed");
+
         private final String value;
 
         Event(String value) {
@@ -78,6 +85,19 @@ public class EventSubscriber {
 
     public static String getAsId(AdvancementHolder advancement) {
         return advancement.id().toString();
+    }
+
+    @SubscribeEvent
+    public static void registerCommands(RegisterClientCommandsEvent event) {
+        CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
+        dispatcher.register(Commands.literal("minecraftnarrator")
+                .then(Commands.literal("config")
+                        .executes(context -> {
+                            Minecraft.getInstance().setScreen(new ConfigScreen(Minecraft.getInstance().screen));
+                            return 1;
+                        })
+                )
+        );
     }
 
     @SubscribeEvent
@@ -163,6 +183,19 @@ public class EventSubscriber {
     }
 
     @SubscribeEvent
+    public static void onDimensionChange(PlayerEvent.PlayerChangedDimensionEvent event) {
+        LOGGER.debug("DimensionChangeEvent triggered");
+        if (event.getEntity() == null || !(event.getEntity() instanceof Player)) {
+            LOGGER.debug("DimensionChangeEvent triggered without valid player");
+            return;
+        }
+        String dimension = event.getTo().location().toString();
+        DimensionChangeEventData eventData = new DimensionChangeEventData(dimension);
+        IncomingEvent<DimensionChangeEventData> incomingEvent = new IncomingEvent<>(Event.DIMENSION_CHANGED, eventData);
+        processApiResponse(event.getEntity(), event, incomingEvent.toJson());
+    }
+
+    @SubscribeEvent
     public static void onItemPickup(PlayerEvent.ItemPickupEvent event) {
         LOGGER.debug("ItemPickupEvent triggered");
         if (event.getEntity() == null || event.getStack().isEmpty()) {
@@ -194,7 +227,7 @@ public class EventSubscriber {
     }
 
     private static void processApiResponse(Player player, net.minecraftforge.eventbus.api.Event event, JsonObject jsonEvent) {
-        CompletableFuture<JsonObject> future = APICommunicator.sendEventAsync(jsonEvent);
+        CompletableFuture<JsonObject> future = APICommunicator.sendRequestAsync("POST", "event", jsonEvent);
         future.whenComplete(
                 (response, throwable) -> {
                     if (throwable != null) {
@@ -232,9 +265,11 @@ public class EventSubscriber {
                 }
                 break;
             case SEND_CHAT:
-                LOGGER.debug("Sending chat message: " + response.getAsJsonObject("data").get("text").getAsString());
-                String chatMessage = response.getAsJsonObject("data").get("text").getAsString();
-                player.sendSystemMessage(Component.literal(chatMessage));
+                if (ClientConfig.SEND_TO_CHAT.get()) {
+                    LOGGER.debug("Sending chat message: " + response.getAsJsonObject("data").get("text").getAsString());
+                    String chatMessage = response.getAsJsonObject("data").get("text").getAsString();
+                    player.sendSystemMessage(Component.literal(chatMessage));
+                }
                 break;
             default:
                 LOGGER.warn("Unhandled action: " + action);
@@ -320,6 +355,20 @@ class AdvancementEventData extends BaseEventData {
     JsonObject toJson() {
         JsonObject json = new JsonObject();
         json.addProperty("advancement", advancement);
+        return json;
+    }
+}
+
+class DimensionChangeEventData extends BaseEventData {
+    String dimension;
+
+    DimensionChangeEventData(String dimension) {
+        this.dimension = dimension;
+    }
+
+    JsonObject toJson() {
+        JsonObject json = new JsonObject();
+        json.addProperty("dimension", dimension);
         return json;
     }
 }
