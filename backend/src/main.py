@@ -121,3 +121,12 @@ async def handle_dimension_changed(event: IncomingEvent[models.DimensionChangedE
         action=Action.SEND_CHAT,
         data={"text": f'Jogador "Felps" entrou na dimensão "{event.data["dimension"]}"'},
     )
+
+
+@event_handler.register(Event.PLAYER_CHAT)
+async def handle_player_chat(event: IncomingEvent[models.PlayerChatEventData]):
+    text = f'Jogador "Felps" escreveu no chat "{event.data["message"]}"'
+    return OutgoingAction(
+        action=Action.SEND_CHAT,
+        data={"text": text},
+    )

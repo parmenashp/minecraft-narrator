@@ -12,6 +12,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterClientCommandsEvent;
+import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.AdvancementEvent.AdvancementEarnEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -36,7 +37,8 @@ public class EventSubscriber {
         ADVANCEMENT("advancement"),
         ITEM_PICKUP("item_pickup"),
         MOB_KILLED("mob_killed"),
-        DIMENSION_CHANGED("dimension_changed");
+        DIMENSION_CHANGED("dimension_changed"),
+        PLAYER_CHAT("player_chat");
 
         private final String value;
 
@@ -225,6 +227,20 @@ public class EventSubscriber {
         processApiResponse(player, event, incomingEvent.toJson());
     }
 
+    @SubscribeEvent
+    public static void onClientChat(ServerChatEvent event) {
+        LOGGER.debug("ClientChatEvent triggered");
+        if (event.getRawText().startsWith("/")) {
+            LOGGER.debug("ClientChatEvent triggered but is a command");
+            return;
+        }
+        String message = event.getRawText();
+        ClientChatEventData eventData = new ClientChatEventData(message);
+        IncomingEvent<ClientChatEventData> incomingEvent = new IncomingEvent<>(Event.PLAYER_CHAT, eventData);
+        processApiResponse(event.getPlayer(), event, incomingEvent.toJson());
+
+    }
+
     private static void processApiResponse(Player player, net.minecraftforge.eventbus.api.Event event, JsonObject jsonEvent) {
         CompletableFuture<JsonObject> future = APICommunicator.sendRequestAsync("POST", "event", jsonEvent);
         future.whenComplete(
@@ -297,6 +313,21 @@ class ItemCraftedEventData extends BaseEventData {
         json.addProperty("amount", amount);
         return json;
     }
+}
+
+class ClientChatEventData extends BaseEventData {
+    String message;
+
+    ClientChatEventData(String message) {
+        this.message = message;
+    }
+
+    JsonObject toJson() {
+        JsonObject json = new JsonObject();
+        json.addProperty("message", message);
+        return json;
+    }
+
 }
 
 class BlockBrokenEventData extends BaseEventData {
