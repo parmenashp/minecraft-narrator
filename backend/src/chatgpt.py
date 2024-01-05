@@ -105,6 +105,7 @@ messages = [
     }
 ]
 
+
 # Apenas para testes locais sem a API do OpenAI
 class BypassChatGPT:
     def __init__(self):
@@ -116,13 +117,13 @@ class BypassChatGPT:
 
 class FreeChatGPT:
     def __init__(self):
-        self.client = openai.AsyncOpenAI(
+        self.client = openai.OpenAI(
             base_url="https://free.netfly.top/api/openai/v1",
             api_key="nk-3.5isfree",
         )
 
-    async def ask(self, text: str) -> str:
-        response = await self.client.chat.completions.create(
+    def ask(self, text: str):
+        stream = self.client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=messages + [{"role": "user", "content": text}],
             temperature=gpt_config["temperature"],
@@ -130,19 +131,22 @@ class FreeChatGPT:
             top_p=gpt_config["top_p"],
             frequency_penalty=gpt_config["frequency_penalty"],
             presence_penalty=gpt_config["presence_penalty"],
+            stream=True,
         )
-
-        return response.choices[0].message.content  # type: ignore
+        for chunk in stream:
+            text = chunk.choices[0].delta.content
+            if text:
+                yield text.rstrip()
 
 
 class ChatGPT:
     def __init__(self, api_key):
-        self.client = openai.AsyncOpenAI(
+        self.client = openai.OpenAI(
             api_key=api_key,
         )
 
-    async def ask(self, text: str) -> str:
-        response = await self.client.chat.completions.create(
+    def ask(self, text: str):
+        stream = self.client.chat.completions.create(
             model="gpt-4-1106-preview",
             messages=messages + [{"role": "user", "content": text}],
             temperature=gpt_config["temperature"],
@@ -150,9 +154,12 @@ class ChatGPT:
             top_p=gpt_config["top_p"],
             frequency_penalty=gpt_config["frequency_penalty"],
             presence_penalty=gpt_config["presence_penalty"],
+            stream=True
         )
-
-        return response.choices[0].message.content  # type: ignore
+        for chunk in stream:
+            text = chunk.choices[0].delta.content
+            if text:
+                yield text.rstrip()
 
 
 if "OPENAI_API_KEY" in os.environ:
