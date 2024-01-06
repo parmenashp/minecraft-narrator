@@ -125,7 +125,7 @@ async def handle_dimension_changed(event: IncomingEvent[models.DimensionChangedE
 
 @event_handler.register(Event.PLAYER_CHAT)
 async def handle_player_chat(event: IncomingEvent[models.PlayerChatEventData]):
-    text = f'Jogador "Felps" escreveu no chat "{event.data["message"]}"'
+    text = f'Jogador "Felps" escreveu no chat do jogo "{event.data["message"]}"'
     return OutgoingAction(
         action=Action.SEND_CHAT,
         data={"text": text},

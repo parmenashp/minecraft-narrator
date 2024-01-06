@@ -9,6 +9,7 @@ class CooldownManager:
             Event.PLAYER_DEATH,
             Event.ADVANCEMENT,
             Event.DIMENSION_CHANGED,
+            Event.PLAYER_CHAT,
         ]
 
     def add_cooldown(self, name, duration: int):
