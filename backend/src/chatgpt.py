@@ -159,7 +159,7 @@ class ChatGPT:
         for chunk in stream:
             text = chunk.choices[0].delta.content
             if text:
-                yield text.rstrip()
+                yield text
 
 
 if "OPENAI_API_KEY" in os.environ:
