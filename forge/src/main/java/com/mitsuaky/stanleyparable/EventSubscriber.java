@@ -3,6 +3,7 @@ package com.mitsuaky.stanleyparable;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -156,7 +157,7 @@ public class EventSubscriber {
             return;
         }
 
-        String deathCause = event.getSource().getMsgId();
+        String deathCause = event.getSource().getLocalizedDeathMessage(event.getEntity()).getString();
         PlayerDeathEventData eventData = new PlayerDeathEventData(deathCause);
         IncomingEvent<PlayerDeathEventData> incomingEvent = new IncomingEvent<>(Event.PLAYER_DEATH, eventData);
         processApiResponse(player, event, incomingEvent.toJson());
@@ -175,8 +176,8 @@ public class EventSubscriber {
             LOGGER.debug("AdvancementEvent triggered but is a recipe");
             return;
         }
-
-        AdvancementEventData eventData = new AdvancementEventData(getAsId(event.getAdvancement()));
+        String advancementTitle = event.getAdvancement().value().display().map(DisplayInfo::getTitle).map(Component::getString).orElse("");
+        AdvancementEventData eventData = new AdvancementEventData(advancementTitle);
         IncomingEvent<AdvancementEventData> incomingEvent = new IncomingEvent<>(Event.ADVANCEMENT, eventData);
         processApiResponse(event.getEntity(), event, incomingEvent.toJson());
     }
