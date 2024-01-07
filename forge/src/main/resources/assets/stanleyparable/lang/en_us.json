@@ -1,4 +1,5 @@
 {
+  "chat.stanleyparable.network_error": "Connection error with the narrator server, check if it is running.",
   "gui.stanleyparable.apply": "Apply",
   "gui.stanleyparable.cooldown_event": "Cooldown Event of events in minutes",
   "gui.stanleyparable.cooldown_global": "Cooldown Global in seconds",
