@@ -60,7 +60,7 @@ async def handle_item_crafted(event: IncomingEvent[models.ItemCraftedEventData])
 
 @event_handler.register(Event.BLOCK_BROKEN)
 async def handle_block_broken(event: IncomingEvent[models.BlockBrokenEventData]):
-    if event.data["tool"] == "minecraft:air":
+    if event.data["tool"] == "block.minecraft.air":
         event.data["tool"] = "as próprias mãos"
 
     text = f'Jogador "Felps" quebrou o bloco "{event.data["block"]}" com "{event.data["tool"]}"'
@@ -112,6 +112,8 @@ async def handle_item_pickup(event: IncomingEvent[models.ItemPickupEventData]):
 
 @event_handler.register(Event.MOB_KILLED)
 async def handle_mob_killed(event: IncomingEvent[models.MobKilledEventData]):
+    if event.data["weapon"] == "block.minecraft.air":
+        event.data["weapon"] = "as próprias mãos"
     text = f'Jogador "Felps" matou "{event.data["mob"]}" com "{event.data["weapon"]}"'
     chat_response = text
     return OutgoingAction(
@@ -125,4 +127,13 @@ async def handle_dimension_changed(event: IncomingEvent[models.DimensionChangedE
     return OutgoingAction(
         action=Action.SEND_CHAT,
         data={"text": f'Jogador "Felps" entrou na dimensão "{event.data["dimension"]}"'},
+    )
+
+
+@event_handler.register(Event.PLAYER_CHAT)
+async def handle_player_chat(event: IncomingEvent[models.PlayerChatEventData]):
+    text = f'Jogador "Felps" escreveu no chat do jogo "{event.data["message"]}"'
+    return OutgoingAction(
+        action=Action.SEND_CHAT,
+        data={"text": text},
     )

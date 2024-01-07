@@ -3,15 +3,18 @@ package com.mitsuaky.stanleyparable;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterClientCommandsEvent;
+import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.AdvancementEvent.AdvancementEarnEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -36,7 +39,8 @@ public class EventSubscriber {
         ADVANCEMENT("advancement"),
         ITEM_PICKUP("item_pickup"),
         MOB_KILLED("mob_killed"),
-        DIMENSION_CHANGED("dimension_changed");
+        DIMENSION_CHANGED("dimension_changed"),
+        PLAYER_CHAT("player_chat");
 
         private final String value;
 
@@ -102,8 +106,7 @@ public class EventSubscriber {
     @SubscribeEvent
     public static void onItemCrafted(PlayerEvent.ItemCraftedEvent event) {
         LOGGER.debug("ItemCraftedEvent triggered");
-        LOGGER.debug("ItemCraftedEvent triggered but not in crafting phase");
-        if (event.getEntity() == null || event.getCrafting().isEmpty()) {
+        if (event.getEntity() == null || event.getCrafting().isEmpty() || event.getEntity() instanceof ServerPlayer) {
             LOGGER.debug("ItemCraftedEvent triggered without valid entity or crafting item");
             return;
         }
@@ -156,7 +159,7 @@ public class EventSubscriber {
             return;
         }
 
-        String deathCause = event.getSource().getMsgId();
+        String deathCause = event.getSource().getLocalizedDeathMessage(event.getEntity()).getString();
         PlayerDeathEventData eventData = new PlayerDeathEventData(deathCause);
         IncomingEvent<PlayerDeathEventData> incomingEvent = new IncomingEvent<>(Event.PLAYER_DEATH, eventData);
         processApiResponse(player, event, incomingEvent.toJson());
@@ -175,8 +178,8 @@ public class EventSubscriber {
             LOGGER.debug("AdvancementEvent triggered but is a recipe");
             return;
         }
-
-        AdvancementEventData eventData = new AdvancementEventData(getAsId(event.getAdvancement()));
+        String advancementTitle = event.getAdvancement().value().display().map(DisplayInfo::getTitle).map(Component::getString).orElse("");
+        AdvancementEventData eventData = new AdvancementEventData(advancementTitle);
         IncomingEvent<AdvancementEventData> incomingEvent = new IncomingEvent<>(Event.ADVANCEMENT, eventData);
         processApiResponse(event.getEntity(), event, incomingEvent.toJson());
     }
@@ -223,6 +226,20 @@ public class EventSubscriber {
         MobKilledEventData eventData = new MobKilledEventData(mob, weapon);
         IncomingEvent<MobKilledEventData> incomingEvent = new IncomingEvent<>(Event.MOB_KILLED, eventData);
         processApiResponse(player, event, incomingEvent.toJson());
+    }
+
+    @SubscribeEvent
+    public static void onClientChat(ServerChatEvent event) {
+        LOGGER.debug("ClientChatEvent triggered");
+        if (event.getRawText().startsWith("/")) {
+            LOGGER.debug("ClientChatEvent triggered but is a command");
+            return;
+        }
+        String message = event.getRawText();
+        ClientChatEventData eventData = new ClientChatEventData(message);
+        IncomingEvent<ClientChatEventData> incomingEvent = new IncomingEvent<>(Event.PLAYER_CHAT, eventData);
+        processApiResponse(event.getPlayer(), event, incomingEvent.toJson());
+
     }
 
     private static void processApiResponse(Player player, net.minecraftforge.eventbus.api.Event event, JsonObject jsonEvent) {
@@ -297,6 +314,21 @@ class ItemCraftedEventData extends BaseEventData {
         json.addProperty("amount", amount);
         return json;
     }
+}
+
+class ClientChatEventData extends BaseEventData {
+    String message;
+
+    ClientChatEventData(String message) {
+        this.message = message;
+    }
+
+    JsonObject toJson() {
+        JsonObject json = new JsonObject();
+        json.addProperty("message", message);
+        return json;
+    }
+
 }
 
 class BlockBrokenEventData extends BaseEventData {
