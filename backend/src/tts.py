@@ -28,7 +28,7 @@ def tts(text: Generator):
             yield chunk
         generator_done.set()
 
-    gen = generate(text=wrapped_generator(), voice="uC0NOoj2RDmLQrFl1r40", stream=True, model="eleven_multilingual_v2")
+    gen = generate(text=wrapped_generator(), voice=voice_id, stream=True, model="eleven_multilingual_v2")
     stream_thread = threading.Thread(target=stream, kwargs={"audio_stream": gen})
 
     stream_thread.start()

@@ -96,11 +96,11 @@ class ChatGPT:
             base_url=base_url,
         )
 
-    async def ask(self, text: str) -> str:
+    def ask(self, text: str) -> str:
         user_prompt = {"role": "user", "content": text}
         messages: list = system_prompt + context.all() + [user_prompt]
 
-        stream = await self.client.chat.completions.create(
+        stream = self.client.chat.completions.create(
             model=self.model,
             messages=messages,
             stream=True,
@@ -111,7 +111,10 @@ class ChatGPT:
 
         response_text = ""
         for chunk in stream:
-            text = chunk.choices[0].delta.content
+            choices = chunk.choices
+            text = None
+            if len(choices) > 0:
+                text = choices[0].delta.content
             if text:
                 response_text += text
                 yield text
