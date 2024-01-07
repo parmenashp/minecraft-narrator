@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -103,8 +104,7 @@ public class EventSubscriber {
     @SubscribeEvent
     public static void onItemCrafted(PlayerEvent.ItemCraftedEvent event) {
         LOGGER.debug("ItemCraftedEvent triggered");
-        LOGGER.debug("ItemCraftedEvent triggered but not in crafting phase");
-        if (event.getEntity() == null || event.getCrafting().isEmpty()) {
+        if (event.getEntity() == null || event.getCrafting().isEmpty() || event.getEntity() instanceof ServerPlayer) {
             LOGGER.debug("ItemCraftedEvent triggered without valid entity or crafting item");
             return;
         }
