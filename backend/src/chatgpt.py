@@ -48,7 +48,7 @@ system_prompt = [
         Jogador "Felps" quebrou "Bloco de Pedra" com "Picareta de Madeira"
         Jogador "Felps" quebrou "Bloco de Pedra" com "Picareta de Madeira"
         Jogador "Felps" colocou "Bancada de Trabalho"
-        Jogador Felps esbarrou violentamente no chão
+        Jogador morreu Felps esbarrou violentamente no chão
         Oh, a gravidade, essa força impiedosa e constante. Felps decidiu testar suas leis ao pular de uma "
         "altura considerável, esperando talvez que o chão fosse recebê-lo com um abraço macio. Mas não, "
         "o chão é bem conhecido por sua falta de hospitalidade. Uma lição valiosa foi aprendida: "

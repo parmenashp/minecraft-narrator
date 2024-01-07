@@ -75,7 +75,7 @@ async def handle_block_placed(event: IncomingEvent[models.BlockPlacedEventData])
 
 @event_handler.register(Event.PLAYER_DEATH)
 async def handle_player_death(event: IncomingEvent[models.PlayerDeathEventData]):
-    text = f'Jogador "{event.data["cause"]}"'
+    text = f'Jogador morreu "{event.data["cause"]}"'
     chat_response = text
     return OutgoingAction(
         action=Action.SEND_CHAT,
