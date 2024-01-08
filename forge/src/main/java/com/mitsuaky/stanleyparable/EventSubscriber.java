@@ -252,6 +252,7 @@ public class EventSubscriber {
                         } else {
                             LOGGER.error("Error sending event to API: " + throwable.getMessage(), throwable);
                         }
+                        player.sendSystemMessage(Component.translatable("chat.stanleyparable.network_error"));
                     } else {
                         if (response == null) {
                             LOGGER.error("Received null response from API");
