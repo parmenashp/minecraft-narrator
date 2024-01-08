@@ -91,26 +91,34 @@ class BypassChatGPT:
 class ChatGPT:
     def __init__(self, api_key, base_url, model="gpt-3.5-turbo"):
         self.model = model
-        self.client = openai.AsyncOpenAI(
+        self.client = openai.OpenAI(
             api_key=api_key,
             base_url=base_url,
         )
 
-    async def ask(self, text: str) -> str:
+    def ask(self, text: str) -> str:
         user_prompt = {"role": "user", "content": text}
         messages: list = system_prompt + context.all() + [user_prompt]
 
-
-        response = await self.client.chat.completions.create(
+        stream = self.client.chat.completions.create(
             model=self.model,
             messages=messages,
+            stream=True,
             **gpt_config,
         )
 
         context.put(user_prompt)
-        context.put({"role": "assistant", "content": response.choices[0].message.content})
 
-        return response.choices[0].message.content  # type: ignore
+        response_text = ""
+        for chunk in stream:
+            choices = chunk.choices
+            text = None
+            if len(choices) > 0:
+                text = choices[0].delta.content
+            if text:
+                response_text += text
+                yield text
+        context.put({"role": "assistant", "content": response_text})
 
 
 if "OPENAI_API_KEY" in os.environ:

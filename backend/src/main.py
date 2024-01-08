@@ -5,6 +5,7 @@ from src.models import Event, Action, OutgoingAction, IncomingEvent, Pong, Confi
 from src.handler import event_handler
 from src.chatgpt import chat
 from src.config import GlobalConfig
+from src.tts import tts
 
 app = fastapi.FastAPI()
 
@@ -17,9 +18,13 @@ async def handle_event(event: IncomingEvent) -> OutgoingAction:
     r = await event_handler.handle(event, global_config)
     if r.action == Action.IGNORE:
         return r
+
     text = r.data["text"]
-    chat_response = await chat.ask(text)
-    r.data["text"] = chat_response
+    chat_response = chat.ask(text)
+    text = tts(chat_response)
+    print("chat_response:", text)
+
+    r.data["text"] = text
     print("out:", r)
     return r
 
