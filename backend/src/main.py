@@ -60,10 +60,7 @@ async def handle_item_crafted(event: IncomingEvent[models.ItemCraftedEventData])
 
 @event_handler.register(Event.BLOCK_BROKEN)
 async def handle_block_broken(event: IncomingEvent[models.BlockBrokenEventData]):
-    if event.data["tool"] == "block.minecraft.air":
-        event.data["tool"] = "as próprias mãos"
-
-    text = f'Jogador "Felps" quebrou o bloco "{event.data["block"]}" com "{event.data["tool"]}"'
+    text = f'Jogador "Felps" quebrou "{event.data["block"]}" com "{event.data["tool"]}"'
     chat_response = text
     return OutgoingAction(
         action=Action.SEND_CHAT,
@@ -73,8 +70,7 @@ async def handle_block_broken(event: IncomingEvent[models.BlockBrokenEventData])
 
 @event_handler.register(Event.BLOCK_PLACED)
 async def handle_block_placed(event: IncomingEvent[models.BlockPlacedEventData]):
-    text = f'Jogador "Felps" colocou o bloco "{event.data["block"]}"'
-    # chat_response = await chat.ask(text)
+    text = f'Jogador "Felps" colocou "{event.data["block"]}"'
     chat_response = text
     return OutgoingAction(
         action=Action.SEND_CHAT,
@@ -84,7 +80,7 @@ async def handle_block_placed(event: IncomingEvent[models.BlockPlacedEventData])
 
 @event_handler.register(Event.PLAYER_DEATH)
 async def handle_player_death(event: IncomingEvent[models.PlayerDeathEventData]):
-    text = f'Jogador "Felps" morreu por "{event.data["cause"]}"'
+    text = f'Jogador morreu "{event.data["cause"]}"'
     chat_response = text
     return OutgoingAction(
         action=Action.SEND_CHAT,

@@ -12,6 +12,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterClientCommandsEvent;
 import net.minecraftforge.event.ServerChatEvent;
@@ -74,20 +75,17 @@ public class EventSubscriber {
         }
     }
 
-    public static String getAsId(Item item) {
-        return item.getDescriptionId();
+    public static String getAsName(Item item) {
+        ItemStack stack = new ItemStack(item);
+        return item.getName(stack).getString();
     }
 
-    public static String getAsId(net.minecraft.world.level.block.Block block) {
-        return block.getDescriptionId();
+    public static String getAsName(net.minecraft.world.level.block.Block block) {
+        return block.getName().getString();
     }
 
-    public static String getAsId(Entity entity) {
-        return entity.getType().getDescriptionId();
-    }
-
-    public static String getAsId(AdvancementHolder advancement) {
-        return advancement.id().toString();
+    public static String getAsName(Entity entity) {
+        return entity.getName().getString();
     }
 
     @SubscribeEvent
@@ -111,7 +109,7 @@ public class EventSubscriber {
             return;
         }
 
-        String item = getAsId(event.getCrafting().getItem());
+        String item = getAsName(event.getCrafting().getItem());
         int amount = event.getCrafting().getCount();
         Player player = event.getEntity();
         ItemCraftedEventData eventData = new ItemCraftedEventData(item, amount);
@@ -126,11 +124,14 @@ public class EventSubscriber {
             LOGGER.debug("BlockBreakEvent triggered without valid player or block state");
             return;
         }
-
-        String tool = getAsId(event.getPlayer().getMainHandItem().getItem());
-        String block = getAsId(event.getState().getBlock());
+        Item tool = event.getPlayer().getMainHandItem().getItem();
+        String tool_name = getAsName(event.getPlayer().getMainHandItem().getItem());
+        if (tool.getDescriptionId().equals("block.minecraft.air")) {
+            tool_name = Component.translatable("item.stanleyparable.bare_hands").getString();
+        }
+        String block = getAsName(event.getState().getBlock());
         Player player = event.getPlayer();
-        BlockBrokenEventData eventData = new BlockBrokenEventData(block, tool);
+        BlockBrokenEventData eventData = new BlockBrokenEventData(block, tool_name);
         IncomingEvent<BlockBrokenEventData> incomingEvent = new IncomingEvent<>(Event.BLOCK_BROKEN, eventData);
         processApiResponse(player, event, incomingEvent.toJson());
     }
@@ -143,7 +144,7 @@ public class EventSubscriber {
             return;
         }
 
-        String block = getAsId(event.getPlacedBlock().getBlock());
+        String block = getAsName(event.getPlacedBlock().getBlock());
         Player player = event.getEntity() instanceof Player ? (Player) event.getEntity() : null;
         BlockPlacedEventData eventData = new BlockPlacedEventData(block);
         IncomingEvent<BlockPlacedEventData> incomingEvent = new IncomingEvent<>(Event.BLOCK_PLACED, eventData);
@@ -179,7 +180,8 @@ public class EventSubscriber {
             return;
         }
         String advancementTitle = event.getAdvancement().value().display().map(DisplayInfo::getTitle).map(Component::getString).orElse("");
-        AdvancementEventData eventData = new AdvancementEventData(advancementTitle);
+        String advancementDescription = event.getAdvancement().value().display().map(DisplayInfo::getDescription).map(Component::getString).orElse("");
+        AdvancementEventData eventData = new AdvancementEventData(advancementTitle + ": " + advancementDescription);
         IncomingEvent<AdvancementEventData> incomingEvent = new IncomingEvent<>(Event.ADVANCEMENT, eventData);
         processApiResponse(event.getEntity(), event, incomingEvent.toJson());
     }
@@ -187,7 +189,7 @@ public class EventSubscriber {
     @SubscribeEvent
     public static void onDimensionChange(PlayerEvent.PlayerChangedDimensionEvent event) {
         LOGGER.debug("DimensionChangeEvent triggered");
-        if (event.getEntity() == null || !(event.getEntity() instanceof Player)) {
+        if (event.getEntity() == null || event.getEntity() == null) {
             LOGGER.debug("DimensionChangeEvent triggered without valid player");
             return;
         }
@@ -205,7 +207,7 @@ public class EventSubscriber {
             return;
         }
 
-        String item = getAsId(event.getStack().getItem());
+        String item = getAsName(event.getStack().getItem());
         int amount = event.getStack().getCount();
         Player player = event.getEntity();
         ItemPickupEventData eventData = new ItemPickupEventData(item, amount);
@@ -221,8 +223,8 @@ public class EventSubscriber {
             return;
         }
 
-        String mob = getAsId(event.getEntity());
-        String weapon = getAsId(player.getMainHandItem().getItem());
+        String mob = getAsName(event.getEntity());
+        String weapon = getAsName(player.getMainHandItem().getItem());
         MobKilledEventData eventData = new MobKilledEventData(mob, weapon);
         IncomingEvent<MobKilledEventData> incomingEvent = new IncomingEvent<>(Event.MOB_KILLED, eventData);
         processApiResponse(player, event, incomingEvent.toJson());

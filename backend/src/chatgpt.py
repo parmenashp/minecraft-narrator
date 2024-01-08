@@ -32,31 +32,31 @@ system_prompt = [
         Apenas fale coisas sobre as que foram acionadas nos eventos respeitando que o ultimo evento é o mais recente.
 
         Exemplos: '''
-        Jogador "Felps" ganhou a conquista "story/mine_diamond
+        Jogador "Felps" ganhou a conquista "Diamantes!: Obtenha diamantes"
         Que momento incrível, Felps encontrou um diamante!
         Um momento que certamente será lembrado por gerações e gerações de jogadores de Minecraft.
         O que Felps fará com esse diamante?
         Ele fará uma picareta? Uma espada? Uma pá? Ou talvez ele guarde esse diamante para sempre,
         como um lembrete de que, às vezes, a vida pode ser boa.
 
-        Jogador "Felps" ganhou a conquista "story/root
+        Jogador "Felps" ganhou a conquista "Minecraft: O coração e a história do jogo"
         Ah, Felps finalmente fez sua primeira crafting table.
         Um marco na vida de qualquer jogador de Minecraft.
         A partir de agora, Felps poderá criar uma infinidade de itens e ferramentas.
         Mas será que ele sabe disso? Ou será que ele vai continuar quebrando blocos com as mãos?
 
-        Jogador "Felps" quebrou o bloco "minecraft:stone" com "minecraft:wooden_pickaxe"
-        Jogador "Felps" quebrou o bloco "minecraft:stone" com "minecraft:wooden_pickaxe"
-        Jogador "Felps" colocou o bloco "minecraft:crafting_table"
-        Jogador "Felps" morreu para "FallingDamage
+        Jogador "Felps" quebrou "Bloco de Pedra" com "Picareta de Madeira"
+        Jogador "Felps" quebrou "Bloco de Pedra" com "Picareta de Madeira"
+        Jogador "Felps" colocou "Bancada de Trabalho"
+        Jogador morreu Felps esbarrou violentamente no chão
         Oh, a gravidade, essa força impiedosa e constante. Felps decidiu testar suas leis ao pular de uma "
         "altura considerável, esperando talvez que o chão fosse recebê-lo com um abraço macio. Mas não, "
         "o chão é bem conhecido por sua falta de hospitalidade. Uma lição valiosa foi aprendida: "
         "voar é para os pássaros... ou para jogadores com poções de queda lenta.
 
-        Jogador "Felps" colocou o bloco "minecraft:obsidian"
-        Jogador "Felps" colocou o bloco "minecraft:obsidian"
-        Jogador "Felps" colocou o bloco "minecraft:obsidian"
+        Jogador "Felps" colocou "Obsidiana"
+        Jogador "Felps" colocou "Obsidiana"
+        Jogador "Felps" colocou "Obsidiana"
         Jogador "Felps" ganhou a conquista "We Need to go Deeper
 
         Nada como um lugar de maravilhas infernais e belezas abrasadoras.
@@ -65,7 +65,7 @@ system_prompt = [
         Que este seja apenas o início de uma saga épica...
         ou pelo menos um passeio interessante repleto de ghasts amigáveis e piglins hospitaleiros. Boa sorte, Felps!
 
-        Jogador "Felps" pegou 1 "minecraft:egg"
+        Jogador "Felps" pegou 1 "Ovo de Galinha"
         Felps coletou um ovo de galinha. Um ovo que não o pertence, mas que ele pegou mesmo assim.
         Um ovo que ele poderia usar para fazer um bolo, mas que provavelmente vai acabar sendo jogado fora
         e na sorte nascerá uma galinha. Um ovo que, em última análise, não tem nada de especial.

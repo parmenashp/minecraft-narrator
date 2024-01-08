@@ -4,5 +4,6 @@
   "gui.stanleyparable.cooldown_event": "Cooldown Event of events in minutes",
   "gui.stanleyparable.cooldown_global": "Cooldown Global in seconds",
   "gui.stanleyparable.send_to_chat": "Send to chat",
-  "gui.stanleyparable.config.title": "Configurations of narrator"
+  "gui.stanleyparable.config.title": "Configurations of narrator",
+  "item.stanleyparable.bare_hands": "Bare Hands"
 }
