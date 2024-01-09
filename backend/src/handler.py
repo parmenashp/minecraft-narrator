@@ -40,24 +40,20 @@ class EventHandler:
                 data={"text": "Aguardando cooldown"},
             )
 
-        outgoing_action.data["text"] = '\n'.join(self._queue.all())
+        outgoing_action.data["text"] = "\n".join(self._queue.all())
         print(self._queue.all())
         self._queue.clear()
 
-        self._cd_manager.add_cooldown(event.event, global_config.get_cooldown_individual()*60)  # Individual cd, 5 min
-        self._cd_manager.add_cooldown("GLOBAL_COOLDOWN", global_config.get_cooldown_global() + random.randint(0, 30))  # Global cd, 30 sec to 1 min
+        self._cd_manager.add_cooldown(
+            event.event,
+            global_config.cooldown_individual * 60,
+        )  # Individual cd, 5 min
+
+        self._cd_manager.add_cooldown(
+            "GLOBAL_COOLDOWN", global_config.cooldown_global + random.randint(0, 30)
+        )  # Global cd, 30 sec to 1 min
 
         return outgoing_action
 
 
 event_handler = EventHandler()
-
-
-# Ideia de implementação:
-# @app.post("/event")
-# async def handle_event(event: IncomingEvent):
-#     return handler.handle(event)
-
-# @handler.register(Event.ITEM_CRAFTED)
-# async def handle_item_craft(event_detail: ItemCraftedEventData):
-#     return OutgoingAction(Action.SEND_CHAT, {"text": f"Item com ID {event_detail.item} foi criado"})

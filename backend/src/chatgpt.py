@@ -1,4 +1,5 @@
 import os
+from typing import Generator
 import openai
 
 from src.queue import Queue
@@ -84,7 +85,7 @@ class BypassChatGPT:
     def __init__(self):
         pass
 
-    async def ask(self, text: str) -> str:
+    def ask(self, text: str) -> str:
         return text
 
 
@@ -96,7 +97,7 @@ class ChatGPT:
             base_url=base_url,
         )
 
-    def ask(self, text: str) -> str:
+    def ask(self, text: str) -> Generator[str, None, None]:
         user_prompt = {"role": "user", "content": text}
         messages: list = system_prompt + context.all() + [user_prompt]
 
@@ -112,12 +113,12 @@ class ChatGPT:
         response_text = ""
         for chunk in stream:
             choices = chunk.choices
-            text = None
+            delta = None
             if len(choices) > 0:
-                text = choices[0].delta.content
-            if text:
-                response_text += text
-                yield text
+                delta = choices[0].delta.content
+            if delta:
+                response_text += delta
+                yield delta
         context.put({"role": "assistant", "content": response_text})
 
 
