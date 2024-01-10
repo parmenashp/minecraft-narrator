@@ -5,7 +5,7 @@ from src.models import Event
 class CooldownManager:
     def __init__(self):
         self.cooldowns = {}
-        self.bypass_cooldowns = [
+        self.bypass_cooldowns: list[Event] = [
             Event.PLAYER_DEATH,
             Event.ADVANCEMENT,
             Event.DIMENSION_CHANGED,
@@ -25,9 +25,6 @@ class CooldownManager:
     def reset_cooldown(self, name):
         self.cooldowns[name] = 0
 
-    def global_cooldown_active(self) -> bool:
-        return self.is_on_cooldown("GLOBAL_COOLDOWN")
-
     def check_all_cooldown(self, event: Event) -> bool:
         """
         Check all cooldowns and return True if any of them is active, False otherwise
@@ -38,7 +35,7 @@ class CooldownManager:
             print("Bypassing cooldown for event: ", event)
             return False
 
-        if self.global_cooldown_active():
+        if self.is_on_cooldown("GLOBAL_COOLDOWN"):
             print("Global cooldown active", self.get_cooldown_remaining("GLOBAL_COOLDOWN"))
             return True
 
