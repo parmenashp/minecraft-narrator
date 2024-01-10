@@ -23,6 +23,7 @@ public class ConfigScreen extends Screen {
     private int coolDownIndividual = ClientConfig.COOLDOWN_INDIVIDUAL.get();
     private int coolDownGlobal = ClientConfig.COOLDOWN_GLOBAL.get();
     private boolean sendToChat = ClientConfig.SEND_TO_CHAT.get();
+    private boolean tts = ClientConfig.TTS.get();
     private String ping = "Offline";
 
     private PingWidget pingWidget;
@@ -93,7 +94,17 @@ public class ConfigScreen extends Screen {
 
         commonY += commonHeight + commonMargin;
 
-        this.addRenderableWidget(new Button.Builder(Component.translatable("gui.stanleyparable.apply"), button -> ClientConfig.applyCooldowns(coolDownIndividual, coolDownGlobal)).bounds(commonX, commonY, commonWidth, commonHeight).build());
+        this.addRenderableWidget(new Checkbox(commonX, commonY, commonWidth, commonHeight, Component.translatable("gui.stanleyparable.tts"), tts) {
+            @Override
+            public void onPress() {
+                super.onPress();
+                tts = this.selected();
+            }
+        });
+
+        commonY += commonHeight + commonMargin;
+
+        this.addRenderableWidget(new Button.Builder(Component.translatable("gui.stanleyparable.apply"), button -> ClientConfig.applyServerConfig(coolDownIndividual, coolDownGlobal, tts)).bounds(commonX, commonY, commonWidth, commonHeight).build());
 
         commonY += commonHeight + commonMargin;
 
