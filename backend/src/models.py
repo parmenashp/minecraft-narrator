@@ -74,6 +74,7 @@ class Pong(BaseModel, Generic[DataT]):
 class Config(BaseModel, Generic[DataT]):
     cooldown_individual: int
     cooldown_global: int
+    tts: bool
 
 
 # ==== Outgoing ====

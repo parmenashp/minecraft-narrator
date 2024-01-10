@@ -102,6 +102,11 @@ public class EventSubscriber {
     }
 
     @SubscribeEvent
+    public static void onJoin(PlayerEvent.PlayerLoggedInEvent event) {
+        ClientConfig.applyServerConfig();
+    }
+
+    @SubscribeEvent
     public static void onItemCrafted(PlayerEvent.ItemCraftedEvent event) {
         LOGGER.debug("ItemCraftedEvent triggered");
         if (event.getEntity() == null || event.getCrafting().isEmpty() || event.getEntity() instanceof ServerPlayer) {

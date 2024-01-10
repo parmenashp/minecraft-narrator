@@ -21,7 +21,10 @@ async def handle_event(event: IncomingEvent) -> OutgoingAction:
 
     text = r.data["text"]
     chat_response = chat.ask(text)
-    text = tts.synthesize(chat_response)
+    if global_config.tts:
+        text = tts.synthesize(chat_response)
+    else:
+        text = "".join([chunk for chunk in chat_response])
     print("chat_response:", text)
 
     r.data["text"] = text
@@ -38,6 +41,7 @@ async def ping():
 async def config(req_config: Config):
     global_config.cooldown_individual = req_config.cooldown_individual
     global_config.cooldown_global = req_config.cooldown_global
+    global_config.tts = req_config.tts
     print("config.py:", global_config)
     return fastapi.Response(status_code=204)
 
