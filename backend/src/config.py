@@ -1,5 +1,5 @@
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from dotenv import load_dotenv
 from termcolor import colored, cprint
 
@@ -18,14 +18,14 @@ def env_or_default(name, default="") -> str:
     if name in os.environ:
         cprint(colored(f"Using env var {name}: ", "green") + redact(name, os.environ[name]))
         return os.environ[name]
+
+    if default == "":
+        cprint(
+            colored(f"Attention needed: missing env var {name}, configure on mod configuration screen in minecraft",
+                    "red"))
     else:
-        if default == "":
-            cprint(
-                colored(f"Attention needed: missing env var {name}, configure on mod configuration screen in minecraft",
-                        "red"))
-        else:
-            cprint(colored(f"Using default value for {name}: ", "yellow") + default)
-        return default
+        cprint(colored(f"Using default value for {name}: ", "yellow") + default)
+    return default
 
 
 @dataclass
@@ -42,14 +42,16 @@ class GlobalConfig:
     elevenlabs_voice_id: str = env_or_default("ELEVENLABS_VOICE_ID")
 
     def set_all(self, config):
-        for attribute, _ in GlobalConfig.__annotations__.items():
+        attributes = [f.name for f in fields(self)]
+        for attribute in attributes:
             value = getattr(config, attribute, None)
             if value is not None:
                 setattr(self, attribute, value)
 
     def save(self):
         with open(".env", "w") as f:
-            for attribute, _ in GlobalConfig.__annotations__.items():
+        attributes = [f.name for f in fields(self)]
+        for attribute in attributes:
                 value = getattr(self, attribute, None)
                 if value is not None:
                     f.write(f"{attribute.upper()}={value}\n")
