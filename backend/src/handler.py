@@ -4,7 +4,7 @@ from src.cooldown import CooldownManager
 from src.models import IncomingEvent, Event, OutgoingAction, Action
 from typing import Callable, TypeVar, Awaitable
 from src.queue import Queue
-from src.config import GlobalConfig
+from src.config import global_config
 
 T = TypeVar("T", bound=IncomingEvent)
 
@@ -16,7 +16,7 @@ class EventHandler:
         self._queue = Queue()
 
     def register(
-        self, event: Event
+            self, event: Event
     ) -> Callable[[Callable[[T], Awaitable[OutgoingAction]]], Callable[[T], Awaitable[OutgoingAction]]]:
         def decorator(func: Callable[[T], Awaitable[OutgoingAction]]) -> Callable[[T], Awaitable[OutgoingAction]]:
             self._handlers[event] = func
@@ -24,7 +24,7 @@ class EventHandler:
 
         return decorator
 
-    async def handle(self, event: IncomingEvent, global_config: GlobalConfig) -> OutgoingAction:
+    async def handle(self, event: IncomingEvent) -> OutgoingAction:
         handler = self._handlers.get(event.event)
         if not handler:
             raise HTTPException(status_code=404, detail="Evento não encontrado")

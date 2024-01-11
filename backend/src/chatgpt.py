@@ -2,6 +2,7 @@ import os
 from typing import Generator
 import openai
 
+from src.config import global_config, GlobalConfig
 from src.queue import Queue
 
 gpt_config = {
@@ -80,15 +81,6 @@ system_prompt = [
 context = Queue(maxsize=14)
 
 
-# Apenas para testes locais sem a API do OpenAI
-class BypassChatGPT:
-    def __init__(self):
-        pass
-
-    def ask(self, text: str) -> str:
-        return text
-
-
 class ChatGPT:
     def __init__(self, api_key, base_url, model="gpt-3.5-turbo"):
         self.model = model
@@ -121,12 +113,14 @@ class ChatGPT:
                 yield delta
         context.put({"role": "assistant", "content": response_text})
 
+    def set_config(self, config: GlobalConfig):
+        self.client.api_key = config.openai_api_key
+        self.client.base_url = config.openai_base_url
+        self.model = config.openai_model
 
-if "OPENAI_API_KEY" in os.environ:
-    chat = ChatGPT(
-        os.environ["OPENAI_API_KEY"],
-        os.environ["OPENAI_BASE_URL"],
-        os.environ["OPENAI_MODEL"],
-    )
-else:
-    chat = BypassChatGPT()
+
+chat = ChatGPT(
+    global_config.openai_api_key,
+    global_config.openai_base_url,
+    global_config.openai_model,
+)

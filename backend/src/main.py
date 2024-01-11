@@ -4,27 +4,22 @@ from src import models
 from src.models import Event, Action, OutgoingAction, IncomingEvent, Pong, Config
 from src.handler import event_handler
 from src.chatgpt import chat
-from src.config import GlobalConfig
+from src.config import global_config
 from src.tts import tts
 
 app = fastapi.FastAPI()
-
-global_config = GlobalConfig()
 
 
 @app.post("/event")
 async def handle_event(event: IncomingEvent) -> OutgoingAction:
     print("in:", event)
-    r = await event_handler.handle(event, global_config)
+    r = await event_handler.handle(event)
     if r.action == Action.IGNORE:
         return r
 
     text = r.data["text"]
     chat_response = chat.ask(text)
-    if global_config.tts:
-        text = tts.synthesize(chat_response)
-    else:
-        text = "".join([chunk for chunk in chat_response])
+    text = tts.synthesize(chat_response)
     print("chat_response:", text)
 
     r.data["text"] = text
@@ -39,10 +34,11 @@ async def ping():
 
 @app.post("/config")
 async def config(req_config: Config):
-    global_config.cooldown_individual = req_config.cooldown_individual
-    global_config.cooldown_global = req_config.cooldown_global
-    global_config.tts = req_config.tts
+    global_config.set_all(req_config)
+    chat.set_config(global_config)
+    tts.set_config(global_config)
     print("config.py:", global_config)
+    global_config.save()
     return fastapi.Response(status_code=204)
 
 
