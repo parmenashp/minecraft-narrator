@@ -16,6 +16,7 @@ pydantic = "^2.5.2"
 uvicorn = "^0.24.0.post1"
 python-dotenv = "^1.0.0"
 elevenlabs = "^0.2.27"
+termcolor = "^2.4.0"
 
 [tool.black]
 line-length = 120

@@ -2,31 +2,33 @@ import threading
 from typing import Generator
 from elevenlabs import generate, set_api_key
 import os
+from termcolor import colored, cprint
 
 from src.audio import stream
+from src.config import global_config
 
 
 class TTS:
     def __init__(self):
-        self.tts_disabled = False
         self.voice_id = None
 
-        if "ELEVENLABS_API_KEY" in os.environ:
-            print("Using Eleven Labs API key")
-            set_api_key(os.environ["ELEVENLABS_API_KEY"])
-        else:
-            print("ELEVENLABS_API_KEY not set, TTS disabled")
-            self.tts_disabled = True
+        if not os.path.isfile("mpv.exe"):
+            cprint(colored("mpv.exe not found, TTS disabled", "red"))
+            global_config.tts = False
 
-        if "ELEVENLABS_VOICE_ID" in os.environ:
-            print("Using Eleven Labs voice ID: " + os.environ["ELEVENLABS_VOICE_ID"])
-            self.voice_id = os.environ["ELEVENLABS_VOICE_ID"]
+        if global_config.elevenlabs_api_key != "":
+            set_api_key(global_config.elevenlabs_api_key)
         else:
-            print("ELEVENLABS_VOICE_ID not set, TTS disabled")
-            self.tts_disabled = True
+            global_config.tts = False
+
+        if global_config.elevenlabs_voice_id != "":
+            self.voice_id = global_config.elevenlabs_voice_id
+        else:
+            global_config.tts = False
 
     def synthesize(self, text: Generator) -> str:
-        if self.tts_disabled:
+        print(global_config.tts)
+        if global_config.tts is False:
             return "".join([chunk for chunk in text])
 
         full_text = ""
@@ -50,6 +52,10 @@ class TTS:
 
         generator_done.wait()
         return full_text
+
+    def set_config(self, config):
+        self.voice_id = config.elevenlabs_voice_id
+        set_api_key(config.elevenlabs_api_key)
 
 
 tts = TTS()
