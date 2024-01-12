@@ -72,6 +72,11 @@ class Pong(BaseModel, Generic[DataT]):
 
 
 class Config(BaseModel, Generic[DataT]):
+    elevenlabs_api_key: str
+    elevenlabs_voice_id: str
+    openai_api_key: str
+    openai_base_url: str
+    openai_model: str
     cooldown_individual: int
     cooldown_global: int
     tts: bool

@@ -1,10 +1,17 @@
 {
   "chat.stanleyparable.network_error": "Erro de conexão com o servidor do narrador, verifique se ele está rodando.",
-  "gui.stanleyparable.apply": "Aplicar",
   "gui.stanleyparable.cooldown_event": "Cooldown de Evento em minutos: ",
   "gui.stanleyparable.cooldown_global": "Cooldown Global em segundos: ",
   "gui.stanleyparable.send_to_chat": "Aparecer no Chat",
   "gui.stanleyparable.tts": "Texto para Fala",
+  "gui.stanleyparable.openai_key": "Chave de API da OpenAI",
+  "gui.stanleyparable.openai_base_url": "URL de API da OpenAI",
+  "gui.stanleyparable.openai_model": "Modelo do Chatbot da OpenAI",
+  "gui.stanleyparable.elevenlabs_api_key": "Chave de API do Eleven Labs",
+  "gui.stanleyparable.elevenlabs_voice_id": "ID/Nome de Voz do Eleven Labs",
   "gui.stanleyparable.config.title": "Configurações do narrador",
+  "gui.stanleyparable.token.title": "Configurações de API",
+  "gui.stanleyparable.more": "Mais",
+  "gui.stanleyparable.less": "Menos",
   "item.stanleyparable.bare_hands": "Próprias mãos"
 }

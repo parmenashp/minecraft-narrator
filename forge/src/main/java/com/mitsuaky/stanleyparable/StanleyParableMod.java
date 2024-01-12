@@ -4,6 +4,7 @@ import net.minecraftforge.client.ConfigScreenHandler;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import com.mitsuaky.stanleyparable.screen.ConfigScreen;
 
 
 @Mod("stanleyparable")

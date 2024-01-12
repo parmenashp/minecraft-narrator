@@ -1,10 +1,17 @@
 {
   "chat.stanleyparable.network_error": "Connection error with the narrator server, check if it is running.",
-  "gui.stanleyparable.apply": "Apply",
   "gui.stanleyparable.cooldown_event": "Cooldown Event of events in minutes: ",
   "gui.stanleyparable.cooldown_global": "Cooldown Global in seconds: ",
   "gui.stanleyparable.send_to_chat": "Send to chat",
   "gui.stanleyparable.tts": "Text to speech",
+  "gui.stanleyparable.openai_key": "OpenAI API Key",
+  "gui.stanleyparable.openai_base_url": "OpenAI API URL",
+  "gui.stanleyparable.openai_model": "OpenAI Chatbot Model",
+  "gui.stanleyparable.elevenlabs_api_key": "Eleven Labs API Key",
+  "gui.stanleyparable.elevenlabs_voice_id": "Eleven Labs Voice ID/Name",
   "gui.stanleyparable.config.title": "Configurations of narrator",
+  "gui.stanleyparable.token.title": "Configurations of API",
+  "gui.stanleyparable.more": "More",
+  "gui.stanleyparable.less": "Less",
   "item.stanleyparable.bare_hands": "Bare Hands"
 }
