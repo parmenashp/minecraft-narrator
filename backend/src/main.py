@@ -37,7 +37,6 @@ async def config(req_config: Config):
     global_config.set_all(req_config)
     chat.set_config(global_config)
     tts.set_config(global_config)
-    print("config.py:", global_config)
     global_config.save()
     return fastapi.Response(status_code=204)
 

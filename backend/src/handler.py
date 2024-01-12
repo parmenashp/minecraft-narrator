@@ -32,8 +32,6 @@ class EventHandler:
         outgoing_action = await handler(event)
         self._queue.put(outgoing_action.data["text"])
 
-        print(global_config)
-
         if self._cd_manager.check_all_cooldown(event.event):
             return OutgoingAction(
                 action=Action.IGNORE,
