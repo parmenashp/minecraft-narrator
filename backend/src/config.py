@@ -50,8 +50,8 @@ class GlobalConfig:
 
     def save(self):
         with open(".env", "w") as f:
-        attributes = [f.name for f in fields(self)]
-        for attribute in attributes:
+            attributes = [f.name for f in fields(self)]
+            for attribute in attributes:
                 value = getattr(self, attribute, None)
                 if value is not None:
                     f.write(f"{attribute.upper()}={value}\n")
