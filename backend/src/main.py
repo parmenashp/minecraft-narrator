@@ -127,3 +127,11 @@ async def handle_player_chat(event: IncomingEvent[models.PlayerChatEventData]):
         action=Action.SEND_CHAT,
         data={"text": text},
     )
+
+@event_handler.register(Event.PLAYER_ATE)
+async def handle_player_ate(event: IncomingEvent[models.PlayerAteEventData]):
+    text = f'Jogador "Felps" comeu "{event.data["item"]}"'
+    return OutgoingAction(
+        action=Action.SEND_CHAT,
+        data={"text": text},
+    )

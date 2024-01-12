@@ -16,6 +16,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterClientCommandsEvent;
 import net.minecraftforge.event.ServerChatEvent;
+import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.AdvancementEvent.AdvancementEarnEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -41,7 +42,8 @@ public class EventSubscriber {
         ITEM_PICKUP("item_pickup"),
         MOB_KILLED("mob_killed"),
         DIMENSION_CHANGED("dimension_changed"),
-        PLAYER_CHAT("player_chat");
+        PLAYER_CHAT("player_chat"),
+        PLAYER_ATE("player_ate");
 
         private final String value;
 
@@ -75,8 +77,10 @@ public class EventSubscriber {
         }
     }
 
-    public static String getAsName(Item item) {
-        ItemStack stack = new ItemStack(item);
+    public static String getAsName(Item item, ItemStack stack) {
+        if (stack == null) {
+            stack = new ItemStack(item);
+        }
         return item.getName(stack).getString();
     }
 
@@ -114,7 +118,7 @@ public class EventSubscriber {
             return;
         }
 
-        String item = getAsName(event.getCrafting().getItem());
+        String item = getAsName(event.getCrafting().getItem(), event.getCrafting());
         int amount = event.getCrafting().getCount();
         Player player = event.getEntity();
         ItemCraftedEventData eventData = new ItemCraftedEventData(item, amount);
@@ -130,7 +134,7 @@ public class EventSubscriber {
             return;
         }
         Item tool = event.getPlayer().getMainHandItem().getItem();
-        String tool_name = getAsName(event.getPlayer().getMainHandItem().getItem());
+        String tool_name = getAsName(event.getPlayer().getMainHandItem().getItem(), event.getPlayer().getMainHandItem());
         if (tool.getDescriptionId().equals("block.minecraft.air")) {
             tool_name = Component.translatable("item.stanleyparable.bare_hands").getString();
         }
@@ -212,7 +216,7 @@ public class EventSubscriber {
             return;
         }
 
-        String item = getAsName(event.getStack().getItem());
+        String item = getAsName(event.getStack().getItem(), event.getStack());
         int amount = event.getStack().getCount();
         Player player = event.getEntity();
         ItemPickupEventData eventData = new ItemPickupEventData(item, amount);
@@ -230,7 +234,7 @@ public class EventSubscriber {
 
         String mob = getAsName(event.getEntity());
         Item weapon = player.getMainHandItem().getItem();
-        String weapon_name = getAsName(player.getMainHandItem().getItem());
+        String weapon_name = getAsName(player.getMainHandItem().getItem(), player.getMainHandItem());
         if (weapon.getDescriptionId().equals("block.minecraft.air")) {
             weapon_name = Component.translatable("item.stanleyparable.bare_hands").getString();
         }
@@ -252,6 +256,20 @@ public class EventSubscriber {
         IncomingEvent<ClientChatEventData> incomingEvent = new IncomingEvent<>(Event.PLAYER_CHAT, eventData);
         processApiResponse(event.getPlayer(), event, incomingEvent.toJson());
 
+    }
+
+    @SubscribeEvent
+    public static void onPlayerAte(LivingEntityUseItemEvent.Finish event) {
+        if (event.getEntity() == null || !(event.getEntity() instanceof Player player) || event.getEntity() instanceof ServerPlayer) {
+            LOGGER.debug("PlayerAteEvent triggered without valid player");
+            return;
+        }
+
+        String item_name = getAsName(event.getItem().getItem(), event.getItem());
+
+        PlayerAteEventData eventData = new PlayerAteEventData(item_name);
+        IncomingEvent<PlayerAteEventData> incomingEvent = new IncomingEvent<>(Event.PLAYER_ATE, eventData);
+        processApiResponse(player, event, incomingEvent.toJson());
     }
 
     private static void processApiResponse(Player player, net.minecraftforge.eventbus.api.Event event, JsonObject jsonEvent) {
@@ -342,6 +360,20 @@ class ClientChatEventData extends BaseEventData {
         return json;
     }
 
+}
+
+class PlayerAteEventData extends BaseEventData {
+    String item;
+
+    PlayerAteEventData(String item) {
+        this.item = item;
+    }
+
+    JsonObject toJson() {
+        JsonObject json = new JsonObject();
+        json.addProperty("item", item);
+        return json;
+    }
 }
 
 class BlockBrokenEventData extends BaseEventData {

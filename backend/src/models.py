@@ -20,6 +20,7 @@ class Event(StrEnum):
     MOB_KILLED = "mob_killed"
     DIMENSION_CHANGED = "dimension_changed"
     PLAYER_CHAT = "player_chat"
+    PLAYER_ATE = "player_ate"
 
 
 class ItemCraftedEventData(BaseEventData):
@@ -60,6 +61,10 @@ class DimensionChangedEventData(BaseEventData):
 
 class PlayerChatEventData(BaseEventData):
     message: str
+
+
+class PlayerAteEventData(BaseEventData):
+    item: str
 
 
 class IncomingEvent(BaseModel, Generic[DataT]):
