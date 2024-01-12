@@ -27,4 +27,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Mod jars
-          path: forge/build/libs/
+          path: forge/build/libs/*.jar

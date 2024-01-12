@@ -229,8 +229,13 @@ public class EventSubscriber {
         }
 
         String mob = getAsName(event.getEntity());
-        String weapon = getAsName(player.getMainHandItem().getItem());
-        MobKilledEventData eventData = new MobKilledEventData(mob, weapon);
+        Item weapon = player.getMainHandItem().getItem();
+        String weapon_name = getAsName(player.getMainHandItem().getItem());
+        if (weapon.getDescriptionId().equals("block.minecraft.air")) {
+            weapon_name = Component.translatable("item.stanleyparable.bare_hands").getString();
+        }
+
+        MobKilledEventData eventData = new MobKilledEventData(mob, weapon_name);
         IncomingEvent<MobKilledEventData> incomingEvent = new IncomingEvent<>(Event.MOB_KILLED, eventData);
         processApiResponse(player, event, incomingEvent.toJson());
     }
