@@ -27,7 +27,6 @@ class TTS:
             global_config.tts = False
 
     def synthesize(self, text: Generator) -> str:
-        print(global_config.tts)
         if global_config.tts is False:
             return "".join([chunk for chunk in text])
 
