@@ -39,9 +39,16 @@ jobs:
       - name: Run PyInstaller
         run: poetry run pyinstaller --onefile run.py
 
-      - name: Move mpv to artifact
+      - name: Prepare artifact
         if: matrix.os == 'windows-latest'
-        run: mv mpv.exe dist/mpv.exe
+        run: |
+          mv mpv.exe dist/mpv.exe
+          mv dist/run.exe dist/Backend-StanleyParable.exe
+
+      - name: Prepare artifact
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          mv dist/run dist/Backend-StanleyParable
 
       - name: Upload Artifct
         uses: actions/upload-artifact@v4
