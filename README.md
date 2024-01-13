@@ -1,4 +1,6 @@
-<img style="display: block; margin-left: auto; margin-right: auto;width:120px; height:120px" src="logo.png" alt="Minecraft narrator logo" />
+<p align="center">
+<img alt="Minecraft Narrator Logo" src="logo.png" width="120" height="120"/>
+</p>
 
 # Minecraft Narrator
 
