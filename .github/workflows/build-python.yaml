@@ -37,7 +37,7 @@ jobs:
         run: poetry install
 
       - name: Run PyInstaller
-        run: poetry run pyinstaller --onefile run.py
+        run: poetry run pyinstaller --icon=icon.ico --onefile run.py
 
       - name: Prepare artifact
         if: matrix.os == 'windows-latest'
