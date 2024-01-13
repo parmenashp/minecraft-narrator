@@ -21,6 +21,7 @@ class Event(StrEnum):
     DIMENSION_CHANGED = "dimension_changed"
     PLAYER_CHAT = "player_chat"
     PLAYER_ATE = "player_ate"
+    JOIN_WORLD = "join_world"
 
 
 class ItemCraftedEventData(BaseEventData):
@@ -61,6 +62,10 @@ class DimensionChangedEventData(BaseEventData):
 
 class PlayerChatEventData(BaseEventData):
     message: str
+
+
+class JoinWorldEventData(BaseEventData):
+    world: str
 
 
 class PlayerAteEventData(BaseEventData):

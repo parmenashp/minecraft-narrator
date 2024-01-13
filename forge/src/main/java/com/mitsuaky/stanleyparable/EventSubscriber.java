@@ -44,7 +44,8 @@ public class EventSubscriber {
         MOB_KILLED("mob_killed"),
         DIMENSION_CHANGED("dimension_changed"),
         PLAYER_CHAT("player_chat"),
-        PLAYER_ATE("player_ate");
+        PLAYER_ATE("player_ate"),
+        JOIN_WORLD("join_world");
 
         private final String value;
 
@@ -273,6 +274,20 @@ public class EventSubscriber {
         processApiResponse(player, event, incomingEvent.toJson());
     }
 
+    @SubscribeEvent
+    public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() == null || !(event.getEntity() instanceof ServerPlayer)) {
+            LOGGER.debug("PlayerJoinEvent triggered without valid player");
+            return;
+        }
+        Player player = event.getEntity();
+        String worldName = player.getServer().getWorldData().getLevelName();
+
+        JoinWorldEventData eventData = new JoinWorldEventData(worldName);
+        IncomingEvent<JoinWorldEventData> incomingEvent = new IncomingEvent<>(Event.JOIN_WORLD, eventData);
+        processApiResponse(player, event, incomingEvent.toJson());
+    }
+
     private static void processApiResponse(Player player, net.minecraftforge.eventbus.api.Event event, JsonObject jsonEvent) {
         CompletableFuture<JsonObject> future = APICommunicator.sendRequestAsync("POST", "event", jsonEvent);
         future.whenComplete(
@@ -432,6 +447,20 @@ class AdvancementEventData extends BaseEventData {
     JsonObject toJson() {
         JsonObject json = new JsonObject();
         json.addProperty("advancement", advancement);
+        return json;
+    }
+}
+
+class JoinWorldEventData extends BaseEventData {
+    String world;
+
+    JoinWorldEventData(String world) {
+        this.world = world;
+    }
+
+    JsonObject toJson() {
+        JsonObject json = new JsonObject();
+        json.addProperty("world", world);
         return json;
     }
 }
