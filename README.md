@@ -1,16 +1,26 @@
+<p align="center">
+<img alt="Minecraft Narrator Logo" src="logo.png" width="120" height="120"/>
+</p>
+
 # Minecraft Narrator
+
 ### Narrador Estilo Stanley Parable para o Minecraft
 
-Este projeto adiciona um narrador no estilo do jogo "Stanley Parable" ao Minecraft, criado para o streamer [Felps](https://www.twitch.tv/felps). Ele utiliza a geração de texto da [OpenAI](https://openai.com/product#made-for-developers) e a conversão de texto em fala do [ElevenLabs](https://elevenlabs.io/).
+Este projeto adiciona um narrador no estilo do jogo "Stanley Parable" ao Minecraft, criado para o
+streamer [Felps](https://www.twitch.tv/felps). Ele utiliza a geração de texto
+da [OpenAI](https://openai.com/product#made-for-developers) e a conversão de texto em fala
+do [ElevenLabs](https://elevenlabs.io/).
 
 ## Estrutura do Projeto
 
 - **Backend**: Responsável pela comunicação entre o mod de Minecraft, OpenAI e ElevenLabs.
-- **Mod do Forge**: Envia eventos do jogo para o backend e retorna as respostas para o chat do jogo. Este mod é compatível com a versão 1.20.2 do Minecraft.
+- **Mod do Forge**: Envia eventos do jogo para o backend e retorna as respostas para o chat do jogo. Este mod é
+  compatível com a versão 1.20.2 do Minecraft.
 
 ## Contribuições
 
-Contribuições são encorajadas. Sinta-se livre para sugerir melhorias, reportar bugs ou até mesmo implementar novas funcionalidades. Sua participação é poggers!
+Contribuições são encorajadas. Sinta-se livre para sugerir melhorias, reportar bugs ou até mesmo implementar novas
+funcionalidades. Sua participação é poggers!
 
 ## Configuração e Instalação
 
