@@ -79,15 +79,17 @@ public class TokenScreen extends Screen {
         int lessButtonY = openAIModelEditBox.getY() + commonHeight + 5;
         moreButton = new Button.Builder(more ? Component.translatable("gui.stanleyparable.less") : Component.translatable("gui.stanleyparable.more"), (button) -> {
             more = !more;
-            this.addWidget(openAIBaseURLEditBox);
-            this.addWidget(openAIModelEditBox);
             if (more) {
                 moreButton.setMessage(Component.translatable("gui.stanleyparable.less"));
                 moreButton.setY(lessButtonY);
+                this.addWidget(openAIBaseURLEditBox);
+                this.addWidget(openAIModelEditBox);
                 LOGGER.info("More options enabled");
             } else {
                 moreButton.setMessage(Component.translatable("gui.stanleyparable.more"));
                 moreButton.setY(moreButtonY);
+                this.removeWidget(openAIBaseURLEditBox);
+                this.removeWidget(openAIModelEditBox);
                 LOGGER.info("More options disabled");
             }
         }).pos(commonX, (more) ? lessButtonY : moreButtonY).size(commonWidth, commonHeight).build();
