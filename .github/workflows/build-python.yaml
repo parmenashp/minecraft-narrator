@@ -1,0 +1,57 @@
+name: Run Pyinstaller on PRs
+on:
+  pull_request:
+    paths:
+      - backend/**
+
+jobs:
+  pyinstaller:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: ./backend
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v2
+      - name: Setup a local virtual environment (if no poetry.toml file)
+        run: |
+          poetry config virtualenvs.create true --local
+          poetry config virtualenvs.in-project true --local
+
+      - uses: actions/cache@v3
+        name: Define a cache for the virtual environment based on the dependencies lock file
+        with:
+          path: ./.venv
+          key: venv-${{ hashFiles('poetry.lock') }}
+
+      - name: Install the project dependencies
+        run: poetry install
+
+      - name: Run PyInstaller
+        run: poetry run pyinstaller --onefile run.py
+
+      - name: Prepare artifact
+        if: matrix.os == 'windows-latest'
+        run: |
+          mv mpv.exe dist/mpv.exe
+          mv dist/run.exe dist/Backend-StanleyParable.exe
+
+      - name: Prepare artifact
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          mv dist/run dist/Backend-StanleyParable
+
+      - name: Upload Artifct
+        uses: actions/upload-artifact@v4
+        with:
+          name: Backend-${{ matrix.os }}
+          path: backend/dist/
