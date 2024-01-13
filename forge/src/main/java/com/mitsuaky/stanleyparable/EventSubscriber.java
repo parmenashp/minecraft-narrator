@@ -190,6 +190,12 @@ public class EventSubscriber {
             LOGGER.debug("AdvancementEvent triggered but is a recipe");
             return;
         }
+
+        if (advancement.id().toString().endsWith("/root")){
+            LOGGER.debug("AdvancementEvent triggered but is a root advancement");
+            return;
+        }
+
         String advancementTitle = event.getAdvancement().value().display().map(DisplayInfo::getTitle).map(Component::getString).orElse("");
         String advancementDescription = event.getAdvancement().value().display().map(DisplayInfo::getDescription).map(Component::getString).orElse("");
         AdvancementEventData eventData = new AdvancementEventData(advancementTitle + ": " + advancementDescription);
