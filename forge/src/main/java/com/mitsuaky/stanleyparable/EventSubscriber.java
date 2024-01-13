@@ -25,6 +25,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import com.mitsuaky.stanleyparable.screen.ConfigScreen;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;

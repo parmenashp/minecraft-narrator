@@ -13,8 +13,13 @@ public class ClientConfig {
     public static final ForgeConfigSpec.ConfigValue<Integer> COOLDOWN_INDIVIDUAL;
     public static final ForgeConfigSpec.ConfigValue<Integer> COOLDOWN_GLOBAL;
     public static final ForgeConfigSpec.ConfigValue<Boolean> SEND_TO_CHAT;
-
     public static final ForgeConfigSpec.ConfigValue<Boolean> TTS;
+
+    public static final ForgeConfigSpec.ConfigValue<String> OPENAI_API_KEY;
+    public static final ForgeConfigSpec.ConfigValue<String> OPENAI_BASE_URL;
+    public static final ForgeConfigSpec.ConfigValue<String> OPENAI_MODEL;
+    public static final ForgeConfigSpec.ConfigValue<String> ELEVENLABS_API_KEY;
+    public static final ForgeConfigSpec.ConfigValue<String> ELEVENLABS_VOICE_ID;
 
     static {
         BUILDER.push("Configs for Minecraft Narrator");
@@ -22,37 +27,31 @@ public class ClientConfig {
         COOLDOWN_GLOBAL = BUILDER.comment("Cooldown for global events in seconds").defineInRange("cooldown_global", 30, 30, 60);
         SEND_TO_CHAT = BUILDER.comment("Send events to chat").define("send_to_chat", true);
         TTS = BUILDER.comment("Enable text to speech").define("tts", true);
+
+        OPENAI_API_KEY = BUILDER.comment("OpenAI API Key").define("openai_api_key", "");
+        OPENAI_BASE_URL = BUILDER.comment("OpenAI Base URL").define("openai_base_url", "https://api.openai.com/v1");
+        OPENAI_MODEL = BUILDER.comment("OpenAI Model").define("openai_model", "gpt-4-1106-preview");
+        ELEVENLABS_API_KEY = BUILDER.comment("ElevenLabs API Key").define("elevenlabs_api_key", "");
+        ELEVENLABS_VOICE_ID = BUILDER.comment("ElevenLabs Voice ID/Name").define("elevenlabs_voice_id", "");
+
         BUILDER.pop();
         SPEC = BUILDER.build();
     }
 
-    public static void applyServerConfig(Integer cooldownIndividual, Integer cooldownGlobal, Boolean tts) {
-        COOLDOWN_INDIVIDUAL.set(cooldownIndividual);
-        COOLDOWN_GLOBAL.set(cooldownGlobal);
-        TTS.set(tts);
-        applyServerConfig();
-    }
-
     public static void applyServerConfig() {
-        ConfigRequest request = new ConfigRequest();
+        JsonObject request = new JsonObject();
         try {
-            APICommunicator.sendRequestAsync("POST", "config", request.toJson());
+            request.addProperty("cooldown_individual", COOLDOWN_INDIVIDUAL.get());
+            request.addProperty("cooldown_global", COOLDOWN_GLOBAL.get());
+            request.addProperty("tts", TTS.get());
+            request.addProperty("openai_api_key", OPENAI_API_KEY.get());
+            request.addProperty("openai_base_url", OPENAI_BASE_URL.get());
+            request.addProperty("openai_model", OPENAI_MODEL.get());
+            request.addProperty("elevenlabs_api_key", ELEVENLABS_API_KEY.get());
+            request.addProperty("elevenlabs_voice_id", ELEVENLABS_VOICE_ID.get());
+            APICommunicator.sendRequestAsync("POST", "config", request);
         } catch (Exception ex) {
             LOGGER.error("Could not send config to server: " + ex.getMessage(), ex);
         }
-    }
-}
-
-class ConfigRequest {
-    private final Integer cooldownIndividual = ClientConfig.COOLDOWN_INDIVIDUAL.get();
-    private final Integer cooldownGlobal = ClientConfig.COOLDOWN_GLOBAL.get();
-    private final Boolean tts = ClientConfig.TTS.get();
-
-    JsonObject toJson() {
-        JsonObject json = new JsonObject();
-        json.addProperty("cooldown_individual", cooldownIndividual);
-        json.addProperty("cooldown_global", cooldownGlobal);
-        json.addProperty("tts", tts);
-        return json;
     }
 }

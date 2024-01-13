@@ -1,7 +1,9 @@
-package com.mitsuaky.stanleyparable;
+package com.mitsuaky.stanleyparable.screen;
 
 import com.google.gson.JsonObject;
-import com.mitsuaky.stanleyparable.widget.PingWidget;
+import com.mitsuaky.stanleyparable.APICommunicator;
+import com.mitsuaky.stanleyparable.ClientConfig;
+import com.mitsuaky.stanleyparable.screen.widget.PingWidget;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
@@ -13,6 +15,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+
+import java.awt.*;
 
 @OnlyIn(Dist.CLIENT)
 public class ConfigScreen extends Screen {
@@ -28,7 +32,7 @@ public class ConfigScreen extends Screen {
 
     private PingWidget pingWidget;
 
-    protected ConfigScreen(Screen parent) {
+    public ConfigScreen(Screen parent) {
         super(Component.translatable("gui.stanleyparable.config.title"));
         this.parent = parent;
     }
@@ -99,12 +103,9 @@ public class ConfigScreen extends Screen {
             public void onPress() {
                 super.onPress();
                 tts = this.selected();
+                ClientConfig.TTS.set(tts);
             }
         });
-
-        commonY += commonHeight + commonMargin;
-
-        this.addRenderableWidget(new Button.Builder(Component.translatable("gui.stanleyparable.apply"), button -> ClientConfig.applyServerConfig(coolDownIndividual, coolDownGlobal, tts)).bounds(commonX, commonY, commonWidth, commonHeight).build());
 
         commonY += commonHeight + commonMargin;
 
@@ -119,7 +120,7 @@ public class ConfigScreen extends Screen {
 
         commonY += commonHeight + commonMargin;
 
-        this.pingWidget = new PingWidget(commonX, commonY, commonWidth, commonHeight, Component.literal("Ping: " + ping)) {
+        pingWidget = new PingWidget(commonX, commonY, commonWidth, commonHeight, Component.literal("Ping: " + ping)) {
             @Override
             public void onPress() {
                 long time = System.currentTimeMillis();
@@ -130,9 +131,19 @@ public class ConfigScreen extends Screen {
             }
         };
 
-        this.addRenderableWidget(this.pingWidget);
+        this.addRenderableWidget(pingWidget);
+
+        commonY += commonHeight + commonMargin;
+
+        this.addRenderableWidget(new Button.Builder(Component.translatable("gui.stanleyparable.token.title"), button -> {
+            assert this.minecraft != null;
+            this.minecraft.setScreen(new TokenScreen(this));
+        }).pos(commonX, commonY).size(commonWidth, commonHeight).build());
 
         this.addRenderableWidget(new Button.Builder(Component.translatable("gui.done"), button -> {
+            ClientConfig.COOLDOWN_INDIVIDUAL.set(coolDownIndividual);
+            ClientConfig.COOLDOWN_GLOBAL.set(coolDownGlobal);
+            ClientConfig.applyServerConfig();
             assert this.minecraft != null;
             this.minecraft.setScreen(this.parent);
         }).pos(commonX, this.height - 30).size(commonWidth, commonHeight).build());
@@ -154,7 +165,7 @@ public class ConfigScreen extends Screen {
     @Override
     public void render(@NotNull GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-        pGuiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 10, 16777215);
+        pGuiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 10, new Color(252, 56, 103).getRGB());
     }
 
     int mapToRealInt(double x, int out_min, int out_max) {

@@ -45,8 +45,10 @@ class GlobalConfig:
         attributes = [f.name for f in fields(self)]
         for attribute in attributes:
             value = getattr(config, attribute, None)
-            if value is not None:
+            if value is not None and value != "":
                 setattr(self, attribute, value)
+            else:
+                print(f"Value for {attribute} is empty, skipping")
 
     def save(self):
         with open(".env", "w") as f:
