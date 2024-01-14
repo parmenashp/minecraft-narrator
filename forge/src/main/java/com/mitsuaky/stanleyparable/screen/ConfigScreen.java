@@ -26,6 +26,7 @@ public class ConfigScreen extends Screen {
     private final int commonHeight = 20;
     private int coolDownIndividual = ClientConfig.COOLDOWN_INDIVIDUAL.get();
     private int coolDownGlobal = ClientConfig.COOLDOWN_GLOBAL.get();
+    private int narratorVolume = ClientConfig.NARRATOR_VOLUME.get();
     private boolean sendToChat = ClientConfig.SEND_TO_CHAT.get();
     private boolean tts = ClientConfig.TTS.get();
     private String ping = "Offline";
@@ -98,6 +99,29 @@ public class ConfigScreen extends Screen {
 
         commonY += commonHeight + commonMargin;
 
+        this.addRenderableWidget(
+                new AbstractSliderButton(
+                        commonX,
+                        commonY,
+                        commonWidth,
+                        commonHeight,
+                        Component.nullToEmpty(Component.translatable("gui.stanleyparable.narrator_volume").getString() + narratorVolume + "%"),
+                        mapToSlideDouble(narratorVolume, 1, 130)
+                ) {
+                    @Override
+                    protected void updateMessage() {
+                        this.setMessage(Component.nullToEmpty(Component.translatable("gui.stanleyparable.narrator_volume").getString() + narratorVolume + "%"));
+                    }
+
+                    @Override
+                    protected void applyValue() {
+                        narratorVolume = mapToRealInt(this.value, 1, 130);
+                    }
+                }
+        );
+
+        commonY += commonHeight + commonMargin;
+
         this.addRenderableWidget(new Checkbox(commonX, commonY, commonWidth, commonHeight, Component.translatable("gui.stanleyparable.tts"), tts) {
             @Override
             public void onPress() {
@@ -143,6 +167,7 @@ public class ConfigScreen extends Screen {
         this.addRenderableWidget(new Button.Builder(Component.translatable("gui.done"), button -> {
             ClientConfig.COOLDOWN_INDIVIDUAL.set(coolDownIndividual);
             ClientConfig.COOLDOWN_GLOBAL.set(coolDownGlobal);
+            ClientConfig.NARRATOR_VOLUME.set(narratorVolume);
             ClientConfig.applyServerConfig();
             assert this.minecraft != null;
             this.minecraft.setScreen(this.parent);

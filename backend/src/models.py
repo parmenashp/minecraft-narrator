@@ -89,6 +89,7 @@ class Config(BaseModel, Generic[DataT]):
     openai_model: str
     cooldown_individual: int
     cooldown_global: int
+    narrator_volume: int
     tts: bool
 
 
