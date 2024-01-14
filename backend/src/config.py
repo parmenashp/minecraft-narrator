@@ -41,6 +41,8 @@ class GlobalConfig:
     elevenlabs_api_key: str = env_or_default("ELEVENLABS_API_KEY")
     elevenlabs_voice_id: str = env_or_default("ELEVENLABS_VOICE_ID")
 
+    narrator_volume: int = int(env_or_default("NARRATOR_VOLUME", "100"))
+
     def set_all(self, config):
         attributes = [f.name for f in fields(self)]
         for attribute in attributes:

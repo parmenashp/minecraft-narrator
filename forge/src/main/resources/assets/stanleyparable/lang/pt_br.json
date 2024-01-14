@@ -2,6 +2,7 @@
   "chat.stanleyparable.network_error": "Erro de conexão com o servidor do narrador, verifique se ele está rodando.",
   "gui.stanleyparable.cooldown_event": "Cooldown de Evento em minutos: ",
   "gui.stanleyparable.cooldown_global": "Cooldown Global em segundos: ",
+  "gui.stanleyparable.narrator_volume": "Volume do Narrador: ",
   "gui.stanleyparable.send_to_chat": "Aparecer no Chat",
   "gui.stanleyparable.tts": "Texto para Fala",
   "gui.stanleyparable.openai_key": "Chave de API da OpenAI",

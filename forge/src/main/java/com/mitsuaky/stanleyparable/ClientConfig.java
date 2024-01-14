@@ -12,6 +12,7 @@ public class ClientConfig {
 
     public static final ForgeConfigSpec.ConfigValue<Integer> COOLDOWN_INDIVIDUAL;
     public static final ForgeConfigSpec.ConfigValue<Integer> COOLDOWN_GLOBAL;
+    public static final ForgeConfigSpec.ConfigValue<Integer> NARRATOR_VOLUME;
     public static final ForgeConfigSpec.ConfigValue<Boolean> SEND_TO_CHAT;
     public static final ForgeConfigSpec.ConfigValue<Boolean> TTS;
 
@@ -25,6 +26,7 @@ public class ClientConfig {
         BUILDER.push("Configs for Minecraft Narrator");
         COOLDOWN_INDIVIDUAL = BUILDER.comment("Cooldown for individual events in minutes").defineInRange("cooldown_individual", 5, 1, 20);
         COOLDOWN_GLOBAL = BUILDER.comment("Cooldown for global events in seconds").defineInRange("cooldown_global", 30, 30, 60);
+        NARRATOR_VOLUME = BUILDER.comment("Narrator Volume").defineInRange("narrator_volume", 100, 1, 130);
         SEND_TO_CHAT = BUILDER.comment("Send events to chat").define("send_to_chat", true);
         TTS = BUILDER.comment("Enable text to speech").define("tts", true);
 
@@ -43,6 +45,7 @@ public class ClientConfig {
         try {
             request.addProperty("cooldown_individual", COOLDOWN_INDIVIDUAL.get());
             request.addProperty("cooldown_global", COOLDOWN_GLOBAL.get());
+            request.addProperty("narrator_volume", NARRATOR_VOLUME.get());
             request.addProperty("tts", TTS.get());
             request.addProperty("openai_api_key", OPENAI_API_KEY.get());
             request.addProperty("openai_base_url", OPENAI_BASE_URL.get());

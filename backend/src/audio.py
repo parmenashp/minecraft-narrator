@@ -1,9 +1,10 @@
 import subprocess
 from typing import Iterator
+from src.config import global_config
 
 
 def stream(audio_stream: Iterator[bytes]):
-    mpv_command = ["./mpv.exe", "--no-cache", "--no-terminal", "--", "fd://0"]
+    mpv_command = ["./mpv.exe", "--no-cache", f"--volume={global_config.narrator_volume}", "--no-terminal", "--", "fd://0"]
     mpv_process = subprocess.Popen(
         mpv_command,
         stdin=subprocess.PIPE,
