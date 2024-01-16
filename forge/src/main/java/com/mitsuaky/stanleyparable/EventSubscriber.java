@@ -327,6 +327,7 @@ public class EventSubscriber {
         switch (action) {
             case IGNORE:
                 LOGGER.debug("Ignoring event: " + event.getClass().getSimpleName());
+                LOGGER.debug("Response text: " + response.getAsJsonObject("data").get("text").getAsString());
                 break;
             case CANCEL_EVENT:
                 LOGGER.debug("Cancelling event: " + event.getClass().getSimpleName());

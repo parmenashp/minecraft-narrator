@@ -21,7 +21,9 @@ def handle_event(event: IncomingEvent) -> OutgoingAction:
     chat_response = chat.ask(text)
     text = tts.synthesize(chat_response)
     print("chat_response:", text)
-
+    if text == "":
+        r.action = Action.IGNORE
+        text = "Erro ao gerar texto"
     r.data["text"] = text
     print("out:", r)
     return r
