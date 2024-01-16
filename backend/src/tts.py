@@ -35,10 +35,12 @@ class TTS:
 
         def wrapped_generator():
             nonlocal full_text
-            for chunk in text:
-                full_text += chunk
-                yield chunk
-            generator_done.set()
+            try:
+                for chunk in text:
+                    full_text += chunk
+                    yield chunk
+            finally:
+                generator_done.set()
 
         gen = generate(
             text=wrapped_generator(),
