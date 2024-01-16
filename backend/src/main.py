@@ -11,9 +11,9 @@ app = fastapi.FastAPI()
 
 
 @app.post("/event")
-async def handle_event(event: IncomingEvent) -> OutgoingAction:
+def handle_event(event: IncomingEvent) -> OutgoingAction:
     print("in:", event)
-    r = await event_handler.handle(event)
+    r = event_handler.handle(event)
     if r.action == Action.IGNORE:
         return r
 
@@ -47,7 +47,7 @@ async def ask(text: str) -> str:
 
 
 @event_handler.register(Event.ITEM_CRAFTED)
-async def handle_item_crafted(event: IncomingEvent[models.ItemCraftedEventData]):
+def handle_item_crafted(event: IncomingEvent[models.ItemCraftedEventData]):
     text = f'Jogador "Felps" craftou o item "{event.data["item"]}"'
     return OutgoingAction(
         action=Action.SEND_CHAT,
@@ -56,7 +56,7 @@ async def handle_item_crafted(event: IncomingEvent[models.ItemCraftedEventData])
 
 
 @event_handler.register(Event.BLOCK_BROKEN)
-async def handle_block_broken(event: IncomingEvent[models.BlockBrokenEventData]):
+def handle_block_broken(event: IncomingEvent[models.BlockBrokenEventData]):
     text = f'Jogador "Felps" quebrou "{event.data["block"]}" com "{event.data["tool"]}"'
     return OutgoingAction(
         action=Action.SEND_CHAT,
@@ -65,7 +65,7 @@ async def handle_block_broken(event: IncomingEvent[models.BlockBrokenEventData])
 
 
 @event_handler.register(Event.BLOCK_PLACED)
-async def handle_block_placed(event: IncomingEvent[models.BlockPlacedEventData]):
+def handle_block_placed(event: IncomingEvent[models.BlockPlacedEventData]):
     text = f'Jogador "Felps" colocou "{event.data["block"]}"'
     return OutgoingAction(
         action=Action.SEND_CHAT,
@@ -74,7 +74,7 @@ async def handle_block_placed(event: IncomingEvent[models.BlockPlacedEventData])
 
 
 @event_handler.register(Event.PLAYER_DEATH)
-async def handle_player_death(event: IncomingEvent[models.PlayerDeathEventData]):
+def handle_player_death(event: IncomingEvent[models.PlayerDeathEventData]):
     text = f'Jogador morreu "{event.data["cause"]}"'
     return OutgoingAction(
         action=Action.SEND_CHAT,
@@ -83,7 +83,7 @@ async def handle_player_death(event: IncomingEvent[models.PlayerDeathEventData])
 
 
 @event_handler.register(Event.ADVANCEMENT)
-async def handle_achievement(event: IncomingEvent[models.AdvancementEventData]):
+def handle_achievement(event: IncomingEvent[models.AdvancementEventData]):
     text = f'Jogador "Felps" ganhou a conquista "{event.data["advancement"]}"'
     return OutgoingAction(
         action=Action.SEND_CHAT,
@@ -92,7 +92,7 @@ async def handle_achievement(event: IncomingEvent[models.AdvancementEventData]):
 
 
 @event_handler.register(Event.ITEM_PICKUP)
-async def handle_item_pickup(event: IncomingEvent[models.ItemPickupEventData]):
+def handle_item_pickup(event: IncomingEvent[models.ItemPickupEventData]):
     text = f'Jogador "Felps" pegou {event.data["amount"]} "{event.data["item"]}"'
     return OutgoingAction(
         action=Action.SEND_CHAT,
@@ -101,7 +101,7 @@ async def handle_item_pickup(event: IncomingEvent[models.ItemPickupEventData]):
 
 
 @event_handler.register(Event.MOB_KILLED)
-async def handle_mob_killed(event: IncomingEvent[models.MobKilledEventData]):
+def handle_mob_killed(event: IncomingEvent[models.MobKilledEventData]):
     if event.data["weapon"] == "block.minecraft.air":
         event.data["weapon"] = "as próprias mãos"
     text = f'Jogador "Felps" matou "{event.data["mob"]}" com "{event.data["weapon"]}"'
@@ -112,7 +112,7 @@ async def handle_mob_killed(event: IncomingEvent[models.MobKilledEventData]):
 
 
 @event_handler.register(Event.DIMENSION_CHANGED)
-async def handle_dimension_changed(event: IncomingEvent[models.DimensionChangedEventData]):
+def handle_dimension_changed(event: IncomingEvent[models.DimensionChangedEventData]):
     text = f'Jogador "Felps" entrou na dimensão "{event.data["dimension"]}"'
     return OutgoingAction(
         action=Action.SEND_CHAT,
@@ -121,7 +121,7 @@ async def handle_dimension_changed(event: IncomingEvent[models.DimensionChangedE
 
 
 @event_handler.register(Event.PLAYER_CHAT)
-async def handle_player_chat(event: IncomingEvent[models.PlayerChatEventData]):
+def handle_player_chat(event: IncomingEvent[models.PlayerChatEventData]):
     text = f'Jogador "Felps" escreveu no chat do jogo "{event.data["message"]}"'
     return OutgoingAction(
         action=Action.SEND_CHAT,
@@ -130,7 +130,7 @@ async def handle_player_chat(event: IncomingEvent[models.PlayerChatEventData]):
 
 
 @event_handler.register(Event.PLAYER_ATE)
-async def handle_player_ate(event: IncomingEvent[models.PlayerAteEventData]):
+def handle_player_ate(event: IncomingEvent[models.PlayerAteEventData]):
     text = f'Jogador "Felps" comeu "{event.data["item"]}"'
     return OutgoingAction(
         action=Action.SEND_CHAT,
@@ -139,7 +139,7 @@ async def handle_player_ate(event: IncomingEvent[models.PlayerAteEventData]):
 
 
 @event_handler.register(Event.JOIN_WORLD)
-async def handle_join_world(event: IncomingEvent[models.JoinWorldEventData]):
+def handle_join_world(event: IncomingEvent[models.JoinWorldEventData]):
     text = f'Jogador "Felps" entrou no mundo "{event.data["world"]}"'
     return OutgoingAction(
         action=Action.SEND_CHAT,
