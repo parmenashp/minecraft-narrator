@@ -27,6 +27,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import com.mitsuaky.stanleyparable.screen.ConfigScreen;
 
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 
@@ -287,7 +288,7 @@ public class EventSubscriber {
             return;
         }
         Player player = event.getEntity();
-        String worldName = player.getServer().getWorldData().getLevelName();
+        String worldName = Objects.requireNonNull(player.getServer()).getWorldData().getLevelName();
 
         JoinWorldEventData eventData = new JoinWorldEventData(worldName);
         IncomingEvent<JoinWorldEventData> incomingEvent = new IncomingEvent<>(Event.JOIN_WORLD, eventData);
@@ -303,8 +304,8 @@ public class EventSubscriber {
                             LOGGER.error("Timeout sending event to API: " + throwable.getMessage(), throwable);
                         } else {
                             LOGGER.error("Error sending event to API: " + throwable.getMessage(), throwable);
+                            player.sendSystemMessage(Component.translatable("chat.stanleyparable.network_error"));
                         }
-                        player.sendSystemMessage(Component.translatable("chat.stanleyparable.network_error"));
                     } else {
                         if (response == null) {
                             LOGGER.error("Received null response from API");
