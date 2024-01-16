@@ -11,25 +11,25 @@ T = TypeVar("T", bound=IncomingEvent)
 
 class EventHandler:
     def __init__(self):
-        self._handlers: dict[Event, Callable[[T], Awaitable[OutgoingAction]]] = {}
+        self._handlers: dict[Event, Callable[[T], OutgoingAction]] = {}
         self._cd_manager = CooldownManager()
         self._queue = Queue()
 
     def register(
             self, event: Event
-    ) -> Callable[[Callable[[T], Awaitable[OutgoingAction]]], Callable[[T], Awaitable[OutgoingAction]]]:
-        def decorator(func: Callable[[T], Awaitable[OutgoingAction]]) -> Callable[[T], Awaitable[OutgoingAction]]:
+    ) -> Callable[[Callable[[T], OutgoingAction]], Callable[[T], OutgoingAction]]:
+        def decorator(func: Callable[[T], OutgoingAction]) -> Callable[[T], OutgoingAction]:
             self._handlers[event] = func
             return func
 
         return decorator
 
-    async def handle(self, event: IncomingEvent) -> OutgoingAction:
+    def handle(self, event: IncomingEvent) -> OutgoingAction:
         handler = self._handlers.get(event.event)
         if not handler:
             raise HTTPException(status_code=404, detail="Evento não encontrado")
 
-        outgoing_action = await handler(event)
+        outgoing_action = handler(event)
         self._queue.put(outgoing_action.data["text"])
 
         if self._cd_manager.check_all_cooldown(event.event):
