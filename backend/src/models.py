@@ -22,7 +22,7 @@ class Event(StrEnum):
 
 class IncomingEvent(BaseModel):
     event: Event
-    text: str
+    data: str
 
 
 class Pong(BaseModel):

@@ -59,13 +59,12 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
                     action=Action.SEND_CHAT,
                     data={"text": full_response},
                 )
-            print(full_response)
+
             asyncio.run_coroutine_threadsafe(websocket.send_json(response.model_dump()), loop)
+            print("out:", response)
 
         loop = asyncio.get_event_loop()
         threading.Thread(target=background, kwargs={"loop": loop}).start()
-
-        print("received:", incoming)
 
 
 @app.get("/ping")
