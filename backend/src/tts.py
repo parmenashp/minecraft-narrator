@@ -10,7 +10,7 @@ from src.config import global_config
 
 class TTS:
     def __init__(self):
-        self.voice_id = None
+        self.voice_id = ""
 
         if not os.path.isfile("mpv.exe"):
             cprint(colored("mpv.exe not found, TTS disabled", "red"))
