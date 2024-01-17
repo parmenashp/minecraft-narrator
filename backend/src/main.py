@@ -33,48 +33,39 @@ def handle_event(event: IncomingEvent) -> OutgoingAction:
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: fastapi.WebSocket):
     await websocket.accept()
-    while True:
-        try:
-            json_data = await websocket.receive_json()
-            incoming: IncomingEvent = IncomingEvent(**json_data)
+    async for json_data in websocket.iter_json():
+        incoming: IncomingEvent = IncomingEvent(**json_data)
 
-            print("in:", incoming)
+        print("in:", incoming)
 
-            outgoing = event_handler.handle(event=incoming)
-            if outgoing.action == Action.IGNORE:
-                await websocket.send_json(outgoing.model_dump())
-                continue
+        outgoing = event_handler.handle(event=incoming)
+        if outgoing.action == Action.IGNORE:
+            await websocket.send_json(outgoing.model_dump())
+            continue
 
-            gpt_prompt = outgoing.data["text"]
+        gpt_prompt = outgoing.data["text"]
 
-            def background(loop):
-                gpt_response_generator = chat.ask(gpt_prompt)
-                full_response = tts.synthesize(gpt_response_generator)
+        def background(loop):
+            gpt_response_generator = chat.ask(gpt_prompt)
+            full_response = tts.synthesize(gpt_response_generator)
 
-                if full_response == "":
-                    response = OutgoingAction(
-                        action=Action.IGNORE,
-                        data={"text": "Erro ao gerar texto"},
-                    )
-                else:
-                    response = OutgoingAction(
-                        action=Action.SEND_CHAT,
-                        data={"text": full_response},
-                    )
-                asyncio.run_coroutine_threadsafe(websocket.send_json(response.model_dump()), loop)
-
-            loop = asyncio.get_event_loop()
-            threading.Thread(target=background, kwargs={"loop": loop}).start()
-
-            print("received:", incoming)
-        except fastapi.websockets.WebSocketDisconnect:
-            break
-        except Exception as e:
-            if websocket.client_state == fastapi.websockets.WebSocketState.CONNECTED:
-                response = {"error": str(e)}
-                await websocket.send_json(response)
+            if full_response == "":
+                response = OutgoingAction(
+                    action=Action.IGNORE,
+                    data={"text": "Erro ao gerar texto"},
+                )
             else:
-                raise e
+                response = OutgoingAction(
+                    action=Action.SEND_CHAT,
+                    data={"text": full_response},
+                )
+            print(full_response)
+            asyncio.run_coroutine_threadsafe(websocket.send_json(response.model_dump()), loop)
+
+        loop = asyncio.get_event_loop()
+        threading.Thread(target=background, kwargs={"loop": loop}).start()
+
+        print("received:", incoming)
 
 
 @app.get("/ping")
