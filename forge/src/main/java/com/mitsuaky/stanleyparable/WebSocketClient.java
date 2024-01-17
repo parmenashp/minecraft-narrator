@@ -1,0 +1,135 @@
+package com.mitsuaky.stanleyparable;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.WebSocket;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+
+
+public class WebSocketClient {
+    public static WebSocketClient instance;
+    private static final Logger LOGGER = LogManager.getLogger(WebSocketClient.class);
+    private static final String SERVER_URI = "ws://localhost:7000";
+    private WebSocket webSocket;
+    private final List<EventListener> eventsListeners = new ArrayList<>();
+
+    public WebSocketClient() {
+        instance = this;
+        HttpClient httpClient = HttpClient.newHttpClient();
+        WebSocket.Builder webSocketBuilder = httpClient.newWebSocketBuilder();
+        webSocket = webSocketBuilder.buildAsync(URI.create(WebSocketClient.SERVER_URI), new WebSocketListener()).join();
+    }
+
+    public void addEventListener(String event, Function<JsonObject, Void> listener) {
+        if (eventsListeners.stream().anyMatch(eventListener -> eventListener.event.equals(event))) {
+            return;
+        }
+        eventsListeners.add(new EventListener(event, listener));
+    }
+
+    public void sendEvent(String event, String data) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("event", event);
+        jsonObject.addProperty("data", data);
+        webSocket.sendText(jsonObject.toString(), true);
+    }
+
+    public void reconnect() {
+        try {
+            HttpClient httpClient = HttpClient.newHttpClient();
+            WebSocket.Builder webSocketBuilder = httpClient.newWebSocketBuilder();
+            webSocket = webSocketBuilder.buildAsync(URI.create(WebSocketClient.SERVER_URI), new WebSocketListener()).join();
+        } catch (Exception ex) {
+            LOGGER.error("Could not reconnect to websocket: " + ex.getMessage(), ex);
+            LOGGER.info("Trying to reconnect...");
+            ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+            executorService.schedule(() -> {
+                try {
+                    WebSocketClient.getInstance().reconnect();
+                } catch (Exception ex2) {
+                    LOGGER.error("Could not reconnect to websocket: " + ex2.getMessage(), ex2);
+                }
+            }, 5, TimeUnit.SECONDS);
+        }
+    }
+
+    public static WebSocketClient getInstance() {
+        return instance;
+    }
+
+    private static class EventListener {
+        public String event;
+        public Function<JsonObject, Void> listener;
+
+        public EventListener(String event, Function<JsonObject, Void> listener) {
+            this.event = event;
+            this.listener = listener;
+        }
+    }
+
+    private static class WebSocketListener implements WebSocket.Listener {
+
+        @Override
+        public void onOpen(WebSocket webSocket) {
+            LOGGER.info("WebSocket opened");
+            webSocket.request(1);
+        }
+
+        @Override
+        public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
+            LOGGER.info("Received websocket message: " + data);
+
+            try {
+                JsonObject jsonObject = JsonParser.parseString(data.toString()).getAsJsonObject();
+                String event = JsonParser.parseString(data.toString()).getAsJsonObject().get("action").getAsString();
+                for (EventListener eventListener : WebSocketClient.getInstance().eventsListeners) {
+                    if (eventListener.event.equals(event)) {
+                        eventListener.listener.apply(jsonObject);
+                    }
+                }
+            } catch (Exception ex) {
+                LOGGER.error("Could not parse websocket message: " + ex.getMessage(), ex);
+            }
+
+            webSocket.request(1);
+            return null;
+        }
+
+        @Override
+        public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
+            LOGGER.info("WebSocket closed: " + statusCode + ", " + reason);
+            LOGGER.info("Trying to reconnect...");
+            ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+            executorService.schedule(() -> WebSocketClient.getInstance().reconnect(), 5, TimeUnit.SECONDS);
+            webSocket.request(1);
+            return null;
+        }
+
+        @Override
+        public void onError(WebSocket webSocket, Throwable error) {
+            LOGGER.error("WebSocket error: " + error.getMessage(), error);
+            webSocket.request(1);
+        }
+
+        @Override
+        public CompletionStage<?> onPing(WebSocket webSocket, ByteBuffer message) {
+            LOGGER.info("WebSocket ping: " + message);
+            webSocket.sendPong(message);
+
+            webSocket.request(1);
+            return null;
+        }
+    }
+}
