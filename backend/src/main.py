@@ -67,6 +67,8 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
             threading.Thread(target=background, kwargs={"loop": loop}).start()
 
             print("received:", incoming)
+        except fastapi.websockets.WebSocketDisconnect:
+            break
         except Exception as e:
             if websocket.client_state == fastapi.websockets.WebSocketState.CONNECTED:
                 response = {"error": str(e)}
