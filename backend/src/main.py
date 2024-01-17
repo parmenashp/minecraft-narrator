@@ -29,6 +29,47 @@ def handle_event(event: IncomingEvent) -> OutgoingAction:
     return r
 
 
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: fastapi.WebSocket):
+    await websocket.accept()
+    while True:
+        try:
+            # Wait for any message from the client
+            json_data = await websocket.receive_json()
+            incoming: IncomingEvent = IncomingEvent(**json_data)
+
+            print("in:", incoming)
+
+            outgoing = event_handler.handle(event=incoming)
+            if outgoing.action == Action.IGNORE:
+                await websocket.send_json(outgoing.model_dump())
+                continue
+
+            gpt_prompt = outgoing.data["text"]
+
+            gpt_response_generator = chat.ask(gpt_prompt)
+            full_response = tts.synthesize(gpt_response_generator)
+
+            if full_response == "":
+                response = OutgoingAction(
+                    action=Action.IGNORE,
+                    data={"text": "Erro ao gerar texto"},
+                )
+            else:
+                response = OutgoingAction(
+                    action=Action.SEND_CHAT,
+                    data={"text": full_response},
+                )
+
+            await websocket.send_json(response.model_dump())
+
+            print("full_response:", full_response)
+            print("received:", incoming)
+        except Exception as e:
+            response = {"error": str(e)}
+            await websocket.send_json(response)
+
+
 @app.get("/ping")
 async def ping():
     return Pong(text="pong")
