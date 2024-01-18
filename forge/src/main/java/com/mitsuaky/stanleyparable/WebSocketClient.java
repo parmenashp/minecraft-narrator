@@ -27,9 +27,7 @@ public class WebSocketClient {
 
     public WebSocketClient() {
         instance = this;
-        HttpClient httpClient = HttpClient.newHttpClient();
-        WebSocket.Builder webSocketBuilder = httpClient.newWebSocketBuilder();
-        webSocket = webSocketBuilder.buildAsync(URI.create(WebSocketClient.SERVER_URI), new WebSocketListener()).join();
+        connect();
     }
 
     public void addEventListener(String event, Function<JsonObject, Void> listener) {
@@ -46,22 +44,16 @@ public class WebSocketClient {
         webSocket.sendText(jsonObject.toString(), true);
     }
 
-    public void reconnect() {
+    public void connect() {
         try {
             HttpClient httpClient = HttpClient.newHttpClient();
             WebSocket.Builder webSocketBuilder = httpClient.newWebSocketBuilder();
             webSocket = webSocketBuilder.buildAsync(URI.create(WebSocketClient.SERVER_URI), new WebSocketListener()).join();
         } catch (Exception ex) {
-            LOGGER.error("Could not reconnect to websocket: " + ex.getMessage(), ex);
+            LOGGER.error("Could not connect to websocket: " + ex.getMessage(), ex);
             LOGGER.info("Trying to reconnect...");
             ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-            executorService.schedule(() -> {
-                try {
-                    WebSocketClient.getInstance().reconnect();
-                } catch (Exception ex2) {
-                    LOGGER.error("Could not reconnect to websocket: " + ex2.getMessage(), ex2);
-                }
-            }, 5, TimeUnit.SECONDS);
+            executorService.schedule(this::connect, 5, TimeUnit.SECONDS);
         }
     }
 
@@ -112,7 +104,7 @@ public class WebSocketClient {
             LOGGER.info("WebSocket closed: " + statusCode + ", " + reason);
             LOGGER.info("Trying to reconnect...");
             ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-            executorService.schedule(() -> WebSocketClient.getInstance().reconnect(), 5, TimeUnit.SECONDS);
+            executorService.schedule(() -> WebSocketClient.getInstance().connect(), 5, TimeUnit.SECONDS);
             webSocket.request(1);
             return null;
         }
