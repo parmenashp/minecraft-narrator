@@ -64,7 +64,7 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
             print("out:", response)
 
         loop = asyncio.get_event_loop()
-        threading.Thread(target=background, kwargs={"loop": loop}).start()
+        threading.Thread(target=background, kwargs={"event_loop": loop}).start()
 
 
 @app.get("/ping")
