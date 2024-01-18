@@ -11,7 +11,7 @@ class EventHandler:
         self._queue = Queue()
 
     def handle(self, event: IncomingEvent) -> OutgoingAction:
-        self._queue.put(event.text)
+        self._queue.put(event.data)
 
         outgoing_action = OutgoingAction(
             action=Action.SEND_CHAT,
