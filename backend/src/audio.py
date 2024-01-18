@@ -13,7 +13,7 @@ def stream(audio_stream: Iterator[bytes]):
     )
 
     for chunk in audio_stream:
-        if chunk is not None:
+        if mpv_process.stdin and chunk:
             mpv_process.stdin.write(chunk)
             mpv_process.stdin.flush()
 

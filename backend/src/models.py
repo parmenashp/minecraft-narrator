@@ -1,13 +1,9 @@
 from pydantic import BaseModel
 from enum import StrEnum
-from typing import Generic, TypeVar
 
 
 class BaseEventData(BaseModel):
     pass
-
-
-DataT = TypeVar("DataT", bound=BaseEventData)
 
 
 class Event(StrEnum):
@@ -24,64 +20,16 @@ class Event(StrEnum):
     JOIN_WORLD = "join_world"
 
 
-class ItemCraftedEventData(BaseEventData):
-    item: str
-    amount: int
-
-
-class BlockBrokenEventData(BaseEventData):
-    block: str
-    tool: str
-
-
-class BlockPlacedEventData(BaseEventData):
-    block: str
-
-
-class PlayerDeathEventData(BaseEventData):
-    cause: str
-
-
-class AdvancementEventData(BaseEventData):
-    advancement: str
-
-
-class ItemPickupEventData(BaseEventData):
-    item: str
-    amount: int
-
-
-class MobKilledEventData(BaseEventData):
-    mob: str
-    weapon: str
-
-
-class DimensionChangedEventData(BaseEventData):
-    dimension: str
-
-
-class PlayerChatEventData(BaseEventData):
-    message: str
-
-
-class JoinWorldEventData(BaseEventData):
-    world: str
-
-
-class PlayerAteEventData(BaseEventData):
-    item: str
-
-
-class IncomingEvent(BaseModel, Generic[DataT]):
+class IncomingEvent(BaseModel):
     event: Event
-    data: dict
+    data: str
 
 
-class Pong(BaseModel, Generic[DataT]):
+class Pong(BaseModel):
     text: str
 
 
-class Config(BaseModel, Generic[DataT]):
+class Config(BaseModel):
     elevenlabs_api_key: str
     elevenlabs_voice_id: str
     openai_api_key: str
@@ -96,10 +44,9 @@ class Config(BaseModel, Generic[DataT]):
 # ==== Outgoing ====
 class Action(StrEnum):
     IGNORE = "ignore"
-    CANCEL_EVENT = "cancel_event"
     SEND_CHAT = "send_chat"
 
 
 class OutgoingAction(BaseModel):
-    action: str
-    data: dict
+    action: Action
+    data: str

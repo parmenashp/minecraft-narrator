@@ -1,6 +1,5 @@
 package com.mitsuaky.stanleyparable;
 
-import com.google.gson.JsonObject;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.DisplayInfo;
@@ -28,12 +27,12 @@ import org.apache.logging.log4j.Logger;
 import com.mitsuaky.stanleyparable.screen.ConfigScreen;
 
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeoutException;
 
 @Mod.EventBusSubscriber(modid = "stanleyparable", bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class EventSubscriber {
     private static final Logger LOGGER = LogManager.getLogger(EventSubscriber.class);
+
+    private static final WebSocketClient wsClient = new WebSocketClient();
 
     public enum Event {
         ITEM_CRAFTED("item_crafted"),
@@ -59,27 +58,6 @@ public class EventSubscriber {
         }
     }
 
-    public enum Action {
-        IGNORE("ignore"),
-        CANCEL_EVENT("cancel_event"),
-        SEND_CHAT("send_chat");
-
-        private final String value;
-
-        Action(String value) {
-            this.value = value;
-        }
-
-        public static Action fromString(String text) {
-            for (Action b : Action.values()) {
-                if (b.value.equalsIgnoreCase(text)) {
-                    return b;
-                }
-            }
-            return null;
-        }
-    }
-
     public static String getAsName(Item item, ItemStack stack) {
         if (stack == null) {
             stack = new ItemStack(item);
@@ -98,19 +76,10 @@ public class EventSubscriber {
     @SubscribeEvent
     public static void registerCommands(RegisterClientCommandsEvent event) {
         CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
-        dispatcher.register(Commands.literal("minecraftnarrator")
-                .then(Commands.literal("config")
-                        .executes(context -> {
-                            Minecraft.getInstance().setScreen(new ConfigScreen(Minecraft.getInstance().screen));
-                            return 1;
-                        })
-                )
-        );
-    }
-
-    @SubscribeEvent
-    public static void onJoin(PlayerEvent.PlayerLoggedInEvent event) {
-        ClientConfig.applyServerConfig();
+        dispatcher.register(Commands.literal("minecraftnarrator").then(Commands.literal("config").executes(context -> {
+            Minecraft.getInstance().setScreen(new ConfigScreen(Minecraft.getInstance().screen));
+            return 1;
+        })));
     }
 
     @SubscribeEvent
@@ -122,11 +91,8 @@ public class EventSubscriber {
         }
 
         String item = getAsName(event.getCrafting().getItem(), event.getCrafting());
-        int amount = event.getCrafting().getCount();
-        Player player = event.getEntity();
-        ItemCraftedEventData eventData = new ItemCraftedEventData(item, amount);
-        IncomingEvent<ItemCraftedEventData> incomingEvent = new IncomingEvent<>(Event.ITEM_CRAFTED, eventData);
-        processApiResponse(player, event, incomingEvent.toJson());
+        String player = event.getEntity().getName().getString();
+        wsClient.sendEvent(Event.ITEM_CRAFTED.getValue(), String.format("Jogador \"%s\" craftou \"%s\"", player, item));
     }
 
     @SubscribeEvent
@@ -142,10 +108,8 @@ public class EventSubscriber {
             tool_name = Component.translatable("item.stanleyparable.bare_hands").getString();
         }
         String block = getAsName(event.getState().getBlock());
-        Player player = event.getPlayer();
-        BlockBrokenEventData eventData = new BlockBrokenEventData(block, tool_name);
-        IncomingEvent<BlockBrokenEventData> incomingEvent = new IncomingEvent<>(Event.BLOCK_BROKEN, eventData);
-        processApiResponse(player, event, incomingEvent.toJson());
+        String player = event.getPlayer().getName().getString();
+        wsClient.sendEvent(Event.BLOCK_BROKEN.getValue(), String.format("Jogador \"%s\" quebrou \"%s\" com \"%s\"", player, block, tool_name));
     }
 
     @SubscribeEvent
@@ -157,25 +121,22 @@ public class EventSubscriber {
         }
 
         String block = getAsName(event.getPlacedBlock().getBlock());
-        Player player = event.getEntity() instanceof Player ? (Player) event.getEntity() : null;
-        BlockPlacedEventData eventData = new BlockPlacedEventData(block);
-        IncomingEvent<BlockPlacedEventData> incomingEvent = new IncomingEvent<>(Event.BLOCK_PLACED, eventData);
-        processApiResponse(player, event, incomingEvent.toJson());
+        String player = event.getEntity().getName().getString();
+        wsClient.sendEvent(Event.BLOCK_PLACED.getValue(), String.format("Jogador \"%s\" colocou \"%s\"", player, block));
     }
 
     @SubscribeEvent
     public static void onPlayerDeath(LivingDeathEvent event) {
         event.setCanceled(false);
         LOGGER.debug("Player LivingDeathEvent triggered");
-        if (event.getEntity() == null || !(event.getEntity() instanceof Player player)) {
+        if (event.getEntity() == null || !(event.getEntity() instanceof Player)) {
             LOGGER.debug("LivingDeathEvent triggered but is not a player");
             return;
         }
 
         String deathCause = event.getSource().getLocalizedDeathMessage(event.getEntity()).getString();
-        PlayerDeathEventData eventData = new PlayerDeathEventData(deathCause);
-        IncomingEvent<PlayerDeathEventData> incomingEvent = new IncomingEvent<>(Event.PLAYER_DEATH, eventData);
-        processApiResponse(player, event, incomingEvent.toJson());
+        String player = event.getEntity().getName().getString();
+        wsClient.sendEvent(Event.PLAYER_DEATH.getValue(), String.format("Jogador \"%s\" morreu \"%s\"", player, deathCause));
     }
 
     @SubscribeEvent
@@ -192,16 +153,15 @@ public class EventSubscriber {
             return;
         }
 
-        if (advancement.id().toString().endsWith("/root")){
+        if (advancement.id().toString().endsWith("/root")) {
             LOGGER.debug("AdvancementEvent triggered but is a root advancement");
             return;
         }
 
         String advancementTitle = event.getAdvancement().value().display().map(DisplayInfo::getTitle).map(Component::getString).orElse("");
         String advancementDescription = event.getAdvancement().value().display().map(DisplayInfo::getDescription).map(Component::getString).orElse("");
-        AdvancementEventData eventData = new AdvancementEventData(advancementTitle + ": " + advancementDescription);
-        IncomingEvent<AdvancementEventData> incomingEvent = new IncomingEvent<>(Event.ADVANCEMENT, eventData);
-        processApiResponse(event.getEntity(), event, incomingEvent.toJson());
+        String player = event.getEntity().getName().getString();
+        wsClient.sendEvent(Event.ADVANCEMENT.getValue(), String.format("Jogador \"%s\" obteve a conquista \"%s\": \"%s\"", player, advancementTitle, advancementDescription));
     }
 
     @SubscribeEvent
@@ -212,9 +172,8 @@ public class EventSubscriber {
             return;
         }
         String dimension = event.getTo().location().toString();
-        DimensionChangeEventData eventData = new DimensionChangeEventData(dimension);
-        IncomingEvent<DimensionChangeEventData> incomingEvent = new IncomingEvent<>(Event.DIMENSION_CHANGED, eventData);
-        processApiResponse(event.getEntity(), event, incomingEvent.toJson());
+        String player = event.getEntity().getName().getString();
+        wsClient.sendEvent(Event.DIMENSION_CHANGED.getValue(), String.format("Jogador \"%s\" entrou na dimensão \"%s\"", player, dimension));
     }
 
     @SubscribeEvent
@@ -227,10 +186,8 @@ public class EventSubscriber {
 
         String item = getAsName(event.getStack().getItem(), event.getStack());
         int amount = event.getStack().getCount();
-        Player player = event.getEntity();
-        ItemPickupEventData eventData = new ItemPickupEventData(item, amount);
-        IncomingEvent<ItemPickupEventData> incomingEvent = new IncomingEvent<>(Event.ITEM_PICKUP, eventData);
-        processApiResponse(player, event, incomingEvent.toJson());
+        String player = event.getEntity().getName().getString();
+        wsClient.sendEvent(Event.ITEM_PICKUP.getValue(), String.format("Jogador \"%s\" pegou \"%d\" \"%s\"", player, amount, item));
     }
 
     @SubscribeEvent
@@ -248,9 +205,7 @@ public class EventSubscriber {
             weapon_name = Component.translatable("item.stanleyparable.bare_hands").getString();
         }
 
-        MobKilledEventData eventData = new MobKilledEventData(mob, weapon_name);
-        IncomingEvent<MobKilledEventData> incomingEvent = new IncomingEvent<>(Event.MOB_KILLED, eventData);
-        processApiResponse(player, event, incomingEvent.toJson());
+        wsClient.sendEvent(Event.MOB_KILLED.getValue(), String.format("Jogador \"%s\" matou \"%s\" com \"%s\"", player.getName().getString(), mob, weapon_name));
     }
 
     @SubscribeEvent
@@ -261,279 +216,36 @@ public class EventSubscriber {
             return;
         }
         String message = event.getRawText();
-        ClientChatEventData eventData = new ClientChatEventData(message);
-        IncomingEvent<ClientChatEventData> incomingEvent = new IncomingEvent<>(Event.PLAYER_CHAT, eventData);
-        processApiResponse(event.getPlayer(), event, incomingEvent.toJson());
-
+        String player = event.getPlayer().getName().getString();
+        wsClient.sendEvent(Event.PLAYER_CHAT.getValue(), String.format("Jogador \"%s\" escreveu no chat do jogo \"%s\"", player, message));
     }
 
     @SubscribeEvent
     public static void onPlayerAte(LivingEntityUseItemEvent.Finish event) {
-        if (event.getEntity() == null || !(event.getEntity() instanceof Player player) || event.getEntity() instanceof ServerPlayer) {
+        if (event.getEntity() == null || !(event.getEntity() instanceof Player) || event.getEntity() instanceof ServerPlayer) {
             LOGGER.debug("PlayerAteEvent triggered without valid player");
             return;
         }
 
         String item_name = getAsName(event.getItem().getItem(), event.getItem());
-
-        PlayerAteEventData eventData = new PlayerAteEventData(item_name);
-        IncomingEvent<PlayerAteEventData> incomingEvent = new IncomingEvent<>(Event.PLAYER_ATE, eventData);
-        processApiResponse(player, event, incomingEvent.toJson());
+        String player = event.getEntity().getName().getString();
+        wsClient.sendEvent(Event.PLAYER_ATE.getValue(), String.format("Jogador \"%s\" comeu/bebeu \"%s\"", player, item_name));
     }
 
     @SubscribeEvent
     public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
+        ClientConfig.applyServerConfig();
         if (event.getEntity() == null || !(event.getEntity() instanceof ServerPlayer)) {
             LOGGER.debug("PlayerJoinEvent triggered without valid player");
             return;
         }
         Player player = event.getEntity();
+        wsClient.addEventListener("send_chat", jsonObject -> {
+            player.sendSystemMessage(Component.nullToEmpty(jsonObject.get("data").getAsString()));
+            return null;
+        });
         String worldName = Objects.requireNonNull(player.getServer()).getWorldData().getLevelName();
-
-        JoinWorldEventData eventData = new JoinWorldEventData(worldName);
-        IncomingEvent<JoinWorldEventData> incomingEvent = new IncomingEvent<>(Event.JOIN_WORLD, eventData);
-        processApiResponse(player, event, incomingEvent.toJson());
-    }
-
-    private static void processApiResponse(Player player, net.minecraftforge.eventbus.api.Event event, JsonObject jsonEvent) {
-        CompletableFuture<JsonObject> future = APICommunicator.sendRequestAsync("POST", "event", jsonEvent);
-        future.whenComplete(
-                (response, throwable) -> {
-                    if (throwable != null) {
-                        if (throwable instanceof TimeoutException) {
-                            LOGGER.error("Timeout sending event to API: " + throwable.getMessage(), throwable);
-                        } else {
-                            LOGGER.error("Error sending event to API: " + throwable.getMessage(), throwable);
-                            player.sendSystemMessage(Component.translatable("chat.stanleyparable.network_error"));
-                        }
-                    } else {
-                        if (response == null) {
-                            LOGGER.error("Received null response from API");
-                            return;
-                        }
-                        LOGGER.debug("Received response from API: " + response);
-                        handleResponse(player, event, response);
-                    }
-                }
-        );
-    }
-
-    private static void handleResponse(Player player, net.minecraftforge.eventbus.api.Event event, JsonObject response) {
-        Action action = Action.fromString(response.get("action").getAsString());
-        if (action == null) {
-            LOGGER.error("Received invalid action from API");
-            return;
-        }
-        switch (action) {
-            case IGNORE:
-                LOGGER.debug("Ignoring event: " + event.getClass().getSimpleName());
-                LOGGER.debug("Response text: " + response.getAsJsonObject("data").get("text").getAsString());
-                break;
-            case CANCEL_EVENT:
-                LOGGER.debug("Cancelling event: " + event.getClass().getSimpleName());
-                if (event.isCancelable()) {
-                    event.setCanceled(true);
-                }
-                break;
-            case SEND_CHAT:
-                if (ClientConfig.SEND_TO_CHAT.get()) {
-                    LOGGER.debug("Sending chat message: " + response.getAsJsonObject("data").get("text").getAsString());
-                    String chatMessage = response.getAsJsonObject("data").get("text").getAsString();
-                    player.sendSystemMessage(Component.literal(chatMessage));
-                }
-                break;
-            default:
-                LOGGER.warn("Unhandled action: " + action);
-        }
-    }
-}
-
-class BaseEventData {
-    JsonObject toJson() {
-        return new JsonObject();
-    }
-}
-
-class ItemCraftedEventData extends BaseEventData {
-    String item;
-    int amount;
-
-    ItemCraftedEventData(String item, int amount) {
-        this.item = item;
-        this.amount = amount;
-    }
-
-    JsonObject toJson() {
-        JsonObject json = new JsonObject();
-        json.addProperty("item", item);
-        json.addProperty("amount", amount);
-        return json;
-    }
-}
-
-class ClientChatEventData extends BaseEventData {
-    String message;
-
-    ClientChatEventData(String message) {
-        this.message = message;
-    }
-
-    JsonObject toJson() {
-        JsonObject json = new JsonObject();
-        json.addProperty("message", message);
-        return json;
-    }
-
-}
-
-class PlayerAteEventData extends BaseEventData {
-    String item;
-
-    PlayerAteEventData(String item) {
-        this.item = item;
-    }
-
-    JsonObject toJson() {
-        JsonObject json = new JsonObject();
-        json.addProperty("item", item);
-        return json;
-    }
-}
-
-class BlockBrokenEventData extends BaseEventData {
-    String block;
-    String tool;
-
-    BlockBrokenEventData(String block, String tool) {
-        this.block = block;
-        this.tool = tool;
-    }
-
-    JsonObject toJson() {
-        JsonObject json = new JsonObject();
-        json.addProperty("block", block);
-        json.addProperty("tool", tool);
-        return json;
-    }
-}
-
-class BlockPlacedEventData extends BaseEventData {
-    String block;
-
-    BlockPlacedEventData(String block) {
-        this.block = block;
-    }
-
-    JsonObject toJson() {
-        JsonObject json = new JsonObject();
-        json.addProperty("block", block);
-        return json;
-    }
-}
-
-class PlayerDeathEventData extends BaseEventData {
-    String cause;
-
-    PlayerDeathEventData(String cause) {
-        this.cause = cause;
-    }
-
-    JsonObject toJson() {
-        JsonObject json = new JsonObject();
-        json.addProperty("cause", cause);
-        return json;
-    }
-}
-
-class AdvancementEventData extends BaseEventData {
-    String advancement;
-
-    AdvancementEventData(String advancement) {
-        this.advancement = advancement;
-    }
-
-    JsonObject toJson() {
-        JsonObject json = new JsonObject();
-        json.addProperty("advancement", advancement);
-        return json;
-    }
-}
-
-class JoinWorldEventData extends BaseEventData {
-    String world;
-
-    JoinWorldEventData(String world) {
-        this.world = world;
-    }
-
-    JsonObject toJson() {
-        JsonObject json = new JsonObject();
-        json.addProperty("world", world);
-        return json;
-    }
-}
-
-class DimensionChangeEventData extends BaseEventData {
-    String dimension;
-
-    DimensionChangeEventData(String dimension) {
-        this.dimension = dimension;
-    }
-
-    JsonObject toJson() {
-        JsonObject json = new JsonObject();
-        json.addProperty("dimension", dimension);
-        return json;
-    }
-}
-
-class ItemPickupEventData extends BaseEventData {
-    String item;
-    int amount;
-
-    ItemPickupEventData(String item, int amount) {
-        this.item = item;
-        this.amount = amount;
-    }
-
-    JsonObject toJson() {
-        JsonObject json = new JsonObject();
-        json.addProperty("item", item);
-        json.addProperty("amount", amount);
-        return json;
-    }
-}
-
-class MobKilledEventData extends BaseEventData {
-    String mob;
-    String weapon;
-
-    MobKilledEventData(String mob, String weapon) {
-        this.mob = mob;
-        this.weapon = weapon;
-    }
-
-    JsonObject toJson() {
-        JsonObject json = new JsonObject();
-        json.addProperty("mob", mob);
-        json.addProperty("weapon", weapon);
-        return json;
-    }
-}
-
-class IncomingEvent<T extends BaseEventData> {
-    String event;
-    T data;
-
-    IncomingEvent(EventSubscriber.Event event, T data) {
-        this.event = event.getValue();
-        this.data = data;
-    }
-
-    JsonObject toJson() {
-        JsonObject json = new JsonObject();
-        json.addProperty("event", event);
-        json.add("data", data.toJson());
-        return json;
+        String playerName = player.getName().getString();
+        wsClient.sendEvent(Event.JOIN_WORLD.getValue(), String.format("Jogador \"%s\" entrou no mundo \"%s\"", playerName, worldName));
     }
 }

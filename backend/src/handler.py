@@ -1,44 +1,30 @@
 import random
-from fastapi import HTTPException
 from src.cooldown import CooldownManager
-from src.models import IncomingEvent, Event, OutgoingAction, Action
-from typing import Callable, TypeVar, Awaitable
+from src.models import IncomingEvent, OutgoingAction, Action
 from src.queue import Queue
 from src.config import global_config
-
-T = TypeVar("T", bound=IncomingEvent)
 
 
 class EventHandler:
     def __init__(self):
-        self._handlers: dict[Event, Callable[[T], OutgoingAction]] = {}
         self._cd_manager = CooldownManager()
         self._queue = Queue()
 
-    def register(
-            self, event: Event
-    ) -> Callable[[Callable[[T], OutgoingAction]], Callable[[T], OutgoingAction]]:
-        def decorator(func: Callable[[T], OutgoingAction]) -> Callable[[T], OutgoingAction]:
-            self._handlers[event] = func
-            return func
-
-        return decorator
-
     def handle(self, event: IncomingEvent) -> OutgoingAction:
-        handler = self._handlers.get(event.event)
-        if not handler:
-            raise HTTPException(status_code=404, detail="Evento não encontrado")
+        self._queue.put(event.data)
 
-        outgoing_action = handler(event)
-        self._queue.put(outgoing_action.data["text"])
+        outgoing_action = OutgoingAction(
+            action=Action.SEND_CHAT,
+            data="",
+        )
 
         if self._cd_manager.check_all_cooldown(event.event):
             return OutgoingAction(
                 action=Action.IGNORE,
-                data={"text": "Aguardando cooldown"},
+                data="Aguardando cooldown",
             )
 
-        outgoing_action.data["text"] = "\n".join(self._queue.all())
+        outgoing_action.data = "\n".join(self._queue.all())
         print(self._queue.all())
         self._queue.clear()
 
