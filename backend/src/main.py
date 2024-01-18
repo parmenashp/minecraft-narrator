@@ -45,7 +45,7 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
 
         gpt_prompt = outgoing.data
 
-        def background(loop):
+        def background(event_loop):
             gpt_response_generator = chat.ask(gpt_prompt)
             full_response = tts.synthesize(gpt_response_generator)
 
@@ -60,7 +60,7 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
                     data=full_response,
                 )
 
-            asyncio.run_coroutine_threadsafe(websocket.send_json(response.model_dump()), loop)
+            asyncio.run_coroutine_threadsafe(websocket.send_json(response.model_dump()), event_loop)
             print("out:", response)
 
         loop = asyncio.get_event_loop()
