@@ -49,4 +49,4 @@ class Action(StrEnum):
 
 class OutgoingAction(BaseModel):
     action: Action
-    data: dict
+    data: str

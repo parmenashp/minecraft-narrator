@@ -21,7 +21,7 @@ import java.util.function.Function;
 public class WebSocketClient {
     private static WebSocketClient instance;
     private static final Logger LOGGER = LogManager.getLogger(WebSocketClient.class);
-    private static final String SERVER_URI = "ws://localhost:5000";
+    private static final String SERVER_URI = "ws://127.0.0.1:5000/ws";
     private WebSocket webSocket;
     private final List<EventListener> eventsListeners = new ArrayList<>();
 

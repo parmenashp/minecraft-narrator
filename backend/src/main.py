@@ -18,14 +18,14 @@ def handle_event(event: IncomingEvent) -> OutgoingAction:
     if r.action == Action.IGNORE:
         return r
 
-    text = r.data["text"]
+    text = r.data
     chat_response = chat.ask(text)
     text = tts.synthesize(chat_response)
     print("chat_response:", text)
     if text == "":
         r.action = Action.IGNORE
         text = "Erro ao gerar texto"
-    r.data["text"] = text
+    r.data = text
     print("out:", r)
     return r
 
@@ -43,7 +43,7 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
             await websocket.send_json(outgoing.model_dump())
             continue
 
-        gpt_prompt = outgoing.data["text"]
+        gpt_prompt = outgoing.data
 
         def background(loop):
             gpt_response_generator = chat.ask(gpt_prompt)
@@ -52,12 +52,12 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
             if full_response == "":
                 response = OutgoingAction(
                     action=Action.IGNORE,
-                    data={"text": "Erro ao gerar texto"},
+                    data="Erro ao gerar texto",
                 )
             else:
                 response = OutgoingAction(
                     action=Action.SEND_CHAT,
-                    data={"text": full_response},
+                    data=full_response,
                 )
 
             asyncio.run_coroutine_threadsafe(websocket.send_json(response.model_dump()), loop)

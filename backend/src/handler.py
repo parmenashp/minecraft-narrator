@@ -15,16 +15,16 @@ class EventHandler:
 
         outgoing_action = OutgoingAction(
             action=Action.SEND_CHAT,
-            data={"text": ""},
+            data="",
         )
 
         if self._cd_manager.check_all_cooldown(event.event):
             return OutgoingAction(
                 action=Action.IGNORE,
-                data={"text": "Aguardando cooldown"},
+                data="Aguardando cooldown",
             )
 
-        outgoing_action.data["text"] = "\n".join(self._queue.all())
+        outgoing_action.data = "\n".join(self._queue.all())
         print(self._queue.all())
         self._queue.clear()
 
