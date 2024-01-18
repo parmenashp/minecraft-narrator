@@ -19,7 +19,7 @@ import java.util.function.Function;
 
 
 public class WebSocketClient {
-    public static WebSocketClient instance;
+    private static WebSocketClient instance;
     private static final Logger LOGGER = LogManager.getLogger(WebSocketClient.class);
     private static final String SERVER_URI = "ws://localhost:5000";
     private WebSocket webSocket;
