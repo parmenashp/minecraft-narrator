@@ -1,7 +1,7 @@
-import threading
+import json
 import fastapi
 
-from src.models import Action, OutgoingAction, IncomingEvent, Pong, Config
+from src.models import Event, IncomingEvent, Pong, Config
 from src.websocket import ws
 from src.handler import event_handler
 from src.chatgpt import chat
@@ -17,18 +17,16 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
     try:
         while True:
             json_data = await websocket.receive_json()
-            incoming: IncomingEvent = IncomingEvent(**json_data)
+            incoming_event: IncomingEvent = IncomingEvent(**json_data)
+            print("in:", incoming_event)
 
-            print("in:", incoming)
+            match incoming_event.event:
+                case Event.CONFIG:
+                    config: Config = json.loads(incoming_event.data, object_hook=lambda d: Config(**d))
+                    event_handler.handle_config_event(config)
+                case _:
+                    await event_handler.handle_game_event(incoming_event)
 
-            outgoing: OutgoingAction = event_handler.handle(event=incoming)
-
-            if outgoing.action == Action.IGNORE:
-                await ws.broadcast(outgoing.model_dump())
-                continue
-
-            gpt_response_generator = chat.ask(outgoing.data)
-            threading.Thread(target=tts.synthesize, kwargs={"gen": gpt_response_generator}).start()
     except fastapi.WebSocketDisconnect:
         ws.disconnect(websocket)
 
