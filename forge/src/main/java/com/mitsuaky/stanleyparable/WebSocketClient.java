@@ -5,16 +5,14 @@ import com.google.gson.JsonParser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.math.BigInteger;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.Function;
 
 
@@ -24,17 +22,20 @@ public class WebSocketClient {
     private static final String SERVER_URI = "ws://127.0.0.1:5000/ws";
     private WebSocket webSocket;
     private final List<EventListener> eventsListeners = new ArrayList<>();
+    private Function<Long, Void> onPongCallback;
 
     public WebSocketClient() {
         instance = this;
         connect();
     }
 
-    public void addEventListener(String event, Function<JsonObject, Void> listener) {
-        if (eventsListeners.stream().anyMatch(eventListener -> eventListener.event.equals(event))) {
-            return;
-        }
-        eventsListeners.add(new EventListener(event, listener));
+    public void addEventListener(String event, Function<JsonObject, Void> callback) {
+        eventsListeners.removeIf(eventListener -> eventListener.event.equals(event));
+        eventsListeners.add(new EventListener(event, callback));
+    }
+
+    public void setOnPong(Function<Long, Void> callback) {
+        onPongCallback = callback;
     }
 
     public void sendEvent(String event, String data) {
@@ -42,6 +43,10 @@ public class WebSocketClient {
         jsonObject.addProperty("event", event);
         jsonObject.addProperty("data", data);
         webSocket.sendText(jsonObject.toString(), true);
+    }
+
+    public CompletableFuture<WebSocket> sendPing() {
+        return webSocket.sendPing(ByteBuffer.wrap(BigInteger.valueOf(System.currentTimeMillis()).toByteArray()));
     }
 
     public void connect() {
@@ -120,6 +125,17 @@ public class WebSocketClient {
             LOGGER.info("WebSocket ping: " + message);
             webSocket.sendPong(message);
 
+            webSocket.request(1);
+            return null;
+        }
+
+        @Override
+        public CompletionStage<?> onPong(WebSocket webSocket, ByteBuffer message) {
+            Function<Long, Void> callback = WebSocketClient.getInstance().onPongCallback;
+            if (callback != null) {
+                long time = new BigInteger(message.array()).longValue();
+                callback.apply(time);
+            }
             webSocket.request(1);
             return null;
         }
