@@ -11,15 +11,12 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
 @OnlyIn(Dist.CLIENT)
 public class ConfigScreen extends Screen {
-    private static final Logger LOGGER = LogManager.getLogger(ConfigScreen.class);
     private final Screen parent;
     private final int commonWidth = 200;
     private final int commonHeight = 20;
@@ -35,7 +32,9 @@ public class ConfigScreen extends Screen {
     public ConfigScreen(Screen parent) {
         super(Component.translatable("gui.stanleyparable.config.title"));
         this.parent = parent;
-        WebSocketClient.getInstance().setOnPong(time -> {
+        WebSocketClient wsClient = WebSocketClient.getInstance();
+        assert wsClient != null;
+        wsClient.setOnPong(time -> {
             long interval = System.currentTimeMillis() - time;
             ping = "Online " + interval + "ms";
             if (pingWidget != null) {
@@ -49,11 +48,14 @@ public class ConfigScreen extends Screen {
     protected void init() {
         super.init();
 
-        WebSocketClient.getInstance().sendPing().exceptionally(throwable -> {
+        try {
+            WebSocketClient.getInstance().sendPing().exceptionally(throwable -> {
+                ping = "Offline";
+                return null;
+            });
+        } catch (Exception ex) {
             ping = "Offline";
-            LOGGER.error("Error while sending request", throwable);
-            return null;
-        });
+        }
 
 
         int commonX = (this.width / 2) - (commonWidth / 2);
@@ -154,11 +156,16 @@ public class ConfigScreen extends Screen {
         pingWidget = new PingWidget(commonX, commonY, commonWidth, commonHeight, Component.literal("Ping: " + ping)) {
             @Override
             public void onPress() {
-                WebSocketClient.getInstance().sendPing().exceptionally(throwable -> {
+                try {
+                    WebSocketClient.getInstance().sendPing().exceptionally(throwable -> {
+                        ping = "Offline";
+                        this.setMessage(Component.literal("Ping: " + ping));
+                        return null;
+                    });
+                } catch (Exception ex) {
                     ping = "Offline";
                     this.setMessage(Component.literal("Ping: " + ping));
-                    return null;
-                });
+                }
             }
         };
 

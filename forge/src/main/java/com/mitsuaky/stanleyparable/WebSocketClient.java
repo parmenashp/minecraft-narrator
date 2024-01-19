@@ -42,7 +42,11 @@ public class WebSocketClient {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("event", event);
         jsonObject.addProperty("data", data);
-        webSocket.sendText(jsonObject.toString(), true);
+        try {
+            webSocket.sendText(jsonObject.toString(), true);
+        } catch (Exception ex) {
+            LOGGER.error("Could not send event to websocket: " + ex.getMessage(), ex);
+        }
     }
 
     public CompletableFuture<WebSocket> sendPing() {
