@@ -52,7 +52,7 @@ public class ClientConfig {
             request.addProperty("openai_model", OPENAI_MODEL.get());
             request.addProperty("elevenlabs_api_key", ELEVENLABS_API_KEY.get());
             request.addProperty("elevenlabs_voice_id", ELEVENLABS_VOICE_ID.get());
-            APICommunicator.sendRequestAsync("POST", "config", request);
+            WebSocketClient.getInstance().sendEvent("config", request.toString());
         } catch (Exception ex) {
             LOGGER.error("Could not send config to server: " + ex.getMessage(), ex);
         }

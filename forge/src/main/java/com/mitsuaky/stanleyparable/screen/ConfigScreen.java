@@ -1,8 +1,7 @@
 package com.mitsuaky.stanleyparable.screen;
 
-import com.google.gson.JsonObject;
-import com.mitsuaky.stanleyparable.APICommunicator;
 import com.mitsuaky.stanleyparable.ClientConfig;
+import com.mitsuaky.stanleyparable.WebSocketClient;
 import com.mitsuaky.stanleyparable.screen.widget.PingWidget;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
@@ -36,16 +35,24 @@ public class ConfigScreen extends Screen {
     public ConfigScreen(Screen parent) {
         super(Component.translatable("gui.stanleyparable.config.title"));
         this.parent = parent;
+        WebSocketClient.getInstance().setOnPong(time -> {
+            long interval = System.currentTimeMillis() - time;
+            ping = "Online " + interval + "ms";
+            if (pingWidget != null) {
+                pingWidget.setMessage(Component.literal("Ping: " + ping));
+            }
+            return null;
+        });
     }
 
     @Override
     protected void init() {
         super.init();
 
-        long time = System.currentTimeMillis();
-        APICommunicator.sendRequestAsync("GET", "ping", null).whenComplete((response, throwable) -> {
-            check_connection(time, response, throwable);
-            this.pingWidget.setMessage(Component.literal("Ping: " + this.ping));
+        WebSocketClient.getInstance().sendPing().exceptionally(throwable -> {
+            ping = "Offline";
+            LOGGER.error("Error while sending request", throwable);
+            return null;
         });
 
 
@@ -147,10 +154,10 @@ public class ConfigScreen extends Screen {
         pingWidget = new PingWidget(commonX, commonY, commonWidth, commonHeight, Component.literal("Ping: " + ping)) {
             @Override
             public void onPress() {
-                long time = System.currentTimeMillis();
-                APICommunicator.sendRequestAsync("GET", "ping", null).whenComplete((response, throwable) -> {
-                    check_connection(time, response, throwable);
+                WebSocketClient.getInstance().sendPing().exceptionally(throwable -> {
+                    ping = "Offline";
                     this.setMessage(Component.literal("Ping: " + ping));
+                    return null;
                 });
             }
         };
@@ -169,22 +176,10 @@ public class ConfigScreen extends Screen {
             ClientConfig.COOLDOWN_GLOBAL.set(coolDownGlobal);
             ClientConfig.NARRATOR_VOLUME.set(narratorVolume);
             ClientConfig.applyServerConfig();
+            WebSocketClient.getInstance().setOnPong(null);
             assert this.minecraft != null;
             this.minecraft.setScreen(this.parent);
         }).pos(commonX, this.height - 30).size(commonWidth, commonHeight).build());
-    }
-
-    private void check_connection(long time, JsonObject response, Throwable throwable) {
-        if (throwable != null) {
-            ping = "Offline";
-            LOGGER.error("Error while sending request", throwable);
-            return;
-        }
-        if (response.get("text").getAsString().equals("pong")) {
-            ping = "Online " + (System.currentTimeMillis() - time) + "ms";
-        } else {
-            ping = "Bad response: " + response.get("text").getAsString();
-        }
     }
 
     @Override
