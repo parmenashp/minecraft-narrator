@@ -32,9 +32,7 @@ public class ConfigScreen extends Screen {
     public ConfigScreen(Screen parent) {
         super(Component.translatable("gui.stanleyparable.config.title"));
         this.parent = parent;
-        WebSocketClient wsClient = WebSocketClient.getInstance();
-        assert wsClient != null;
-        wsClient.setOnPong(time -> {
+        WebSocketClient.getInstance().setOnPong(time -> {
             long interval = System.currentTimeMillis() - time;
             ping = "Online " + interval + "ms";
             if (pingWidget != null) {
