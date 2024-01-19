@@ -47,6 +47,7 @@ class TTS:
                 data=full_text,
             )
             ws.sync_broadcast(response.model_dump())
+            self.finished_playing()
             return
 
         full_text = ""
