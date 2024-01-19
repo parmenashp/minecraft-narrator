@@ -91,30 +91,32 @@ class TTS:
             self.is_playing = False
 
     def stream(self, audio_stream: Iterator[bytes]):
-        mpv_command = [
-            "./mpv.exe",
-            "--no-cache",
-            f"--volume={global_config.narrator_volume}",
-            "--no-terminal",
-            "--",
-            "fd://0",
-        ]
-        mpv_process = subprocess.Popen(
-            mpv_command,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+        try:
+            mpv_command = [
+                "./mpv.exe",
+                "--no-cache",
+                f"--volume={global_config.narrator_volume}",
+                "--no-terminal",
+                "--",
+                "fd://0",
+            ]
+            mpv_process = subprocess.Popen(
+                mpv_command,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
 
-        for chunk in audio_stream:
-            if mpv_process.stdin and chunk:
-                mpv_process.stdin.write(chunk)
-                mpv_process.stdin.flush()
+            for chunk in audio_stream:
+                if mpv_process.stdin and chunk:
+                    mpv_process.stdin.write(chunk)
+                    mpv_process.stdin.flush()
 
-        if mpv_process.stdin:
-            mpv_process.stdin.close()
-        mpv_process.wait()
-        self.finished_playing()
+            if mpv_process.stdin:
+                mpv_process.stdin.close()
+            mpv_process.wait()
+        finally:
+            self.finished_playing()
 
     def set_config(self, config):
         self.voice_id = config.elevenlabs_voice_id
