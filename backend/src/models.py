@@ -18,6 +18,7 @@ class Event(StrEnum):
     PLAYER_CHAT = "player_chat"
     PLAYER_ATE = "player_ate"
     JOIN_WORLD = "join_world"
+    CONFIG = "config"
 
 
 class IncomingEvent(BaseModel):

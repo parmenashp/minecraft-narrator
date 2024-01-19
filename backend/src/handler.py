@@ -1,8 +1,13 @@
 import random
+import threading
+
 from src.cooldown import CooldownManager
-from src.models import IncomingEvent, OutgoingAction, Action
+from src.models import Config, IncomingEvent, OutgoingAction, Action
 from src.queue import Queue
 from src.config import global_config
+from src.websocket import ws
+from src.chatgpt import chat
+from src.tts import tts
 
 
 class EventHandler:
@@ -10,7 +15,7 @@ class EventHandler:
         self._cd_manager = CooldownManager()
         self._queue = Queue()
 
-    def handle(self, event: IncomingEvent) -> OutgoingAction:
+    def handle_cooldowns_and_queue(self, event: IncomingEvent) -> OutgoingAction:
         self._queue.put(event.data)
 
         if self._cd_manager.check_all_cooldown(event.event):
@@ -37,5 +42,20 @@ class EventHandler:
 
         return outgoing_action
 
+    async def handle_game_event(self, event: IncomingEvent) -> None:
+        outgoing = self.handle_cooldowns_and_queue(event)
+
+        if outgoing.action == Action.IGNORE:
+            await ws.broadcast(outgoing.model_dump())
+            return
+
+        gpt_response_generator = chat.ask(outgoing.data)
+        threading.Thread(target=tts.synthesize, kwargs={"gen": gpt_response_generator}).start()
+
+    def handle_config_event(self, req_config: Config):
+        global_config.set_all(req_config)
+        chat.set_config(global_config)
+        tts.set_config(global_config)
+        global_config.save()
 
 event_handler = EventHandler()
