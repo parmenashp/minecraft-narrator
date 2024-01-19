@@ -13,7 +13,7 @@ from src.tts import tts
 class EventHandler:
     def __init__(self):
         self._cd_manager = CooldownManager()
-        self._queue = Queue()
+        self._queue = Queue(maxsize=8, join_duplicates=True)
 
     def handle_cooldowns_and_queue(self, event: IncomingEvent) -> OutgoingAction:
         self._queue.put(event.data)
@@ -57,5 +57,6 @@ class EventHandler:
         chat.set_config(global_config)
         tts.set_config(global_config)
         global_config.save()
+
 
 event_handler = EventHandler()
