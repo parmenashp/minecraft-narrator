@@ -90,7 +90,7 @@ public class ConfigScreen extends Screen {
                         commonWidth,
                         commonHeight,
                         Component.nullToEmpty(Component.translatable("gui.stanleyparable.cooldown_global").getString() + coolDownGlobal),
-                        mapToSlideDouble(coolDownGlobal, 30, 60)
+                        mapToSlideDouble(coolDownGlobal, 30, 600)
                 ) {
                     @Override
                     protected void updateMessage() {
@@ -99,7 +99,7 @@ public class ConfigScreen extends Screen {
 
                     @Override
                     protected void applyValue() {
-                        coolDownGlobal = mapToRealInt(this.value, 30, 60);
+                        coolDownGlobal = mapToRealInt(this.value, 30, 600);
                     }
                 }
         );
