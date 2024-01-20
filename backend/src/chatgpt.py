@@ -2,7 +2,7 @@ from typing import Generator
 import openai
 
 from src.config import global_config, GlobalConfig
-from src.queue import Queue
+from src.context import Context
 
 gpt_config = {
     "temperature": 1,
@@ -94,7 +94,7 @@ system_prompt = [
     },
 ]
 
-context = Queue(maxsize=14)
+context = Context(maxsize=14)
 
 
 class ChatGPT:
