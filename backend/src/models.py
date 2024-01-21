@@ -13,6 +13,7 @@ class Event(StrEnum):
     PLAYER_DEATH = "player_death"
     ADVANCEMENT = "advancement"
     ITEM_PICKUP = "item_pickup"
+    ITEM_SMELTED = "item_smelted"
     MOB_KILLED = "mob_killed"
     DIMENSION_CHANGED = "dimension_changed"
     PLAYER_CHAT = "player_chat"

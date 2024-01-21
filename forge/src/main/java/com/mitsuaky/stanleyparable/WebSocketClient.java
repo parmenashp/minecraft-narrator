@@ -121,6 +121,9 @@ public class WebSocketClient {
         @Override
         public void onError(WebSocket webSocket, Throwable error) {
             LOGGER.error("WebSocket error: " + error.getMessage(), error);
+            LOGGER.info("Trying to reconnect...");
+            ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+            executorService.schedule(() -> WebSocketClient.getInstance().connect(), 5, TimeUnit.SECONDS);
             webSocket.request(1);
         }
 
