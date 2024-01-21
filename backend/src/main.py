@@ -29,22 +29,3 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
 
     except fastapi.WebSocketDisconnect:
         ws.disconnect(websocket)
-
-
-@app.get("/ping")
-async def ping():
-    return Pong(text="pong")
-
-
-@app.post("/config")
-async def config(req_config: Config):
-    global_config.set_all(req_config)
-    chat.set_config(global_config)
-    tts.set_config(global_config)
-    global_config.save()
-    return fastapi.Response(status_code=204)
-
-
-@app.get("/ask")
-async def ask(text: str) -> str:
-    return "".join([chunk for chunk in chat.ask(text)])

@@ -41,6 +41,7 @@ public class EventSubscriber {
         PLAYER_DEATH("player_death"),
         ADVANCEMENT("advancement"),
         ITEM_PICKUP("item_pickup"),
+        ITEM_SMELTED("item_smelted"),
         MOB_KILLED("mob_killed"),
         DIMENSION_CHANGED("dimension_changed"),
         PLAYER_CHAT("player_chat"),
@@ -188,6 +189,19 @@ public class EventSubscriber {
         int amount = event.getStack().getCount();
         String player = event.getEntity().getName().getString();
         wsClient.sendEvent(Event.ITEM_PICKUP.getValue(), String.format("Jogador \"%s\" pegou \"%d\" \"%s\"", player, amount, item));
+    }
+
+    @SubscribeEvent
+    public static void onItemSmelted(PlayerEvent.ItemSmeltedEvent event) {
+        LOGGER.debug("ItemSmeltedEvent triggered");
+        if (event.getEntity() == null || event.getSmelting().isEmpty()) {
+            LOGGER.debug("ItemSmeltedEvent triggered without valid player or item");
+            return;
+        }
+
+        String item = getAsName(event.getSmelting().getItem(), event.getSmelting());
+        String player = event.getEntity().getName().getString();
+        wsClient.sendEvent(Event.ITEM_SMELTED.getValue(), String.format("Jogador \"%s\" fundiu/cozinhou \"%s\"", player, item));
     }
 
     @SubscribeEvent
