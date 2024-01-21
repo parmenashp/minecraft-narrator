@@ -225,7 +225,7 @@ public class EventSubscriber {
     @SubscribeEvent
     public static void onItemPickup(PlayerEvent.ItemPickupEvent event) {
         LOGGER.debug("ItemPickupEvent triggered");
-        if (event.getEntity() == null || event.getStack().isEmpty() || event.getEntity() instanceof ServerPlayer) {
+        if (event.getEntity() == null || event.getStack().isEmpty()) {
             LOGGER.debug("ItemPickupEvent triggered without valid player or item");
             return;
         }
@@ -239,7 +239,7 @@ public class EventSubscriber {
     @SubscribeEvent
     public static void onItemSmelted(PlayerEvent.ItemSmeltedEvent event) {
         LOGGER.debug("ItemSmeltedEvent triggered");
-        if (event.getEntity() == null || event.getSmelting().isEmpty()) {
+        if (event.getEntity() == null || event.getSmelting().isEmpty() || event.getEntity() instanceof ServerPlayer) {
             LOGGER.debug("ItemSmeltedEvent triggered without valid player or item");
             return;
         }
