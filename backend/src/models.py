@@ -13,6 +13,7 @@ class Event(StrEnum):
     PLAYER_DEATH = "player_death"
     ADVANCEMENT = "advancement"
     ITEM_PICKUP = "item_pickup"
+    CHEST_CHANGE = "chest_change"
     ITEM_SMELTED = "item_smelted"
     MOB_KILLED = "mob_killed"
     DIMENSION_CHANGED = "dimension_changed"
@@ -25,10 +26,6 @@ class Event(StrEnum):
 class IncomingEvent(BaseModel):
     event: Event
     data: str
-
-
-class Pong(BaseModel):
-    text: str
 
 
 class Config(BaseModel):

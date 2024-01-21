@@ -10,11 +10,13 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterClientCommandsEvent;
 import net.minecraftforge.event.ServerChatEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.AdvancementEvent.AdvancementEarnEvent;
@@ -26,13 +28,19 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import com.mitsuaky.stanleyparable.screen.ConfigScreen;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Mod.EventBusSubscriber(modid = "stanleyparable", bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class EventSubscriber {
     private static final Logger LOGGER = LogManager.getLogger(EventSubscriber.class);
 
     private static final WebSocketClient wsClient = new WebSocketClient();
+
+    private static boolean isChestOpen = false;
+    private static Set<String> lastInventory = null;
 
     public enum Event {
         ITEM_CRAFTED("item_crafted"),
@@ -41,6 +49,7 @@ public class EventSubscriber {
         PLAYER_DEATH("player_death"),
         ADVANCEMENT("advancement"),
         ITEM_PICKUP("item_pickup"),
+        CHEST_CHANGE("chest_change"),
         ITEM_SMELTED("item_smelted"),
         MOB_KILLED("mob_killed"),
         DIMENSION_CHANGED("dimension_changed"),
@@ -59,11 +68,8 @@ public class EventSubscriber {
         }
     }
 
-    public static String getAsName(Item item, ItemStack stack) {
-        if (stack == null) {
-            stack = new ItemStack(item);
-        }
-        return item.getName(stack).getString();
+    public static String getAsName(ItemStack itemStack) {
+        return Component.translatable(itemStack.getDescriptionId()).getString();
     }
 
     public static String getAsName(net.minecraft.world.level.block.Block block) {
@@ -73,6 +79,7 @@ public class EventSubscriber {
     public static String getAsName(Entity entity) {
         return entity.getName().getString();
     }
+
 
     @SubscribeEvent
     public static void registerCommands(RegisterClientCommandsEvent event) {
@@ -84,6 +91,44 @@ public class EventSubscriber {
     }
 
     @SubscribeEvent
+    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        if (event.player instanceof ServerPlayer) {
+            return;
+        }
+
+        // Custom chest change event
+        if (event.player.containerMenu instanceof ChestMenu) {
+            if (!isChestOpen) {
+                // Store inventory on first tick when chest is open
+                lastInventory = new HashSet<>(event.player.getInventory().items.stream().map(EventSubscriber::getAsName).toList());
+            }
+            isChestOpen = true;
+        } else {
+            // If chest was open and is now closed, send event
+            if (isChestOpen) {
+                // Get current inventory
+                Set<String> playerInventory = new HashSet<>(event.player.getInventory().items.stream().map(EventSubscriber::getAsName).toList());
+                // Compare with last inventory to get added and removed items
+                List<String> addedItems = playerInventory.stream().filter(item -> !lastInventory.contains(item)).toList();
+                List<String> removedItems = lastInventory.stream().filter(item -> !playerInventory.contains(item)).toList();
+
+                String addedItemsString = String.join(", ", addedItems).replaceAll(", (?=[^,]*$)", " e ");
+                String removedItemsString = String.join(", ", removedItems).replaceAll(", (?=[^,]*$)", " e ");
+                String player = event.player.getName().getString();
+
+                if (!addedItems.isEmpty() && !removedItems.isEmpty()) {
+                    wsClient.sendEvent(Event.CHEST_CHANGE.getValue(), String.format("Jogador \"%s\" colocou \"%s\" e removeu \"%s\" de um baú", player, addedItemsString, removedItemsString));
+                } else if (!addedItems.isEmpty()) {
+                    wsClient.sendEvent(Event.CHEST_CHANGE.getValue(), String.format("Jogador \"%s\" removeu \"%s\" de um baú", player, addedItemsString));
+                } else if (!removedItems.isEmpty()) {
+                    wsClient.sendEvent(Event.CHEST_CHANGE.getValue(), String.format("Jogador \"%s\" colocou \"%s\" em um baú", player, removedItemsString));
+                }
+            }
+            isChestOpen = false;
+        }
+    }
+
+    @SubscribeEvent
     public static void onItemCrafted(PlayerEvent.ItemCraftedEvent event) {
         LOGGER.debug("ItemCraftedEvent triggered");
         if (event.getEntity() == null || event.getCrafting().isEmpty() || event.getEntity() instanceof ServerPlayer) {
@@ -91,7 +136,7 @@ public class EventSubscriber {
             return;
         }
 
-        String item = getAsName(event.getCrafting().getItem(), event.getCrafting());
+        String item = getAsName(event.getCrafting());
         String player = event.getEntity().getName().getString();
         wsClient.sendEvent(Event.ITEM_CRAFTED.getValue(), String.format("Jogador \"%s\" craftou \"%s\"", player, item));
     }
@@ -104,7 +149,7 @@ public class EventSubscriber {
             return;
         }
         Item tool = event.getPlayer().getMainHandItem().getItem();
-        String tool_name = getAsName(event.getPlayer().getMainHandItem().getItem(), event.getPlayer().getMainHandItem());
+        String tool_name = getAsName(event.getPlayer().getMainHandItem());
         if (tool.getDescriptionId().equals("block.minecraft.air")) {
             tool_name = Component.translatable("item.stanleyparable.bare_hands").getString();
         }
@@ -185,7 +230,7 @@ public class EventSubscriber {
             return;
         }
 
-        String item = getAsName(event.getStack().getItem(), event.getStack());
+        String item = getAsName(event.getStack());
         int amount = event.getStack().getCount();
         String player = event.getEntity().getName().getString();
         wsClient.sendEvent(Event.ITEM_PICKUP.getValue(), String.format("Jogador \"%s\" pegou \"%d\" \"%s\"", player, amount, item));
@@ -199,7 +244,7 @@ public class EventSubscriber {
             return;
         }
 
-        String item = getAsName(event.getSmelting().getItem(), event.getSmelting());
+        String item = getAsName(event.getSmelting());
         String player = event.getEntity().getName().getString();
         wsClient.sendEvent(Event.ITEM_SMELTED.getValue(), String.format("Jogador \"%s\" fundiu/cozinhou \"%s\"", player, item));
     }
@@ -214,7 +259,7 @@ public class EventSubscriber {
 
         String mob = getAsName(event.getEntity());
         Item weapon = player.getMainHandItem().getItem();
-        String weapon_name = getAsName(player.getMainHandItem().getItem(), player.getMainHandItem());
+        String weapon_name = getAsName(player.getMainHandItem());
         if (weapon.getDescriptionId().equals("block.minecraft.air")) {
             weapon_name = Component.translatable("item.stanleyparable.bare_hands").getString();
         }
@@ -241,7 +286,7 @@ public class EventSubscriber {
             return;
         }
 
-        String item_name = getAsName(event.getItem().getItem(), event.getItem());
+        String item_name = getAsName(event.getItem());
         String player = event.getEntity().getName().getString();
         wsClient.sendEvent(Event.PLAYER_ATE.getValue(), String.format("Jogador \"%s\" comeu/bebeu \"%s\"", player, item_name));
     }
