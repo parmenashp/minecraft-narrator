@@ -67,6 +67,7 @@ class TTS:
             voice=self.voice_id,
             stream=True,
             model="eleven_multilingual_v2",
+            stream_chunk_size=global_config.elevenlabs_buffer_size,
         )
         stream_thread = threading.Thread(target=self.stream, kwargs={"audio_stream": gen})
         stream_thread.start()

@@ -18,13 +18,15 @@ import java.awt.*;
 @OnlyIn(Dist.CLIENT)
 public class ConfigScreen extends Screen {
     private final Screen parent;
-    private final int commonWidth = 200;
+    private final int commonWidth = 250;
     private final int commonHeight = 20;
     private int coolDownIndividual = ClientConfig.COOLDOWN_INDIVIDUAL.get();
     private int coolDownGlobal = ClientConfig.COOLDOWN_GLOBAL.get();
     private int narratorVolume = ClientConfig.NARRATOR_VOLUME.get();
     private boolean sendToChat = ClientConfig.SEND_TO_CHAT.get();
     private boolean tts = ClientConfig.TTS.get();
+
+    private int elevenLabsBufferSize = ClientConfig.ELEVENLABS_BUFFER_SIZE.get();
     private String ping = "Offline";
 
     private PingWidget pingWidget;
@@ -59,6 +61,25 @@ public class ConfigScreen extends Screen {
         int commonX = (this.width / 2) - (commonWidth / 2);
         int commonMargin = 5;
         int commonY = 30;
+        pingWidget = new PingWidget(commonX, commonY, commonWidth, commonHeight, Component.literal("Ping: " + ping)) {
+            @Override
+            public void onPress() {
+                try {
+                    WebSocketClient.getInstance().sendPing().exceptionally(throwable -> {
+                        ping = "Offline";
+                        this.setMessage(Component.literal("Ping: " + ping));
+                        return null;
+                    });
+                } catch (Exception ex) {
+                    ping = "Offline";
+                    this.setMessage(Component.literal("Ping: " + ping));
+                }
+            }
+        };
+
+        this.addRenderableWidget(pingWidget);
+
+        commonY += commonHeight + commonMargin;
 
         this.addRenderableWidget(
                 new AbstractSliderButton(
@@ -129,7 +150,7 @@ public class ConfigScreen extends Screen {
 
         commonY += commonHeight + commonMargin;
 
-        this.addRenderableWidget(new Checkbox(commonX, commonY, commonWidth, commonHeight, Component.translatable("gui.stanleyparable.tts"), tts) {
+        this.addRenderableWidget(new Checkbox(commonX, commonY, commonWidth / 2 - commonMargin / 2, commonHeight, Component.translatable("gui.stanleyparable.tts"), tts) {
             @Override
             public void onPress() {
                 super.onPress();
@@ -138,9 +159,7 @@ public class ConfigScreen extends Screen {
             }
         });
 
-        commonY += commonHeight + commonMargin;
-
-        this.addRenderableWidget(new Checkbox(commonX, commonY, commonWidth, commonHeight, Component.translatable("gui.stanleyparable.send_to_chat"), sendToChat) {
+        this.addRenderableWidget(new Checkbox(commonX + commonWidth / 2 + commonMargin / 2, commonY, commonWidth / 2 - commonMargin / 2, commonHeight, Component.translatable("gui.stanleyparable.send_to_chat"), sendToChat) {
             @Override
             public void onPress() {
                 super.onPress();
@@ -151,35 +170,40 @@ public class ConfigScreen extends Screen {
 
         commonY += commonHeight + commonMargin;
 
-        pingWidget = new PingWidget(commonX, commonY, commonWidth, commonHeight, Component.literal("Ping: " + ping)) {
-            @Override
-            public void onPress() {
-                try {
-                    WebSocketClient.getInstance().sendPing().exceptionally(throwable -> {
-                        ping = "Offline";
-                        this.setMessage(Component.literal("Ping: " + ping));
-                        return null;
-                    });
-                } catch (Exception ex) {
-                    ping = "Offline";
-                    this.setMessage(Component.literal("Ping: " + ping));
-                }
-            }
-        };
-
-        this.addRenderableWidget(pingWidget);
-
-        commonY += commonHeight + commonMargin;
 
         this.addRenderableWidget(new Button.Builder(Component.translatable("gui.stanleyparable.token.title"), button -> {
             assert this.minecraft != null;
             this.minecraft.setScreen(new TokenScreen(this));
         }).pos(commonX, commonY).size(commonWidth, commonHeight).build());
 
+        commonY += commonHeight + commonMargin;
+
+        this.addRenderableWidget(
+                new AbstractSliderButton(
+                        commonX,
+                        commonY,
+                        commonWidth,
+                        commonHeight,
+                        Component.nullToEmpty(Component.translatable("gui.stanleyparable.buffer_elevenlabs").getString() + elevenLabsBufferSize),
+                        mapToSlideDouble(bufferToInt(elevenLabsBufferSize), 8, 12)
+                ) {
+                    @Override
+                    protected void updateMessage() {
+                        this.setMessage(Component.nullToEmpty(Component.translatable("gui.stanleyparable.buffer_elevenlabs").getString() + elevenLabsBufferSize));
+                    }
+
+                    @Override
+                    protected void applyValue() {
+                        elevenLabsBufferSize = intToBuffer(mapToRealInt(this.value, 8, 12));
+                    }
+                }
+        );
+
         this.addRenderableWidget(new Button.Builder(Component.translatable("gui.done"), button -> {
             ClientConfig.COOLDOWN_INDIVIDUAL.set(coolDownIndividual);
             ClientConfig.COOLDOWN_GLOBAL.set(coolDownGlobal);
             ClientConfig.NARRATOR_VOLUME.set(narratorVolume);
+            ClientConfig.ELEVENLABS_BUFFER_SIZE.set(elevenLabsBufferSize);
             ClientConfig.applyServerConfig();
             WebSocketClient.getInstance().setOnPong(null);
             assert this.minecraft != null;
@@ -199,5 +223,13 @@ public class ConfigScreen extends Screen {
 
     double mapToSlideDouble(int x, int out_min, int out_max) {
         return (double) (x - out_min) / (out_max - out_min);
+    }
+
+    int intToBuffer(int x) {
+        return (int) (4 * Math.pow(2, x));
+    }
+
+    int bufferToInt(int x) {
+        return (int) (Math.log((double) x / 4) / Math.log(2));
     }
 }

@@ -34,6 +34,7 @@ class Config(BaseModel):
     openai_api_key: str
     openai_base_url: str
     openai_model: str
+    elevenlabs_buffer_size: int
     cooldown_individual: int
     cooldown_global: int
     narrator_volume: int

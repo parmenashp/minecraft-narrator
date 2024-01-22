@@ -14,5 +14,6 @@
   "gui.stanleyparable.token.title": "Configurations of API",
   "gui.stanleyparable.more": "More",
   "gui.stanleyparable.less": "Less",
+  "gui.stanleyparable.buffer_elevenlabs": "Buffer Size of Eleven Labs: ",
   "item.stanleyparable.bare_hands": "Bare Hands"
 }
