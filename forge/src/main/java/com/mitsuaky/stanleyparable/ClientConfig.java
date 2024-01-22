@@ -16,6 +16,8 @@ public class ClientConfig {
     public static final ForgeConfigSpec.ConfigValue<Boolean> SEND_TO_CHAT;
     public static final ForgeConfigSpec.ConfigValue<Boolean> TTS;
 
+    public static final ForgeConfigSpec.ConfigValue<Integer> ELEVENLABS_BUFFER_SIZE;
+
     public static final ForgeConfigSpec.ConfigValue<String> OPENAI_API_KEY;
     public static final ForgeConfigSpec.ConfigValue<String> OPENAI_BASE_URL;
     public static final ForgeConfigSpec.ConfigValue<String> OPENAI_MODEL;
@@ -29,6 +31,8 @@ public class ClientConfig {
         NARRATOR_VOLUME = BUILDER.comment("Narrator Volume").defineInRange("narrator_volume", 100, 1, 130);
         SEND_TO_CHAT = BUILDER.comment("Send events to chat").define("send_to_chat", true);
         TTS = BUILDER.comment("Enable text to speech").define("tts", true);
+
+        ELEVENLABS_BUFFER_SIZE = BUILDER.comment("ElevenLabs Buffer Size").defineInRange("elevenlabs_buffer_size", 2048, 1024, 16384);
 
         OPENAI_API_KEY = BUILDER.comment("OpenAI API Key").define("openai_api_key", "");
         OPENAI_BASE_URL = BUILDER.comment("OpenAI Base URL").define("openai_base_url", "https://api.openai.com/v1");
@@ -47,6 +51,7 @@ public class ClientConfig {
             request.addProperty("cooldown_global", COOLDOWN_GLOBAL.get());
             request.addProperty("narrator_volume", NARRATOR_VOLUME.get());
             request.addProperty("tts", TTS.get());
+            request.addProperty("elevenlabs_buffer_size", ELEVENLABS_BUFFER_SIZE.get());
             request.addProperty("openai_api_key", OPENAI_API_KEY.get());
             request.addProperty("openai_base_url", OPENAI_BASE_URL.get());
             request.addProperty("openai_model", OPENAI_MODEL.get());
