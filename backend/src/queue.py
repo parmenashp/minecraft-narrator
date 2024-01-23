@@ -1,13 +1,16 @@
 import re
+from typing import Generic, TypeVar
+
+T = TypeVar("T")
 
 
-class Queue:
+class Queue(Generic[T]):
     def __init__(self, maxsize=4, join_duplicates=False):
         self._maxsize = maxsize
-        self._queue = []
+        self._queue: list[T] = []
         self.join_duplicates = join_duplicates
 
-    def put(self, item):
+    def put(self, item: T):
         if len(self._queue) >= self._maxsize:
             self._queue.pop(0)
         if self.join_duplicates:
@@ -17,6 +20,9 @@ class Queue:
 
     def all(self):
         return self._queue
+
+    def get(self):
+        return self._queue.pop(0)
 
     def clear(self):
         self._queue.clear()
