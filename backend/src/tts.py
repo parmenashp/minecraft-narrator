@@ -8,13 +8,13 @@ from termcolor import colored, cprint
 
 from src.websocket import ws
 from src.config import global_config
-
+from src.queue import Queue
 
 class TTS:
     def __init__(self):
         self.voice_id = ""
         self.is_playing = False
-        self.queue: list[Generator] = []
+        self.queue: Queue[Generator] = Queue(maxsize=2)
 
         if not os.path.isfile("mpv.exe"):
             cprint(colored("mpv.exe not found, TTS disabled", "red"))
@@ -31,14 +31,16 @@ class TTS:
             global_config.tts = False
 
     def synthesize(self, gen: Generator) -> None:
-        self.queue.append(gen)
+        self.queue.put(gen)
         if not self.is_playing:
             self.is_playing = True
-            self.play_next(gen)
+            next_gen = self.queue.get()
+            self.play_next(next_gen)
+        else:
+            print("TTS already playing, added to queue")
 
     def play_next(self, text: Generator) -> None:
         print("Playing next")
-        self.queue.remove(text)
 
         if global_config.tts is False:
             full_text = "".join([chunk for chunk in text])
@@ -86,9 +88,10 @@ class TTS:
         ws.sync_broadcast(response.model_dump())
 
     def finished_playing(self):
-        if len(self.queue) > 0:
+        if len(self.queue.all()) > 0:
             self.is_playing = True
-            self.play_next(self.queue[0])
+            next_gen = self.queue.get()
+            self.play_next(next_gen)
         else:
             self.is_playing = False
 
