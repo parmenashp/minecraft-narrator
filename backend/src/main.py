@@ -1,5 +1,6 @@
 import json
 from contextlib import asynccontextmanager
+import sys
 
 import fastapi
 from loguru import logger
@@ -10,6 +11,9 @@ from src.websocket import ws
 
 app = fastapi.FastAPI()
 
+# TODO: Add option to enable debug logs to stdout with backtrace and diagnose when developing
+logger.remove()  # Remove default logger
+logger.add(sys.stdout, level="INFO", backtrace=False, diagnose=False)
 logger.add("logs/{time}.log", rotation="1 day", level="DEBUG", compression="zip")
 
 
