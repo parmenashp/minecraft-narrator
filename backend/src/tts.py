@@ -1,11 +1,11 @@
 import subprocess
 import threading
+import os
 from typing import Generator, Iterator
 from elevenlabs import generate, set_api_key
-import os
-from src.models import Action, OutgoingAction
-from termcolor import colored, cprint
+from loguru import logger
 
+from src.models import Action, OutgoingAction
 from src.websocket import ws
 from src.config import global_config
 from src.queue import Queue
@@ -18,7 +18,7 @@ class TTS:
         self.queue: Queue[Generator] = Queue(maxsize=2)
 
         if not os.path.isfile("mpv.exe"):
-            cprint(colored("mpv.exe not found, TTS disabled", "red"))
+            logger.warning("mpv.exe not found, TTS disabled")
             global_config.tts = False
 
         if global_config.elevenlabs_api_key != "":
@@ -38,10 +38,10 @@ class TTS:
             next_gen = self.queue.get()
             self.play_next(next_gen)
         else:
-            print("TTS already playing, added to queue")
+            logger.debug("TTS already playing, added to queue")
 
     def play_next(self, text: Generator) -> None:
-        print("Playing next")
+        logger.debug("Playing next")
 
         if global_config.tts is False:
             full_text = "".join([chunk for chunk in text])
