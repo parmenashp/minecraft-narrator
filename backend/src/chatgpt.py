@@ -1,5 +1,5 @@
 from typing import Generator
-from venv import logger
+from loguru import logger
 import openai
 
 from src.config import global_config, GlobalConfig

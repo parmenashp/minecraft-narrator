@@ -1,6 +1,6 @@
 import random
 import threading
-from venv import logger
+from loguru import logger
 
 from src.chatgpt import chat
 from src.config import global_config

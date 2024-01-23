@@ -1,5 +1,5 @@
 import time
-from venv import logger
+from loguru import logger
 
 from src.models import Event
 
