@@ -10,6 +10,7 @@ from src.websocket import ws
 from src.config import global_config
 from src.queue import Queue
 
+
 class TTS:
     def __init__(self):
         self.voice_id = ""

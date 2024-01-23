@@ -1,4 +1,6 @@
 import time
+from venv import logger
+
 from src.models import Event
 
 
@@ -32,15 +34,15 @@ class CooldownManager:
         # TODO: if is playing narration return True (hard cd)
 
         if event in self.bypass_cooldowns:
-            print("Bypassing cooldown for event: ", event)
+            logger.info(f"Bypassing cooldown for event: {event}")
             return False
 
         if self.is_on_cooldown("GLOBAL_COOLDOWN"):
-            print("Global cooldown active", self.get_cooldown_remaining("GLOBAL_COOLDOWN"))
+            logger.info(f"Global cooldown active, {self.get_cooldown_remaining('GLOBAL_COOLDOWN')} seconds remaining")
             return True
 
         if self.is_on_cooldown(event):
-            print("Cooldown active for event: ", event, self.get_cooldown_remaining(event))
+            logger.info(f"Cooldown active for event: {event}, {self.get_cooldown_remaining(event)} seconds remaining")
             return True
 
         return False

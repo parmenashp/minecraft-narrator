@@ -1,4 +1,5 @@
 from typing import Generator
+from venv import logger
 import openai
 
 from src.config import global_config, GlobalConfig
@@ -106,6 +107,7 @@ class ChatGPT:
         )
 
     def ask(self, text: str) -> Generator[str, None, None]:
+        logger.debug(f"Sending prompt to GPT: {text!r}")
         user_prompt = {"role": "user", "content": text}
         messages: list = system_prompt + context.all() + [user_prompt]
 
@@ -126,6 +128,7 @@ class ChatGPT:
                 delta = choices[0].delta.content
             if delta:
                 response_text += delta
+                logger.debug(f"Yielding GPT response: {delta!r}")
                 yield delta
 
         context.put({"role": "assistant", "content": response_text})
