@@ -9,7 +9,6 @@ from src.handler import event_handler
 from src.models import Config, Event, IncomingEvent
 from src.websocket import ws
 
-app = fastapi.FastAPI()
 
 # TODO: Add option to enable debug logs to stdout with backtrace and diagnose when developing
 logger.remove()  # Remove default logger
@@ -18,11 +17,12 @@ logger.add("logs/{time}.log", rotation="1 day", level="DEBUG", compression="zip"
 
 
 @asynccontextmanager
-async def lifespan_handler():
+async def lifespan_handler(app: fastapi.FastAPI):
     logger.info("Starting server")
     yield
     logger.info("Stopping server")
 
+app = fastapi.FastAPI(lifespan=lifespan_handler)
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: fastapi.WebSocket):
