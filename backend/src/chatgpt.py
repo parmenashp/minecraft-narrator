@@ -121,6 +121,7 @@ class ChatGPT:
         context.put(user_prompt)
 
         response_text = ""
+        buffer = ""
         for chunk in stream:
             choices = chunk.choices
             delta = None
@@ -128,8 +129,14 @@ class ChatGPT:
                 delta = choices[0].delta.content
             if delta:
                 response_text += delta
-                logger.debug(f"Yielding GPT response: {delta!r}")
-                yield delta
+                buffer += delta
+                if len(buffer) >= global_config.chatgpt_buffer_size:
+                    logger.debug(f"Yielding GPT response: {buffer!r}")
+                    yield buffer
+                    buffer = ""
+        if buffer:
+            logger.debug(f"Yielding GPT response: {buffer!r}")
+            yield buffer
 
         context.put({"role": "assistant", "content": response_text})
 

@@ -15,5 +15,6 @@
   "gui.stanleyparable.more": "Mais",
   "gui.stanleyparable.less": "Menos",
   "gui.stanleyparable.buffer_elevenlabs": "Tamanho do Buffer do Eleven Labs: ",
+  "gui.stanleyparable.buffer_chatgpt": "Tamanho do Buffer do ChatGPT: ",
   "item.stanleyparable.bare_hands": "Próprias mãos"
 }
