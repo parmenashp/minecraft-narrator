@@ -43,7 +43,6 @@ class TTS:
 
     def play_next(self, text: Generator, loop: asyncio.AbstractEventLoop) -> None:
         logger.debug("Playing next")
-
         if global_config.tts is False:
             try:
                 full_text = "".join([chunk for chunk in text])
