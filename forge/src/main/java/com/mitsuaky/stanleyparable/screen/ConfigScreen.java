@@ -26,7 +26,6 @@ public class ConfigScreen extends Screen {
     private boolean sendToChat = ClientConfig.SEND_TO_CHAT.get();
     private boolean tts = ClientConfig.TTS.get();
 
-    private int elevenLabsBufferSize = ClientConfig.ELEVENLABS_BUFFER_SIZE.get();
     private String ping = "Offline";
 
     private PingWidget pingWidget;
@@ -176,34 +175,10 @@ public class ConfigScreen extends Screen {
             this.minecraft.setScreen(new TokenScreen(this));
         }).pos(commonX, commonY).size(commonWidth, commonHeight).build());
 
-        commonY += commonHeight + commonMargin;
-
-        this.addRenderableWidget(
-                new AbstractSliderButton(
-                        commonX,
-                        commonY,
-                        commonWidth,
-                        commonHeight,
-                        Component.nullToEmpty(Component.translatable("gui.stanleyparable.buffer_elevenlabs").getString() + elevenLabsBufferSize),
-                        mapToSlideDouble(bufferToInt(elevenLabsBufferSize), 8, 12)
-                ) {
-                    @Override
-                    protected void updateMessage() {
-                        this.setMessage(Component.nullToEmpty(Component.translatable("gui.stanleyparable.buffer_elevenlabs").getString() + elevenLabsBufferSize));
-                    }
-
-                    @Override
-                    protected void applyValue() {
-                        elevenLabsBufferSize = intToBuffer(mapToRealInt(this.value, 8, 12));
-                    }
-                }
-        );
-
         this.addRenderableWidget(new Button.Builder(Component.translatable("gui.done"), button -> {
             ClientConfig.COOLDOWN_INDIVIDUAL.set(coolDownIndividual);
             ClientConfig.COOLDOWN_GLOBAL.set(coolDownGlobal);
             ClientConfig.NARRATOR_VOLUME.set(narratorVolume);
-            ClientConfig.ELEVENLABS_BUFFER_SIZE.set(elevenLabsBufferSize);
             ClientConfig.applyServerConfig();
             WebSocketClient.getInstance().setOnPong(null);
             assert this.minecraft != null;
@@ -223,13 +198,5 @@ public class ConfigScreen extends Screen {
 
     double mapToSlideDouble(int x, int out_min, int out_max) {
         return (double) (x - out_min) / (out_max - out_min);
-    }
-
-    int intToBuffer(int x) {
-        return (int) (4 * Math.pow(2, x));
-    }
-
-    int bufferToInt(int x) {
-        return (int) (Math.log((double) x / 4) / Math.log(2));
     }
 }
