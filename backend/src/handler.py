@@ -1,3 +1,4 @@
+import asyncio
 import random
 import threading
 from loguru import logger
@@ -52,7 +53,14 @@ class EventHandler:
             return
 
         gpt_response_generator = chat.ask(outgoing.data)
-        threading.Thread(target=tts.synthesize, kwargs={"gen": gpt_response_generator}).start()
+
+        threading.Thread(
+            target=tts.synthesize,
+            kwargs={
+                "gen": gpt_response_generator,
+                "loop": asyncio.get_event_loop(),
+            },
+        ).start()
 
     def handle_config_event(self, req_config: Config):
         logger.info("Updating configs received from client")
