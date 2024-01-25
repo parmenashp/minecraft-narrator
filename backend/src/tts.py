@@ -11,6 +11,7 @@ from src.websocket import ws
 from src.config import global_config
 from src.queue import Queue
 
+
 class TTS:
     def __init__(self):
         self.voice_id = ""
@@ -31,7 +32,7 @@ class TTS:
         else:
             global_config.tts = False
 
-    def synthesize(self, gen: Generator, loop) -> None:
+    def synthesize(self, gen: Generator, loop: asyncio.AbstractEventLoop) -> None:
         self.queue.put(gen)
         if not self.is_playing:
             self.is_playing = True
@@ -96,7 +97,7 @@ class TTS:
             loop,
         )
 
-    def finished_playing(self, loop):
+    def finished_playing(self, loop: asyncio.AbstractEventLoop):
         if len(self.queue.all()) > 0:
             self.is_playing = True
             next_gen = self.queue.get()
@@ -104,7 +105,7 @@ class TTS:
         else:
             self.is_playing = False
 
-    def stream(self, audio_stream: Iterator[bytes], loop):
+    def stream(self, audio_stream: Iterator[bytes], loop: asyncio.AbstractEventLoop):
         try:
             mpv_command = [
                 "./mpv.exe",
