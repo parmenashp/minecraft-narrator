@@ -3,6 +3,7 @@ package com.mitsuaky.stanleyparable.screen;
 import com.mitsuaky.stanleyparable.ClientConfig;
 import com.mitsuaky.stanleyparable.screen.widget.SecretWidget;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -24,6 +25,9 @@ public class TokenScreen extends Screen {
     private SecretWidget elevenLabsAPIKeyEditBox;
     private EditBox elevenLabsVoiceIdEditBox;
 
+    private int elevenLabsBufferSize = ClientConfig.ELEVENLABS_BUFFER_SIZE.get();
+    private int chatGPTBufferSize = ClientConfig.CHATGPT_BUFFER_SIZE.get();
+
     private boolean more = false;
     private Button moreButton;
 
@@ -36,26 +40,24 @@ public class TokenScreen extends Screen {
     protected void init() {
         super.init();
 
-        int commonWidth = 200;
+        int commonWidth = 300;
         int commonHeight = 20;
         int commonX = (this.width / 2) - (commonWidth / 2);
-        int commonMargin = 15;
+        int commonTextMargin = 15;
+        int commonMargin = 5;
         int commonY = 40;
 
-        openAIKeyEditBox = new SecretWidget(font, commonX, commonY, commonWidth, commonHeight, Component.translatable("gui.stanleyparable.openai_key"));
+        openAIKeyEditBox = new SecretWidget(font, commonX, commonY, commonWidth / 2 - commonMargin / 2, commonHeight, Component.translatable("gui.stanleyparable.openai_key"));
         openAIKeyEditBox.setMaxLength(32500);
         openAIKeyEditBox.setValue(ClientConfig.OPENAI_API_KEY.get());
         this.addRenderableWidget(openAIKeyEditBox);
 
-        commonY += commonHeight + commonMargin;
-
-
-        elevenLabsAPIKeyEditBox = new SecretWidget(font, commonX, commonY, commonWidth, commonHeight, Component.translatable("gui.stanleyparable.elevenlabs_api_key"));
+        elevenLabsAPIKeyEditBox = new SecretWidget(font, commonX + commonWidth / 2 + commonMargin / 2, commonY, commonWidth / 2 - commonMargin / 2, commonHeight, Component.translatable("gui.stanleyparable.elevenlabs_api_key"));
         elevenLabsAPIKeyEditBox.setMaxLength(32500);
         elevenLabsAPIKeyEditBox.setValue(ClientConfig.ELEVENLABS_API_KEY.get());
         this.addRenderableWidget(elevenLabsAPIKeyEditBox);
 
-        commonY += commonHeight + commonMargin;
+        commonY += commonHeight + commonTextMargin;
 
         elevenLabsVoiceIdEditBox = new EditBox(font, commonX, commonY, commonWidth, commonHeight, Component.translatable("gui.stanleyparable.elevenlabs_voice_id"));
         elevenLabsVoiceIdEditBox.setMaxLength(32500);
@@ -64,19 +66,62 @@ public class TokenScreen extends Screen {
 
         commonY += commonHeight + commonMargin;
 
+        this.addRenderableWidget(
+                new AbstractSliderButton(
+                        commonX,
+                        commonY,
+                        commonWidth,
+                        commonHeight,
+                        Component.nullToEmpty(Component.translatable("gui.stanleyparable.buffer_elevenlabs").getString() + elevenLabsBufferSize),
+                        mapToSlideDouble(bufferToInt(elevenLabsBufferSize), 8, 12)
+                ) {
+                    @Override
+                    protected void updateMessage() {
+                        this.setMessage(Component.nullToEmpty(Component.translatable("gui.stanleyparable.buffer_elevenlabs").getString() + elevenLabsBufferSize));
+                    }
 
-        openAIBaseURLEditBox = new EditBox(font, commonX, commonY, commonWidth, commonHeight, Component.translatable("gui.stanleyparable.openai_base_url"));
-        openAIBaseURLEditBox.setMaxLength(32500);
-        openAIBaseURLEditBox.setValue(ClientConfig.OPENAI_BASE_URL.get());
+                    @Override
+                    protected void applyValue() {
+                        elevenLabsBufferSize = intToBuffer(mapToRealInt(this.value, 8, 12));
+                    }
+                }
+        );
 
         commonY += commonHeight + commonMargin;
 
-        openAIModelEditBox = new EditBox(font, commonX, commonY, commonWidth, commonHeight, Component.translatable("gui.stanleyparable.openai_model"));
+        AbstractSliderButton chatGPTBufferSizeSlider = new AbstractSliderButton(
+                commonX,
+                commonY,
+                commonWidth,
+                commonHeight,
+                Component.nullToEmpty(Component.translatable("gui.stanleyparable.buffer_chatgpt").getString() + chatGPTBufferSize),
+                mapToSlideDouble(chatGPTBufferSize, 10, 500)
+        ) {
+            @Override
+            protected void updateMessage() {
+                this.setMessage(Component.nullToEmpty(Component.translatable("gui.stanleyparable.buffer_chatgpt").getString() + chatGPTBufferSize));
+            }
+
+            @Override
+            protected void applyValue() {
+                chatGPTBufferSize = mapToRealInt(this.value, 10, 500);
+            }
+        };
+
+        this.addRenderableWidget(chatGPTBufferSizeSlider);
+
+        commonY += commonHeight + commonTextMargin;
+
+        openAIBaseURLEditBox = new EditBox(font, commonX, commonY, commonWidth / 2 - commonMargin / 2, commonHeight, Component.translatable("gui.stanleyparable.openai_base_url"));
+        openAIBaseURLEditBox.setMaxLength(32500);
+        openAIBaseURLEditBox.setValue(ClientConfig.OPENAI_BASE_URL.get());
+
+        openAIModelEditBox = new EditBox(font, commonX + commonWidth / 2 + commonMargin / 2, commonY, commonWidth / 2 - commonMargin / 2, commonHeight, Component.translatable("gui.stanleyparable.openai_model"));
         openAIModelEditBox.setMaxLength(32500);
         openAIModelEditBox.setValue(ClientConfig.OPENAI_MODEL.get());
 
-        int moreButtonY = elevenLabsVoiceIdEditBox.getY() + commonHeight + 5;
-        int lessButtonY = openAIModelEditBox.getY() + commonHeight + 5;
+        int moreButtonY = chatGPTBufferSizeSlider.getY() + commonHeight + commonMargin;
+        int lessButtonY = openAIModelEditBox.getY() + commonHeight + commonMargin;
         moreButton = new Button.Builder(more ? Component.translatable("gui.stanleyparable.less") : Component.translatable("gui.stanleyparable.more"), (button) -> {
             more = !more;
             if (more) {
@@ -101,6 +146,8 @@ public class TokenScreen extends Screen {
             ClientConfig.OPENAI_MODEL.set(openAIModelEditBox.getValue());
             ClientConfig.ELEVENLABS_API_KEY.set(elevenLabsAPIKeyEditBox.getValue());
             ClientConfig.ELEVENLABS_VOICE_ID.set(elevenLabsVoiceIdEditBox.getValue());
+            ClientConfig.ELEVENLABS_BUFFER_SIZE.set(elevenLabsBufferSize);
+            ClientConfig.CHATGPT_BUFFER_SIZE.set(chatGPTBufferSize);
             LOGGER.info("Tokens saved");
             assert this.minecraft != null;
             this.minecraft.setScreen(this.parent);
@@ -120,5 +167,21 @@ public class TokenScreen extends Screen {
             pGuiGraphics.drawString(font, openAIModelEditBox.getMessage(), openAIModelEditBox.getX(), openAIModelEditBox.getY() - 10, Color.WHITE.getRGB());
             openAIModelEditBox.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         }
+    }
+
+    int mapToRealInt(double x, int out_min, int out_max) {
+        return (int) (x * (out_max - out_min) + out_min);
+    }
+
+    double mapToSlideDouble(int x, int out_min, int out_max) {
+        return (double) (x - out_min) / (out_max - out_min);
+    }
+
+    int intToBuffer(int x) {
+        return (int) (4 * Math.pow(2, x));
+    }
+
+    int bufferToInt(int x) {
+        return (int) (Math.log((double) x / 4) / Math.log(2));
     }
 }
