@@ -5,6 +5,7 @@ import com.mitsuaky.stanleyparable.screen.widget.SecretWidget;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -27,6 +28,12 @@ public class TokenScreen extends Screen {
 
     private int elevenLabsBufferSize = ClientConfig.ELEVENLABS_BUFFER_SIZE.get();
     private int chatGPTBufferSize = ClientConfig.CHATGPT_BUFFER_SIZE.get();
+
+    private Checkbox elevenLabsStreamingButton;
+    private Checkbox openAiStreamingButton;
+
+    private boolean elevenLabsStreaming = ClientConfig.ELEVENLABS_STREAMING.get();
+    private boolean openAiStreaming = ClientConfig.OPENAI_STREAMING.get();
 
     private boolean more = false;
     private Button moreButton;
@@ -120,8 +127,26 @@ public class TokenScreen extends Screen {
         openAIModelEditBox.setMaxLength(32500);
         openAIModelEditBox.setValue(ClientConfig.OPENAI_MODEL.get());
 
+        commonY += commonHeight + commonMargin;
+
+        elevenLabsStreamingButton = new Checkbox(commonX, commonY, commonWidth / 2 - commonMargin / 2, commonHeight, Component.translatable("gui.stanleyparable.elevenlabs_streaming"), elevenLabsStreaming) {
+            @Override
+            public void onPress() {
+                super.onPress();
+                elevenLabsStreaming = this.selected();
+            }
+        };
+
+        openAiStreamingButton = new Checkbox(commonX + commonWidth / 2 + commonMargin / 2, commonY, commonWidth / 2 - commonMargin / 2, commonHeight, Component.translatable("gui.stanleyparable.openai_streaming"), openAiStreaming) {
+            @Override
+            public void onPress() {
+                super.onPress();
+                openAiStreaming = this.selected();
+            }
+        };
+
         int moreButtonY = chatGPTBufferSizeSlider.getY() + commonHeight + commonMargin;
-        int lessButtonY = openAIModelEditBox.getY() + commonHeight + commonMargin;
+        int lessButtonY = openAiStreamingButton.getY() + commonHeight + commonMargin;
         moreButton = new Button.Builder(more ? Component.translatable("gui.stanleyparable.less") : Component.translatable("gui.stanleyparable.more"), (button) -> {
             more = !more;
             if (more) {
@@ -129,12 +154,16 @@ public class TokenScreen extends Screen {
                 moreButton.setY(lessButtonY);
                 this.addWidget(openAIBaseURLEditBox);
                 this.addWidget(openAIModelEditBox);
+                this.addWidget(openAiStreamingButton);
+                this.addWidget(elevenLabsStreamingButton);
                 LOGGER.info("More options enabled");
             } else {
                 moreButton.setMessage(Component.translatable("gui.stanleyparable.more"));
                 moreButton.setY(moreButtonY);
                 this.removeWidget(openAIBaseURLEditBox);
                 this.removeWidget(openAIModelEditBox);
+                this.removeWidget(openAiStreamingButton);
+                this.removeWidget(elevenLabsStreamingButton);
                 LOGGER.info("More options disabled");
             }
         }).pos(commonX, (more) ? lessButtonY : moreButtonY).size(commonWidth, commonHeight).build();
@@ -148,6 +177,8 @@ public class TokenScreen extends Screen {
             ClientConfig.ELEVENLABS_VOICE_ID.set(elevenLabsVoiceIdEditBox.getValue());
             ClientConfig.ELEVENLABS_BUFFER_SIZE.set(elevenLabsBufferSize);
             ClientConfig.CHATGPT_BUFFER_SIZE.set(chatGPTBufferSize);
+            ClientConfig.ELEVENLABS_STREAMING.set(elevenLabsStreaming);
+            ClientConfig.OPENAI_STREAMING.set(openAiStreaming);
             LOGGER.info("Tokens saved");
             assert this.minecraft != null;
             this.minecraft.setScreen(this.parent);
@@ -166,6 +197,8 @@ public class TokenScreen extends Screen {
             openAIBaseURLEditBox.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
             pGuiGraphics.drawString(font, openAIModelEditBox.getMessage(), openAIModelEditBox.getX(), openAIModelEditBox.getY() - 10, Color.WHITE.getRGB());
             openAIModelEditBox.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+            openAiStreamingButton.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+            elevenLabsStreamingButton.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         }
     }
 

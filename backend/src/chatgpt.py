@@ -1,5 +1,6 @@
-from typing import Generator
-import openai
+from typing import Generator, cast
+from openai import OpenAI, Stream
+from openai.types.chat import ChatCompletion, ChatCompletionChunk
 
 from src.config import global_config, GlobalConfig
 from src.context import Context
@@ -100,7 +101,7 @@ context = Context(maxsize=14)
 class ChatGPT:
     def __init__(self, api_key, base_url, model="gpt-3.5-turbo"):
         self.model = model
-        self.client = openai.OpenAI(
+        self.client = OpenAI(
             api_key=api_key,
             base_url=base_url,
         )
@@ -109,30 +110,35 @@ class ChatGPT:
         user_prompt = {"role": "user", "content": text}
         messages: list = system_prompt + context.all() + [user_prompt]
 
-        stream = self.client.chat.completions.create(
+        response: ChatCompletion | Stream[ChatCompletionChunk] = self.client.chat.completions.create(
             model=self.model,
             messages=messages,
-            stream=True,
+            stream=global_config.openai_streaming,
             **gpt_config,
         )
 
         context.put(user_prompt)
-
         response_text = ""
-        buffer = ""
-        for chunk in stream:
-            choices = chunk.choices
-            delta = None
-            if len(choices) > 0:
-                delta = choices[0].delta.content
-            if delta:
-                response_text += delta
-                buffer += delta
-                if len(buffer) >= global_config.chatgpt_buffer_size:
-                    yield buffer
-                    buffer = ""
-        if buffer:
-            yield buffer
+
+        if global_config.openai_streaming:
+            response = cast(Stream[ChatCompletionChunk], response)
+            buffer = ""
+            for chunk in response:
+                delta = chunk.choices[0].delta.content
+                if delta:
+                    response_text += delta
+                    buffer += delta
+                    if len(buffer) >= global_config.chatgpt_buffer_size:
+                        yield buffer
+                        buffer = ""
+            if buffer:
+                yield buffer
+
+        else:
+            response = cast(ChatCompletion, response)
+            response_text = response.choices[0].message.content
+            if response_text:
+                yield response_text
 
         context.put({"role": "assistant", "content": response_text})
 

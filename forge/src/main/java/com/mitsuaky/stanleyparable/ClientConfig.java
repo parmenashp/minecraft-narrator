@@ -19,6 +19,9 @@ public class ClientConfig {
     public static final ForgeConfigSpec.ConfigValue<Integer> ELEVENLABS_BUFFER_SIZE;
     public static final ForgeConfigSpec.ConfigValue<Integer> CHATGPT_BUFFER_SIZE;
 
+    public static final ForgeConfigSpec.ConfigValue<Boolean> ELEVENLABS_STREAMING;
+    public static final ForgeConfigSpec.ConfigValue<Boolean> OPENAI_STREAMING;
+
     public static final ForgeConfigSpec.ConfigValue<String> OPENAI_API_KEY;
     public static final ForgeConfigSpec.ConfigValue<String> OPENAI_BASE_URL;
     public static final ForgeConfigSpec.ConfigValue<String> OPENAI_MODEL;
@@ -35,6 +38,9 @@ public class ClientConfig {
 
         ELEVENLABS_BUFFER_SIZE = BUILDER.comment("ElevenLabs Buffer Size").defineInRange("elevenlabs_buffer_size", 2048, 1024, 16384);
         CHATGPT_BUFFER_SIZE = BUILDER.comment("ChatGPT Buffer Size").defineInRange("chatgpt_buffer_size", 10, 10, 500);
+
+        ELEVENLABS_STREAMING = BUILDER.comment("Enable ElevenLabs Streaming").define("elevenlabs_streaming", true);
+        OPENAI_STREAMING = BUILDER.comment("Enable OpenAI Streaming").define("openai_streaming", true);
 
         OPENAI_API_KEY = BUILDER.comment("OpenAI API Key").define("openai_api_key", "");
         OPENAI_BASE_URL = BUILDER.comment("OpenAI Base URL").define("openai_base_url", "https://api.openai.com/v1");
@@ -55,6 +61,8 @@ public class ClientConfig {
             request.addProperty("tts", TTS.get());
             request.addProperty("elevenlabs_buffer_size", ELEVENLABS_BUFFER_SIZE.get());
             request.addProperty("chatgpt_buffer_size", CHATGPT_BUFFER_SIZE.get());
+            request.addProperty("elevenlabs_streaming", ELEVENLABS_STREAMING.get());
+            request.addProperty("openai_streaming", OPENAI_STREAMING.get());
             request.addProperty("openai_api_key", OPENAI_API_KEY.get());
             request.addProperty("openai_base_url", OPENAI_BASE_URL.get());
             request.addProperty("openai_model", OPENAI_MODEL.get());
