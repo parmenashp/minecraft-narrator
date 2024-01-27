@@ -32,7 +32,7 @@ class TTS:
         else:
             global_config.tts = False
 
-    def synthesize(self, gen: Generator, loop: asyncio.AbstractEventLoop) -> None:
+    def synthesize(self, gen: Generator[str, None, None], loop: asyncio.AbstractEventLoop) -> None:
         self.queue.put(gen)
         if not self.is_playing:
             self.is_playing = True
@@ -41,7 +41,8 @@ class TTS:
         else:
             logger.debug("TTS already playing, added to queue")
 
-    def play_next(self, text: Generator, loop: asyncio.AbstractEventLoop) -> None:
+
+    def play_next(self, text: Generator[str, None, None], loop: asyncio.AbstractEventLoop) -> None:
         logger.debug("Playing next")
         if global_config.tts is False:
             try:
@@ -67,16 +68,22 @@ class TTS:
             finally:
                 generator_done.set()
 
+        def non_stream():
+            try:
+               return "".join([chunk for chunk in text])
+            finally:
+                generator_done.set()
+
         gen = generate(
-            text=wrapped_generator(),
+            text=wrapped_generator() if global_config.elevenlabs_streaming else non_stream(),
             voice=self.voice_id,
-            stream=True,
+            stream=global_config.elevenlabs_streaming,
             model="eleven_multilingual_v2",
             stream_chunk_size=global_config.elevenlabs_buffer_size,
         )
         stream_thread = threading.Thread(
             target=self.stream,
-            kwargs={"audio_stream": gen, "loop": loop},
+            kwargs={"audio": gen, "loop": loop},
         )
         stream_thread.start()
         generator_done.wait()
@@ -104,7 +111,10 @@ class TTS:
         else:
             self.is_playing = False
 
-    def stream(self, audio_stream: Iterator[bytes], loop: asyncio.AbstractEventLoop):
+    def stream(self, audio: Iterator[bytes] | bytes, loop: asyncio.AbstractEventLoop):
+        audio_stream = iter([audio]) if isinstance(audio, bytes) else audio
+        assert isinstance(audio_stream, Iterator)
+
         try:
             mpv_command = [
                 "./mpv.exe",
