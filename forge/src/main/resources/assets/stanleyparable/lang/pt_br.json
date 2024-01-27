@@ -16,5 +16,7 @@
   "gui.stanleyparable.less": "Menos",
   "gui.stanleyparable.buffer_elevenlabs": "Tamanho do Buffer do Eleven Labs: ",
   "gui.stanleyparable.buffer_chatgpt": "Tamanho do Buffer do ChatGPT: ",
+  "gui.stanleyparable.elevenlabs_streaming": "Eleven Labs streaming",
+  "gui.stanleyparable.openai_streaming": "OpenAI streaming",
   "item.stanleyparable.bare_hands": "Próprias mãos"
 }

@@ -31,6 +31,8 @@ class IncomingEvent(BaseModel):
 class Config(BaseModel):
     elevenlabs_api_key: str
     elevenlabs_voice_id: str
+    elevenlabs_streaming: bool
+    openai_streaming: bool
     openai_api_key: str
     openai_base_url: str
     openai_model: str
