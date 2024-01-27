@@ -1,7 +1,8 @@
 import os
 from dataclasses import dataclass, fields
+
 from dotenv import load_dotenv
-from termcolor import colored, cprint
+from loguru import logger
 
 load_dotenv()
 
@@ -16,15 +17,13 @@ def redact(name: str, value: str) -> str:
 
 def env_or_default(name, default="") -> str:
     if name in os.environ:
-        cprint(colored(f"Using env var {name}: ", "green") + redact(name, os.environ[name]))
+        logger.info(f"Using env var {name}: {redact(name, os.environ[name])}")
         return os.environ[name]
 
     if default == "":
-        cprint(
-            colored(f"Attention needed: missing env var {name}, configure on mod configuration screen in minecraft",
-                    "red"))
+        logger.error(f"Missing env var {name}, configure on mod configuration screen in minecraft")
     else:
-        cprint(colored(f"Using default value for {name}: ", "yellow") + default)
+        logger.info(f"Using default value for {name}: {default}")
     return default
 
 
@@ -55,15 +54,17 @@ class GlobalConfig:
             if value is not None and value != "":
                 setattr(self, attribute, value)
             else:
-                print(f"Value for {attribute} is empty, skipping")
+                logger.warning(f"Config value for {attribute} is empty, skipping")
 
     def save(self):
+        logger.debug("Saving config to .env")
         with open(".env", "w") as f:
             attributes = [f.name for f in fields(self)]
             for attribute in attributes:
                 value = getattr(self, attribute, None)
                 if value is not None:
                     f.write(f"{attribute.upper()}={value}\n")
+        logger.info("Saved config to .env")
 
 
 global_config = GlobalConfig()

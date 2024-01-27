@@ -1,6 +1,11 @@
+from typing import Generator
+from loguru import logger
+import openai
+
 from typing import Generator, cast
 from openai import OpenAI, Stream
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
+from loguru import logger
 
 from src.config import global_config, GlobalConfig
 from src.context import Context
@@ -107,6 +112,7 @@ class ChatGPT:
         )
 
     def ask(self, text: str) -> Generator[str, None, None]:
+        logger.debug(f"Sending prompt to GPT: {text!r}")
         user_prompt = {"role": "user", "content": text}
         messages: list = system_prompt + context.all() + [user_prompt]
 
@@ -119,8 +125,8 @@ class ChatGPT:
 
         context.put(user_prompt)
         response_text = ""
-
         if global_config.openai_streaming:
+            logger.debug("Using OpenAI streaming mode")
             response = cast(Stream[ChatCompletionChunk], response)
             buffer = ""
             for chunk in response:
@@ -129,15 +135,19 @@ class ChatGPT:
                     response_text += delta
                     buffer += delta
                     if len(buffer) >= global_config.chatgpt_buffer_size:
+                        logger.debug(f"Yielding GPT response: {buffer!r}")
                         yield buffer
                         buffer = ""
             if buffer:
+                logger.debug(f"Yielding GPT response: {buffer!r}")
                 yield buffer
 
         else:
+            logger.debug("Using OpenAI non-streaming mode")
             response = cast(ChatCompletion, response)
             response_text = response.choices[0].message.content
             if response_text:
+                logger.debug(f"Yielding GPT response: {response_text!r}")
                 yield response_text
 
         context.put({"role": "assistant", "content": response_text})

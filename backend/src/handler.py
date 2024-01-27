@@ -1,14 +1,15 @@
 import asyncio
 import random
 import threading
+from loguru import logger
 
-from src.cooldown import CooldownManager
-from src.models import Config, IncomingEvent, OutgoingAction, Action
-from src.queue import Queue
-from src.config import global_config
-from src.websocket import ws
 from src.chatgpt import chat
+from src.config import global_config
+from src.cooldown import CooldownManager
+from src.models import Action, Config, IncomingEvent, OutgoingAction
+from src.queue import Queue
 from src.tts import tts
+from src.websocket import ws
 
 
 class EventHandler:
@@ -20,6 +21,7 @@ class EventHandler:
         self._queue.put(event.data)
 
         if self._cd_manager.check_all_cooldown(event.event):
+            logger.info("Ignoring event due to cooldown")
             return OutgoingAction(
                 action=Action.IGNORE,
                 data="Aguardando cooldown",
@@ -29,7 +31,7 @@ class EventHandler:
             action=Action.SEND_CHAT,
             data="\n".join(self._queue.all()),
         )
-        print(self._queue.all())
+        logger.debug(f"Queue: {self._queue.all()!r}")
         self._queue.clear()
 
         self._cd_manager.add_cooldown(
@@ -61,6 +63,7 @@ class EventHandler:
         ).start()
 
     def handle_config_event(self, req_config: Config):
+        logger.info("Updating configs received from client")
         global_config.set_all(req_config)
         chat.set_config(global_config)
         tts.set_config(global_config)
