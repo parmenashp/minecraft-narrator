@@ -41,7 +41,6 @@ class TTS:
         else:
             logger.debug("TTS already playing, added to queue")
 
-
     def play_next(self, text: Generator[str, None, None], loop: asyncio.AbstractEventLoop) -> None:
         logger.debug("Playing next")
         if global_config.tts is False:
@@ -69,8 +68,11 @@ class TTS:
                 generator_done.set()
 
         def non_stream():
+            nonlocal full_text
             try:
-               return "".join([chunk for chunk in text])
+                t = "".join([chunk for chunk in text])
+                full_text = t
+                return t
             finally:
                 generator_done.set()
 
@@ -92,7 +94,7 @@ class TTS:
                 action=Action.IGNORE,
                 data="Não foi possível gerar texto",
             )
-            self.is_playing = False
+            self.finished_playing(loop)
         else:
             response = OutgoingAction(
                 action=Action.SEND_CHAT,
