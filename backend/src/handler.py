@@ -10,8 +10,10 @@ from src.models import Action, Config, IncomingEvent, OutgoingAction
 from src.queue import Queue
 from src.tts import tts
 from src.websocket import ws
+from src.utils import singleton
 
 
+@singleton
 class EventHandler:
     def __init__(self):
         self._cd_manager = CooldownManager()

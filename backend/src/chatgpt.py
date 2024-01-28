@@ -1,7 +1,3 @@
-from typing import Generator
-from loguru import logger
-import openai
-
 from typing import Generator, cast
 from openai import OpenAI, Stream
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
@@ -9,6 +5,7 @@ from loguru import logger
 
 from src.config import global_config, GlobalConfig
 from src.context import Context
+from src.utils import singleton
 
 gpt_config = {
     "temperature": 1,
@@ -103,6 +100,7 @@ system_prompt = [
 context = Context(maxsize=14)
 
 
+@singleton
 class ChatGPT:
     def __init__(self, api_key, base_url, model="gpt-3.5-turbo"):
         self.model = model
@@ -127,6 +125,7 @@ class ChatGPT:
         response_text = ""
         if global_config.openai_streaming:
             logger.debug("Using OpenAI streaming mode")
+            logger.info(f"Using {global_config.chatgpt_buffer_size} chatgpt buffer size")
             response = cast(Stream[ChatCompletionChunk], response)
             buffer = ""
             for chunk in response:
