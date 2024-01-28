@@ -18,7 +18,7 @@ class Context:
         return self.queue.all()
 
     def save(self):
-        with open("data.json", "w") as f:
+        with open("data.json", "w", encoding="utf-8") as f:
             json.dump(self.all(), f, indent=2, ensure_ascii=False)
 
     def load(self):
