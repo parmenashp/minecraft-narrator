@@ -10,8 +10,10 @@ from src.models import Action, OutgoingAction
 from src.websocket import ws
 from src.config import global_config
 from src.queue import Queue
+from src.utils import singleton
 
 
+@singleton
 class TTS:
     def __init__(self):
         self.voice_id = ""
@@ -75,7 +77,7 @@ class TTS:
                 return t
             finally:
                 generator_done.set()
-
+        logger.info(f"Using {global_config.elevenlabs_buffer_size} chatgpt buffer size")
         gen = generate(
             text=wrapped_generator() if global_config.elevenlabs_streaming else non_stream(),
             voice=self.voice_id,

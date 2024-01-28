@@ -17,12 +17,13 @@ logger.add("logs/{time}.log", rotation="1 day", level="DEBUG", compression="zip"
 
 
 @asynccontextmanager
-async def lifespan_handler(app: fastapi.FastAPI):
+async def lifespan_handler(_app: fastapi.FastAPI):
     logger.info("Starting server")
     yield
     logger.info("Stopping server")
 
 app = fastapi.FastAPI(lifespan=lifespan_handler)
+
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: fastapi.WebSocket):

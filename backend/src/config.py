@@ -3,6 +3,7 @@ from dataclasses import dataclass, fields
 
 from dotenv import load_dotenv
 from loguru import logger
+from src.utils import singleton
 
 load_dotenv()
 
@@ -27,6 +28,7 @@ def env_or_default(name, default="") -> str:
     return default
 
 
+@singleton
 @dataclass
 class GlobalConfig:
     cooldown_global: int = int(env_or_default("COOLDOWN_GLOBAL", "30"))
@@ -52,6 +54,7 @@ class GlobalConfig:
         for attribute in attributes:
             value = getattr(config, attribute, None)
             if value is not None and value != "":
+                logger.info(f"Setting config value for {attribute}: {redact(attribute.upper(), value)}")
                 setattr(self, attribute, value)
             else:
                 logger.warning(f"Config value for {attribute} is empty, skipping")
