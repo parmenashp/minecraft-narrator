@@ -16,7 +16,7 @@ gpt_config = {
     "stop": ["\n"],
 }
 
-system_prompt = [
+default_system_prompt = [
     {
         "role": "system",
         "content": """
@@ -109,9 +109,12 @@ class ChatGPT:
             base_url=base_url,
         )
 
-    def ask(self, text: str) -> Generator[str, None, None]:
+    def ask(self, text: str, system_prompt: list[dict[str, str]] | None = None) -> Generator[str, None, None]:
         logger.debug(f"Sending prompt to GPT: {text!r}")
         user_prompt = {"role": "user", "content": text}
+        if system_prompt is None:
+            logger.debug("Using default system prompt")
+            system_prompt = default_system_prompt
         messages: list = system_prompt + context.all() + [user_prompt]
 
         response: ChatCompletion | Stream[ChatCompletionChunk] = self.client.chat.completions.create(
