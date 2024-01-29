@@ -14,7 +14,8 @@ system_prompt = [
         "role": "system",
         "content": """
         Este é um teste de chatbot.
-        Você deve responder com 80 palavras.
+        Responda com no mínimo 130 caracteres.
+        Responda com no máximo 200 caracteres.
         Responda de acordo com as regras do teste.
         """,
     }
@@ -92,7 +93,7 @@ def test3(loop):
         openai_streaming=False,
         openai_api_key=os.getenv("OPENAI_API_KEY", ""),
         openai_base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
-        openai_model=os.getenv("OPENAI_MODEL", "gpt-3.5-turbo"),
+        openai_model=os.getenv("OPENAI_MODEL", "gpt-4-turbo-preview"),
         tts=True,
     )
     global_config.set_all(config)
