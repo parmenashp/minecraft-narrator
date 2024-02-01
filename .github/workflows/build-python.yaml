@@ -19,7 +19,7 @@ jobs:
           cd building/python
           python.exe get-pip.py
           echo "import site" >> .\python311._pth
-          mv backend/* building/
+          mv ../../backend/* ..
 
       - name: Upload Artifct
         uses: actions/upload-artifact@v4
