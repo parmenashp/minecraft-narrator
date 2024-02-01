@@ -1,19 +1,24 @@
 name: Generate Python zip
 on:
   workflow_dispatch:
+  pull_request:
 
 jobs:
   python-zip:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Prepare artifact
         run: |
-          curl -L -o python.zip https://www.python.org/ftp/python/3.11.7/python-3.11.7-embed-amd64.zip
+          Invoke-WebRequest -Uri "https://www.python.org/ftp/python/3.11.7/python-3.11.7-embed-amd64.zip" -OutFile python.zip
           mkdir building
-          unzip python.zip -d building/python
+          7z x python.zip -obuilding/python
+          Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile building/python/get-pip.py
+          cd building/python
+          python.exe get-pip.py
+          echo "import site" >> .\python311._pth
           mv backend/* building/
 
       - name: Upload Artifct
