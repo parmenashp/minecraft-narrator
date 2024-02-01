@@ -17,7 +17,7 @@ jobs:
           7z x python.zip -obuilding/python
           Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile building/python/get-pip.py
           cd building/python
-          python.exe get-pip.py
+          .\python.exe get-pip.py
           echo "import site" >> .\python311._pth
           mv ../../backend/* ..
 
