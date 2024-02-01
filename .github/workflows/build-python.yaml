@@ -1,57 +1,23 @@
-name: Run Pyinstaller on PRs
+name: Generate Python zip
 on:
-  pull_request:
-    paths:
-      - backend/**
+  workflow_dispatch:
 
 jobs:
-  pyinstaller:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        working-directory: ./backend
+  python-zip:
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.11
-
-      - name: Install poetry
-        uses: abatilo/actions-poetry@v2
-      - name: Setup a local virtual environment (if no poetry.toml file)
-        run: |
-          poetry config virtualenvs.create true --local
-          poetry config virtualenvs.in-project true --local
-
-      - uses: actions/cache@v3
-        name: Define a cache for the virtual environment based on the dependencies lock file
-        with:
-          path: ./.venv
-          key: venv-${{ hashFiles('poetry.lock') }}
-
-      - name: Install the project dependencies
-        run: poetry install
-
-      - name: Run PyInstaller
-        run: poetry run pyinstaller --icon=icon.ico --onefile run.py
 
       - name: Prepare artifact
-        if: matrix.os == 'windows-latest'
         run: |
-          mv mpv.exe dist/mpv.exe
-          mv dist/run.exe dist/Backend-StanleyParable.exe
-
-      - name: Prepare artifact
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          mv dist/run dist/Backend-StanleyParable
+          curl -L -o python.zip https://www.python.org/ftp/python/3.11.7/python-3.11.7-embed-amd64.zip
+          mkdir building
+          unzip python.zip -d building/python
+          mv backend/* building/
 
       - name: Upload Artifct
         uses: actions/upload-artifact@v4
         with:
-          name: Backend-${{ matrix.os }}
-          path: backend/dist/
+          name: python-zip
+          path: building/*
