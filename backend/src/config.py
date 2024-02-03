@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from loguru import logger
 from src.utils import singleton
 
-load_dotenv()
+load_dotenv(".env", override=True)
 
 
 def redact(name: str, value: str) -> str:

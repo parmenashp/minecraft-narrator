@@ -7,6 +7,7 @@ from loguru import logger
 
 from src.handler import event_handler
 from src.models import Config, Event, IncomingEvent
+from src.prompts import prompt_manager
 from src.websocket import ws
 
 
@@ -21,6 +22,7 @@ async def lifespan_handler(_app: fastapi.FastAPI):
     logger.info("Starting server")
     yield
     logger.info("Stopping server")
+
 
 app = fastapi.FastAPI(lifespan=lifespan_handler)
 
@@ -44,6 +46,9 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
                 case Event.CONFIG:
                     config: Config = json.loads(incoming_event.data, object_hook=lambda d: Config(**d))
                     event_handler.handle_config_event(config)
+                case Event.CHANGE_PROMPT:
+                    data = json.loads(incoming_event.data)
+                    prompt_manager.set_current_prompt(data["id"])
                 case _:
                     logger.info(f"Incoming event data: {incoming_event.data!r}")
                     await event_handler.handle_game_event(incoming_event)

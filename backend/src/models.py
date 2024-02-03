@@ -22,6 +22,7 @@ class Event(StrEnum):
     PLAYER_ATE = "player_ate"
     JOIN_WORLD = "join_world"
     CONFIG = "config"
+    CHANGE_PROMPT = "change_prompt"
 
 
 class IncomingEvent(BaseModel):
