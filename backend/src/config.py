@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass, fields
+from typing import Optional
 
 from dotenv import load_dotenv
 from loguru import logger
@@ -48,6 +49,8 @@ class GlobalConfig:
     elevenlabs_voice_id: str = env_or_default("ELEVENLABS_VOICE_ID")
 
     narrator_volume: int = int(env_or_default("NARRATOR_VOLUME", "100"))
+
+    discord_webhook_key: Optional[str] = env_or_default("DISCORD_WEBHOOK_KEY")
 
     def set_all(self, config):
         attributes = [f.name for f in fields(self)]
