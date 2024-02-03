@@ -47,9 +47,6 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
                 case Event.CONFIG:
                     config: Config = json.loads(incoming_event.data, object_hook=lambda d: Config(**d))
                     event_handler.handle_config_event(config)
-                case Event.CHANGE_PROMPT:
-                    data = json.loads(incoming_event.data)
-                    prompt_manager.set_current_prompt(data["id"])
                 case _:
                     logger.info(f"Incoming event data: {incoming_event.data!r}")
                     await event_handler.handle_game_event(incoming_event)
