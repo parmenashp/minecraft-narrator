@@ -7,8 +7,9 @@ from loguru import logger
 
 from src.handler import event_handler
 from src.models import Config, Event, IncomingEvent
+from src.prompts import prompt_manager
 from src.websocket import ws
-
+from src.dashboard import start_dashboard
 
 # TODO: Add option to enable debug logs to stdout with backtrace and diagnose when developing
 logger.remove()  # Remove default logger
@@ -19,8 +20,10 @@ logger.add("logs/{time}.log", rotation="1 day", level="DEBUG", compression="zip"
 @asynccontextmanager
 async def lifespan_handler(_app: fastapi.FastAPI):
     logger.info("Starting server")
+    start_dashboard()
     yield
     logger.info("Stopping server")
+
 
 app = fastapi.FastAPI(lifespan=lifespan_handler)
 
@@ -48,6 +51,7 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
                     logger.info(f"Incoming event data: {incoming_event.data!r}")
                     await event_handler.handle_game_event(incoming_event)
 
-    except fastapi.WebSocketDisconnect:
+    except Exception as e:
         logger.info(f"Client {websocket.client} disconnected")
         ws.disconnect(websocket)
+        raise e

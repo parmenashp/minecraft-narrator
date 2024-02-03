@@ -17,8 +17,8 @@ uvicorn = "^0.24.0.post1"
 python-dotenv = "^1.0.0"
 elevenlabs = "^0.2.27"
 pyinstaller = "^6.3.0"
-websockets = "^12.0"
 loguru = "^0.7.2"
+gradio = "^4.16.0"
 
 [tool.black]
 line-length = 120
