@@ -53,6 +53,7 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
                     logger.info(f"Incoming event data: {incoming_event.data!r}")
                     await event_handler.handle_game_event(incoming_event)
 
-    except fastapi.WebSocketDisconnect:
+    except Exception as e:
         logger.info(f"Client {websocket.client} disconnected")
         ws.disconnect(websocket)
+        raise e
