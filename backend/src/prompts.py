@@ -14,7 +14,7 @@ class PromptManager:
 
     def get_current_prompt(self):
         if self.current_prompt is None:
-            self.current_prompt = self.get_prompt_by_id("prompt1")
+            self.current_prompt = self.get_prompt_by_id("prompt0")
 
         formatted = [
             {
