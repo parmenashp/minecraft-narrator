@@ -77,9 +77,14 @@ class TTS:
                 return t
             finally:
                 generator_done.set()
-        logger.info(f"Using {global_config.elevenlabs_buffer_size} chatgpt buffer size")
+
+        if global_config.elevenlabs_streaming is False or global_config.openai_streaming is False:
+            elevenlabs_text = non_stream()
+        else:
+            elevenlabs_text = wrapped_generator()
+        logger.info(f"Using {global_config.elevenlabs_buffer_size} elevenlabs buffer size")
         gen = generate(
-            text=wrapped_generator() if global_config.elevenlabs_streaming else non_stream(),
+            text=elevenlabs_text,
             voice=self.voice_id,
             stream=global_config.elevenlabs_streaming,
             model="eleven_multilingual_v2",
