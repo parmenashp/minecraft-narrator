@@ -54,4 +54,5 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
     except Exception as e:
         logger.info(f"Client {websocket.client} disconnected")
         ws.disconnect(websocket)
-        raise e
+        if not isinstance(e, fastapi.WebSocketDisconnect):
+            raise e
