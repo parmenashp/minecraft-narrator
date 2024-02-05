@@ -40,7 +40,7 @@ public class ClientConfig {
         CHATGPT_BUFFER_SIZE = BUILDER.comment("ChatGPT Buffer Size").defineInRange("chatgpt_buffer_size", 10, 10, 500);
 
         ELEVENLABS_STREAMING = BUILDER.comment("Enable ElevenLabs Streaming").define("elevenlabs_streaming", true);
-        OPENAI_STREAMING = BUILDER.comment("Enable OpenAI Streaming").define("openai_streaming", true);
+        OPENAI_STREAMING = BUILDER.comment("Enable OpenAI Streaming").define("openai_streaming", false);
 
         OPENAI_API_KEY = BUILDER.comment("OpenAI API Key").define("openai_api_key", "");
         OPENAI_BASE_URL = BUILDER.comment("OpenAI Base URL").define("openai_base_url", "https://api.openai.com/v1");
