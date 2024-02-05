@@ -6,26 +6,20 @@ from src.context import context
 @singleton
 class PromptManager:
     def __init__(self, prompts):
-        self.current_prompt: str | None = None
         self.prompts = prompts
-
-    def get_prompt_by_id(self, prompt_id) -> str:
-        return self.prompts[prompt_id]
+        self.current_prompt_id: str = "prompt0"
 
     def get_current_prompt(self):
-        if self.current_prompt is None:
-            self.current_prompt = self.get_prompt_by_id("prompt0")
-
         formatted = [
             {
                 "role": "system",
-                "content": self.current_prompt,
+                "content": self.prompts[self.current_prompt_id],
             }
         ]
         return formatted
 
-    def set_current_prompt(self, prompt_id, clear_context=False):
-        self.current_prompt = self.get_prompt_by_id(prompt_id)
+    def set_current_prompt(self, prompt_id: str, clear_context: bool = False):
+        self.current_prompt_id = prompt_id
         if clear_context:
             context.clear()
         logger.info(f"Current prompt set to {prompt_id}")

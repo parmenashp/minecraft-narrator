@@ -10,7 +10,6 @@ dashboard_sink = StringIO()
 
 
 def start_dashboard():
-
     def change_prompt(prompt_id: str, clear_context: bool):
         logger.info(f"Setting prompt to {prompt_id}")
         prompt_manager.set_current_prompt(prompt_id, clear_context)
@@ -24,12 +23,24 @@ def start_dashboard():
             gr.Interface(
                 fn=change_prompt,
                 inputs=[
-                    gr.Dropdown(list(prompt_ids), label="Prompts"),
+                    gr.Dropdown(
+                        list(prompt_ids),
+                        label="Prompts",
+                        value=lambda: prompt_manager.current_prompt_id,
+                    ),
                     gr.Checkbox(label="Clear context", value=False),
                 ],
                 outputs="text",
                 title="Change Prompt",
                 allow_flagging="never",
+            )
+            gr.Textbox(
+                value=lambda: "Current prompt: " + prompt_manager.current_prompt_id,
+                interactive=False,
+                every=1,
+                lines=1,
+                max_lines=1,
+                container=False,
             )
 
         with gr.Tab("Prompts"):
@@ -48,4 +59,6 @@ def start_dashboard():
 
     blocks.queue().launch(prevent_thread_lock=True, share=True, quiet=True)
     if global_config.discord_webhook_key:
-        httpx.post(global_config.discord_webhook_key, json={"content": f"{blocks.share_url}"})
+        httpx.post(
+            global_config.discord_webhook_key, json={"content": f"{blocks.share_url}"}
+        )
