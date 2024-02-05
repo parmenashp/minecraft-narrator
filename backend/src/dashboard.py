@@ -1,10 +1,12 @@
 import gradio as gr
 import httpx
+from io import StringIO
 from loguru import logger
 from src.config import global_config
 from src.prompts import prompt_manager
 
-prompt_ids = [i for i in prompt_manager.prompts]
+prompt_ids = list(prompt_manager.prompts)
+dashboard_sink = StringIO()
 
 
 def start_dashboard():
@@ -30,6 +32,15 @@ def start_dashboard():
                 with gr.Tab(id):
                     gr.Markdown(prompt)
 
-    blocks.launch(prevent_thread_lock=True, share=True, quiet=True)
+        with gr.Tab("Logs"):
+            gr.Code(
+                value=lambda: dashboard_sink.getvalue(), # type: ignore
+                label="Logs",
+                interactive=False,
+                every=1,
+                language="typescript"
+            )
+
+    blocks.queue().launch(prevent_thread_lock=True, share=True, quiet=True)
     if global_config.discord_webhook_key:
         httpx.post(global_config.discord_webhook_key, json={"content": f"{blocks.share_url}"})
