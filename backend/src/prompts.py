@@ -24,9 +24,10 @@ class PromptManager:
         ]
         return formatted
 
-    def set_current_prompt(self, prompt_id):
+    def set_current_prompt(self, prompt_id, clear_context=False):
         self.current_prompt = self.get_prompt_by_id(prompt_id)
-        context.clear()
+        if clear_context:
+            context.clear()
         logger.info(f"Current prompt set to {prompt_id}")
 
 
