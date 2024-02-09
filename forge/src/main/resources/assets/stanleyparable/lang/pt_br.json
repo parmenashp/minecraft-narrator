@@ -5,6 +5,7 @@
   "gui.stanleyparable.narrator_volume": "Volume do Narrador: ",
   "gui.stanleyparable.send_to_chat": "Aparecer no Chat",
   "gui.stanleyparable.tts": "Texto para Fala",
+  "gui.stanleyparable.aka": "Vulgo",
   "gui.stanleyparable.openai_key": "Chave de API da OpenAI",
   "gui.stanleyparable.openai_base_url": "URL de API da OpenAI",
   "gui.stanleyparable.openai_model": "Modelo do Chatbot da OpenAI",

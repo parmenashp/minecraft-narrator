@@ -7,6 +7,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Checkbox;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
@@ -29,6 +30,7 @@ public class ConfigScreen extends Screen {
     private String ping = "Offline";
 
     private PingWidget pingWidget;
+    private EditBox akaWidget;
 
     public ConfigScreen(Screen parent) {
         super(Component.translatable("gui.stanleyparable.config.title"));
@@ -175,10 +177,18 @@ public class ConfigScreen extends Screen {
             this.minecraft.setScreen(new TokenScreen(this));
         }).pos(commonX, commonY).size(commonWidth, commonHeight).build());
 
+        commonY += commonHeight + commonMargin;
+
+        akaWidget = new EditBox(this.font, commonX, commonY, commonWidth, commonHeight, Component.translatable("gui.stanleyparable.aka"));
+        akaWidget.setValue(ClientConfig.AKA.get());
+        akaWidget.hint = Component.translatable("gui.stanleyparable.aka");
+        this.addRenderableWidget(akaWidget);
+
         this.addRenderableWidget(new Button.Builder(Component.translatable("gui.done"), button -> {
             ClientConfig.COOLDOWN_INDIVIDUAL.set(coolDownIndividual);
             ClientConfig.COOLDOWN_GLOBAL.set(coolDownGlobal);
             ClientConfig.NARRATOR_VOLUME.set(narratorVolume);
+            ClientConfig.AKA.set(akaWidget.getValue());
             ClientConfig.applyServerConfig();
             WebSocketClient.getInstance().setOnPong(null);
             assert this.minecraft != null;
