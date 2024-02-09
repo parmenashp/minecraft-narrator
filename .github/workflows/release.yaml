@@ -45,10 +45,10 @@ jobs:
 
       - name: Prepare python zip
         run: |
-          wget "https://www.python.org/ftp/python/3.11.7/python-3.11.7-embed-amd64.zip" -O python.zip
+          curl -L "https://www.python.org/ftp/python/3.11.7/python-3.11.7-embed-amd64.zip" -o python.zip
           mkdir building
           unzip python.zip -d building/python
-          wget "https://bootstrap.pypa.io/get-pip.py" -O building/python/get-pip.py
+          curl -L "https://bootstrap.pypa.io/get-pip.py" -o building/python/get-pip.py
           cd building/python
           ./python.exe get-pip.py
           echo "import site" >> ./python311._pth
