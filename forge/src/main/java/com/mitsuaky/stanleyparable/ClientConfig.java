@@ -14,6 +14,7 @@ public class ClientConfig {
     public static final ForgeConfigSpec.ConfigValue<Integer> COOLDOWN_GLOBAL;
     public static final ForgeConfigSpec.ConfigValue<Integer> NARRATOR_VOLUME;
     public static final ForgeConfigSpec.ConfigValue<Boolean> SEND_TO_CHAT;
+    public static final ForgeConfigSpec.ConfigValue<String> AKA;
     public static final ForgeConfigSpec.ConfigValue<Boolean> TTS;
 
     public static final ForgeConfigSpec.ConfigValue<Integer> ELEVENLABS_BUFFER_SIZE;
@@ -34,6 +35,7 @@ public class ClientConfig {
         COOLDOWN_GLOBAL = BUILDER.comment("Cooldown for global events in seconds").defineInRange("cooldown_global", 30, 30, 60);
         NARRATOR_VOLUME = BUILDER.comment("Narrator Volume").defineInRange("narrator_volume", 100, 1, 130);
         SEND_TO_CHAT = BUILDER.comment("Send events to chat").define("send_to_chat", true);
+        AKA = BUILDER.comment("aka").define("aka", "");
         TTS = BUILDER.comment("Enable text to speech").define("tts", true);
 
         ELEVENLABS_BUFFER_SIZE = BUILDER.comment("ElevenLabs Buffer Size").defineInRange("elevenlabs_buffer_size", 2048, 1024, 16384);

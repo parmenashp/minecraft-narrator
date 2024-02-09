@@ -80,6 +80,13 @@ public class EventSubscriber {
         return entity.getName().getString();
     }
 
+    public static String getPlayerName(Entity entity) {
+        if (ClientConfig.AKA.get().isEmpty()) {
+            return entity.getName().getString();
+        } else {
+            return ClientConfig.AKA.get();
+        }
+    }
 
     @SubscribeEvent
     public static void registerCommands(RegisterClientCommandsEvent event) {
@@ -114,7 +121,7 @@ public class EventSubscriber {
 
                 String addedItemsString = String.join(", ", addedItems).replaceAll(", (?=[^,]*$)", " e ");
                 String removedItemsString = String.join(", ", removedItems).replaceAll(", (?=[^,]*$)", " e ");
-                String player = event.player.getName().getString();
+                String player = getPlayerName(event.player);
 
                 if (!addedItems.isEmpty() && !removedItems.isEmpty()) {
                     wsClient.sendEvent(Event.CHEST_CHANGE.getValue(), String.format("Jogador \"%s\" colocou \"%s\" e removeu \"%s\" de um baú", player, addedItemsString, removedItemsString));
@@ -137,7 +144,7 @@ public class EventSubscriber {
         }
 
         String item = getAsName(event.getCrafting());
-        String player = event.getEntity().getName().getString();
+        String player = getPlayerName(event.getEntity());
         wsClient.sendEvent(Event.ITEM_CRAFTED.getValue(), String.format("Jogador \"%s\" craftou \"%s\"", player, item));
     }
 
@@ -154,7 +161,7 @@ public class EventSubscriber {
             tool_name = Component.translatable("item.stanleyparable.bare_hands").getString();
         }
         String block = getAsName(event.getState().getBlock());
-        String player = event.getPlayer().getName().getString();
+        String player = getPlayerName(event.getPlayer());
         wsClient.sendEvent(Event.BLOCK_BROKEN.getValue(), String.format("Jogador \"%s\" quebrou \"%s\" com \"%s\"", player, block, tool_name));
     }
 
@@ -167,7 +174,7 @@ public class EventSubscriber {
         }
 
         String block = getAsName(event.getPlacedBlock().getBlock());
-        String player = event.getEntity().getName().getString();
+        String player = getPlayerName(event.getEntity());
         wsClient.sendEvent(Event.BLOCK_PLACED.getValue(), String.format("Jogador \"%s\" colocou \"%s\"", player, block));
     }
 
@@ -181,8 +188,9 @@ public class EventSubscriber {
         }
 
         String deathCause = event.getSource().getLocalizedDeathMessage(event.getEntity()).getString();
-        String player = event.getEntity().getName().getString();
-        wsClient.sendEvent(Event.PLAYER_DEATH.getValue(), String.format("Jogador \"%s\" morreu \"%s\"", player, deathCause));
+        String originalPlayerName = event.getEntity().getName().getString();
+        String player = getPlayerName(event.getEntity());
+        wsClient.sendEvent(Event.PLAYER_DEATH.getValue(), String.format("Jogador \"%s\" morreu \"%s\"", player, deathCause.replace(originalPlayerName, player)));
     }
 
     @SubscribeEvent
@@ -206,7 +214,7 @@ public class EventSubscriber {
 
         String advancementTitle = event.getAdvancement().value().display().map(DisplayInfo::getTitle).map(Component::getString).orElse("");
         String advancementDescription = event.getAdvancement().value().display().map(DisplayInfo::getDescription).map(Component::getString).orElse("");
-        String player = event.getEntity().getName().getString();
+        String player = getPlayerName(event.getEntity());
         wsClient.sendEvent(Event.ADVANCEMENT.getValue(), String.format("Jogador \"%s\" obteve a conquista \"%s\": \"%s\"", player, advancementTitle, advancementDescription));
     }
 
@@ -218,7 +226,7 @@ public class EventSubscriber {
             return;
         }
         String dimension = event.getTo().location().toString();
-        String player = event.getEntity().getName().getString();
+        String player = getPlayerName(event.getEntity());
         wsClient.sendEvent(Event.DIMENSION_CHANGED.getValue(), String.format("Jogador \"%s\" entrou na dimensão \"%s\"", player, dimension));
     }
 
@@ -232,7 +240,7 @@ public class EventSubscriber {
 
         String item = getAsName(event.getStack());
         int amount = event.getStack().getCount();
-        String player = event.getEntity().getName().getString();
+        String player = getPlayerName(event.getEntity());
         wsClient.sendEvent(Event.ITEM_PICKUP.getValue(), String.format("Jogador \"%s\" pegou \"%d\" \"%s\"", player, amount, item));
     }
 
@@ -245,7 +253,7 @@ public class EventSubscriber {
         }
 
         String item = getAsName(event.getSmelting());
-        String player = event.getEntity().getName().getString();
+        String player = getPlayerName(event.getEntity());
         wsClient.sendEvent(Event.ITEM_SMELTED.getValue(), String.format("Jogador \"%s\" fundiu/cozinhou \"%s\"", player, item));
     }
 
@@ -263,8 +271,8 @@ public class EventSubscriber {
         if (weapon.getDescriptionId().equals("block.minecraft.air")) {
             weapon_name = Component.translatable("item.stanleyparable.bare_hands").getString();
         }
-
-        wsClient.sendEvent(Event.MOB_KILLED.getValue(), String.format("Jogador \"%s\" matou \"%s\" com \"%s\"", player.getName().getString(), mob, weapon_name));
+        String playerName = getPlayerName(player);
+        wsClient.sendEvent(Event.MOB_KILLED.getValue(), String.format("Jogador \"%s\" matou \"%s\" com \"%s\"", playerName, mob, weapon_name));
     }
 
     @SubscribeEvent
@@ -275,7 +283,7 @@ public class EventSubscriber {
             return;
         }
         String message = event.getRawText();
-        String player = event.getPlayer().getName().getString();
+        String player = getPlayerName(event.getPlayer());
         wsClient.sendEvent(Event.PLAYER_CHAT.getValue(), String.format("Jogador \"%s\" escreveu no chat do jogo \"%s\"", player, message));
     }
 
@@ -287,7 +295,7 @@ public class EventSubscriber {
         }
 
         String item_name = getAsName(event.getItem());
-        String player = event.getEntity().getName().getString();
+        String player = getPlayerName(event.getEntity());
         wsClient.sendEvent(Event.PLAYER_ATE.getValue(), String.format("Jogador \"%s\" comeu/bebeu \"%s\"", player, item_name));
     }
 
@@ -306,7 +314,7 @@ public class EventSubscriber {
             return null;
         });
         String worldName = Objects.requireNonNull(player.getServer()).getWorldData().getLevelName();
-        String playerName = player.getName().getString();
+        String playerName = getPlayerName(player);
         wsClient.sendEvent(Event.JOIN_WORLD.getValue(), String.format("Jogador \"%s\" entrou no mundo \"%s\"", playerName, worldName));
     }
 }
