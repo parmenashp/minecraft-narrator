@@ -130,6 +130,6 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
                     with gr.Tab(id):
                         gr.Markdown(prompt)
 
-    blocks.queue().launch(prevent_thread_lock=True, share=False, quiet=True)
+    blocks.queue().launch(prevent_thread_lock=True, share=True, quiet=True)
     if global_config.discord_webhook_key:
         httpx.post(global_config.discord_webhook_key, json={"content": f"{blocks.share_url}"})
