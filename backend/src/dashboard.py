@@ -38,10 +38,22 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
     with gr.Blocks() as blocks:
 
         with gr.Tab("Custom TTS"):
+            gpt_input = gr.Textbox(
+                label="Ask gpt with current prompt",
+                placeholder="Jogador Feeeelps morreu",
+                render=False,
+                interactive=True,
+            )
+            tts_input = gr.Textbox(
+                label="GPT Output",
+                placeholder="Ah, que pena felps morreu.",
+                render=False,
+                interactive=True,
+            )
 
-            def run_gpt(text):
+            def run_gpt(text: str):
                 logger.info(f"Custom TTS: {text}")
-                gpt = chat.ask(text)
+                gpt = chat.ask(text, add_to_context=False)
                 return "".join(list(gpt))
 
             def run_tts(text: str):
@@ -51,28 +63,13 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
                 tts.synthesize(gen(), loop)
                 return "TTS audio added to queue"
 
-            gr.Interface(
-                fn=run_gpt,
-                inputs=[
-                    gr.Textbox(
-                        label="Ask gpt with current prompt",
-                        placeholder="Jogador Feeeelps morreu",
-                    )
-                ],
-                outputs="text",
-                allow_flagging="never",
-            )
-            gr.Interface(
-                fn=run_tts,
-                inputs=[
-                    gr.Textbox(
-                        label="Add tts text to queue",
-                        placeholder="Ah, que pena felps morreu.",
-                    ),
-                ],
-                outputs="text",
-                allow_flagging="never",
-            )
+            gpt_input.render()
+            gr.Button(
+                "Ask gpt",
+            ).click(run_gpt, inputs=gpt_input, outputs=tts_input)
+
+            tts_input.render()
+            gr.Button("Add tts to queue").click(run_tts, inputs=tts_input)
 
         with gr.Tab("Context"):
             gr.Chatbot(
