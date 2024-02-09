@@ -31,7 +31,7 @@ jobs:
         run: ./gradlew build
 
       - name: Release .jar
-        run: ./.github/workflows/upload_asset.sh "parmenashp/minecraft-narrator" ./forge/build/libs/*${GITHUB_REF##*/}.jar $GITHUB_TOKEN
+        run: ../.github/workflows/upload_asset.sh "parmenashp/minecraft-narrator" ./build/libs/*-${GITHUB_REF##*/}.jar $GITHUB_TOKEN
 
   python-zip:
     runs-on: windows-latest
