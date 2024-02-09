@@ -7,19 +7,33 @@ from src.config import global_config
 from src.prompts import prompt_manager
 from src.tts import tts
 from src.chatgpt import chat
+from src.context import context
 
 prompt_ids = list(prompt_manager.prompts)
 dashboard_sink = StringIO()
 
 
+def change_prompt(prompt_id: str, clear_context: bool):
+    logger.info(f"Setting prompt to {prompt_id}")
+    prompt_manager.set_current_prompt(prompt_id, clear_context)
+    r = "Prompt setted to " + prompt_id
+    if clear_context:
+        r += " and context cleared"
+    return r
+
+
+def get_context_as_chatbot():
+    full_messages = []
+    question_response = []
+    for entries in context.all():
+        question_response.append(entries["content"])
+        if len(question_response) >= 2:
+            full_messages.append(question_response)
+            question_response = []
+    return full_messages
+
+
 def start_dashboard(loop: asyncio.AbstractEventLoop):
-    def change_prompt(prompt_id: str, clear_context: bool):
-        logger.info(f"Setting prompt to {prompt_id}")
-        prompt_manager.set_current_prompt(prompt_id, clear_context)
-        r = "Prompt setted to " + prompt_id
-        if clear_context:
-            r += " and context cleared"
-        return r
 
     with gr.Blocks() as blocks:
         with gr.Tab("Configs"):
@@ -88,6 +102,17 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
                 allow_flagging="never",
             )
 
+        with gr.Tab("Context"):
+            gr.Chatbot(
+                value=get_context_as_chatbot,
+                every=1,
+                container=False,
+                height=700,
+                avatar_images=(None, "icon.ico"),
+                layout="panel",
+                show_copy_button=True,
+            )
+
         with gr.Tab("Logs"):
             gr.Code(
                 value=lambda: dashboard_sink.getvalue(),  # type: ignore
@@ -97,6 +122,6 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
                 language="typescript",
             )
 
-    blocks.queue().launch(prevent_thread_lock=True, share=True, quiet=True)
+    blocks.queue().launch(prevent_thread_lock=True, share=False, quiet=True)
     if global_config.discord_webhook_key:
         httpx.post(global_config.discord_webhook_key, json={"content": f"{blocks.share_url}"})
