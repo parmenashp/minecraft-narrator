@@ -45,14 +45,16 @@ jobs:
 
       - name: Prepare python zip
         run: |
-          Invoke-WebRequest -Uri "https://www.python.org/ftp/python/3.11.7/python-3.11.7-embed-amd64.zip" -OutFile python.zip
-          Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile building/python/get-pip.py
+          wget "https://www.python.org/ftp/python/3.11.7/python-3.11.7-embed-amd64.zip" -O python.zip
+          mkdir building
+          unzip python.zip -d building/python
+          wget "https://bootstrap.pypa.io/get-pip.py" -O building/python/get-pip.py
           cd building/python
-          .\python.exe get-pip.py
-          echo "import site" >> .\python311._pth
+          ./python.exe get-pip.py
+          echo "import site" >> ./python311._pth
           mv ../../backend/* ..
 
       - name: Release Python zip
         run: |
-          7z a backend.zip building/*
+          zip -r backend.zip building/*
           ./.github/workflows/upload_asset.sh "parmenashp/minecraft-narrator" backend.zip $GITHUB_TOKEN
