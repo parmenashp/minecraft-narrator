@@ -67,13 +67,23 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
 
             gr.Interface(
                 fn=run_gpt,
-                inputs=[gr.Textbox(label="Ask gpt something")],
+                inputs=[
+                    gr.Textbox(
+                        label="Ask gpt with current prompt",
+                        placeholder="Jogador Feeeelps morreu",
+                    )
+                ],
                 outputs="text",
                 allow_flagging="never",
             )
             gr.Interface(
                 fn=run_tts,
-                inputs=[gr.Textbox(label="Add tts text to queue")],
+                inputs=[
+                    gr.Textbox(
+                        label="Add tts text to queue",
+                        placeholder="Ah, que pena felps morreu.",
+                    ),
+                ],
                 outputs="text",
                 allow_flagging="never",
             )
