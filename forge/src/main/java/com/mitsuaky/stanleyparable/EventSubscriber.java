@@ -300,7 +300,9 @@ public class EventSubscriber {
         }
         Player player = event.getEntity();
         wsClient.addEventListener("send_chat", jsonObject -> {
-            player.sendSystemMessage(Component.nullToEmpty(jsonObject.get("data").getAsString()));
+            if (ClientConfig.SEND_TO_CHAT.get()) {
+                player.sendSystemMessage(Component.nullToEmpty(jsonObject.get("data").getAsString()));
+            }
             return null;
         });
         String worldName = Objects.requireNonNull(player.getServer()).getWorldData().getLevelName();
