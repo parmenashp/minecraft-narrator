@@ -36,34 +36,6 @@ def get_context_as_chatbot():
 def start_dashboard(loop: asyncio.AbstractEventLoop):
 
     with gr.Blocks() as blocks:
-        with gr.Tab("Configs"):
-            gr.Interface(
-                fn=change_prompt,
-                inputs=[
-                    gr.Dropdown(
-                        list(prompt_ids),
-                        label="Prompts",
-                        value=lambda: prompt_manager.current_prompt_id,
-                    ),
-                    gr.Checkbox(label="Clear context", value=False),
-                ],
-                outputs="text",
-                title="Change Prompt",
-                allow_flagging="never",
-            )
-            gr.Textbox(
-                value=lambda: "Current prompt: " + prompt_manager.current_prompt_id,
-                interactive=False,
-                every=1,
-                lines=1,
-                max_lines=1,
-                container=False,
-            )
-
-        with gr.Tab("Prompts"):
-            for id, prompt in prompt_manager.prompts.items():
-                with gr.Tab(id):
-                    gr.Markdown(prompt)
 
         with gr.Tab("Custom TTS"):
 
@@ -121,6 +93,42 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
                 every=1,
                 language="typescript",
             )
+
+        with gr.Tab("Config"):
+
+            with gr.Tab("Global Config"):
+                gr.Markdown(
+                    value=lambda: global_config.as_markdown(),
+                    every=5,
+                )
+
+            with gr.Tab("Change Prompt"):
+                gr.Interface(
+                    fn=change_prompt,
+                    inputs=[
+                        gr.Dropdown(
+                            list(prompt_ids),
+                            label="Prompts",
+                            value=lambda: prompt_manager.current_prompt_id,
+                        ),
+                        gr.Checkbox(label="Clear context", value=False),
+                    ],
+                    outputs="text",
+                    allow_flagging="never",
+                )
+                gr.Textbox(
+                    value=lambda: "Current prompt: " + prompt_manager.current_prompt_id,
+                    interactive=False,
+                    every=1,
+                    lines=1,
+                    max_lines=1,
+                    container=False,
+                )
+
+            with gr.Tab("Prompts"):
+                for id, prompt in prompt_manager.prompts.items():
+                    with gr.Tab(id):
+                        gr.Markdown(prompt)
 
     blocks.queue().launch(prevent_thread_lock=True, share=False, quiet=True)
     if global_config.discord_webhook_key:
