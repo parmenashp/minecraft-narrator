@@ -31,10 +31,14 @@ jobs:
         run: ./gradlew build
 
       - name: Release .jar
-        run: ./.github/workflows/upload_asset.sh "parmenashp/minecraft-narrator" ./forge/build/libs/*${GITHUB_REF##*/}.jar
+        run: ./.github/workflows/upload_asset.sh "parmenashp/minecraft-narrator" ./forge/build/libs/*${GITHUB_REF##*/}.jar $GITHUB_TOKEN
 
   python-zip:
     runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - uses: actions/checkout@v4
@@ -42,8 +46,6 @@ jobs:
       - name: Prepare python zip
         run: |
           Invoke-WebRequest -Uri "https://www.python.org/ftp/python/3.11.7/python-3.11.7-embed-amd64.zip" -OutFile python.zip
-          mkdir building
-          7z x python.zip -obuilding/python
           Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile building/python/get-pip.py
           cd building/python
           .\python.exe get-pip.py
@@ -53,4 +55,4 @@ jobs:
       - name: Release Python zip
         run: |
           7z a backend.zip building/*
-          ./.github/workflows/upload_asset.sh "parmenashp/minecraft-narrator" backend.zip
+          ./.github/workflows/upload_asset.sh "parmenashp/minecraft-narrator" backend.zip $GITHUB_TOKEN
