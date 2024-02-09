@@ -56,5 +56,5 @@ jobs:
 
       - name: Release Python zip
         run: |
-          zip -r backend.zip building/*
+          tar -czf backend.zip building
           ./.github/workflows/upload_asset.sh "parmenashp/minecraft-narrator" backend.zip $GITHUB_TOKEN
