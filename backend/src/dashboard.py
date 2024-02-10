@@ -9,12 +9,13 @@ from src.tts import tts
 from src.chatgpt import chat
 from src.context import context
 
-prompt_ids = list(prompt_manager.prompts)
 dashboard_sink = StringIO()
 
 
 def change_prompt(prompt_id: str, clear_context: bool):
     logger.info(f"Setting prompt to {prompt_id}")
+    if prompt_id not in list(prompt_manager.prompts):
+        return f"Prompt {prompt_id} does not exist"
     prompt_manager.set_current_prompt(prompt_id, clear_context)
     r = "Prompt setted to " + prompt_id
     if clear_context:

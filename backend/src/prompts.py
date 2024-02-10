@@ -1,3 +1,5 @@
+import json
+import os
 from loguru import logger
 from src.utils import singleton
 from src.context import context
@@ -8,6 +10,8 @@ class PromptManager:
     def __init__(self, prompts):
         self.prompts = prompts
         self.current_prompt_id: str = "prompt0"
+        if os.path.exists("prompts.json"):
+            self.load()
 
     def get_current_prompt(self):
         formatted = [
@@ -22,11 +26,33 @@ class PromptManager:
         self.current_prompt_id = prompt_id
         if clear_context:
             context.clear()
+        self.save()
         logger.info(f"Current prompt set to {prompt_id}")
 
     def new_custom_prompt(self, prompt_id: str, prompt: str):
         self.prompts[prompt_id] = prompt
         logger.info(f"New prompt {prompt_id} added")
+        self.save()
+
+    def save(self):
+        with open("prompts.json", "w", encoding="utf-8") as f:
+            obj = {
+                "prompt_config": {
+                    "prompts": self.prompts,
+                    "current_prompt_id": self.current_prompt_id,
+                }
+            }
+            json.dump(obj, f, indent=2, ensure_ascii=False)
+            logger.info("Prompts saved")
+
+    def load(self):
+        try:
+            with open("prompts.json", "r", encoding="utf-8") as f:
+                obj = json.load(f)
+                self.prompts = obj["prompt_config"]["prompts"]
+                self.current_prompt_id = obj["prompt_config"]["current_prompt_id"]
+        except:
+            pass
 
 
 prompts = {
