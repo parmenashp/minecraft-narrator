@@ -24,6 +24,10 @@ class PromptManager:
             context.clear()
         logger.info(f"Current prompt set to {prompt_id}")
 
+    def new_custom_prompt(self, prompt_id: str, prompt: str):
+        self.prompts[prompt_id] = prompt
+        logger.info(f"New prompt {prompt_id} added")
+
 
 prompts = {
     "prompt0": """

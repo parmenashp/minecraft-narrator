@@ -12,7 +12,7 @@ load_dotenv(".env", override=True)
 def redact(name: str, value: str) -> str:
     # if ends with _KEY, redact
     if name.endswith("_KEY"):
-        return "[REDACTED]"
+        return f"{value[:3]}...{value[-3:]}"
     else:
         return value
 
@@ -71,6 +71,16 @@ class GlobalConfig:
                 if value is not None:
                     f.write(f"{attribute.upper()}={value}\n")
         logger.info("Saved config to .env")
+
+    def as_markdown(self):
+        attributes = [f.name for f in fields(self)]
+
+        return "\n".join(
+            [
+                f"- **{attribute.upper()}**: `{redact(attribute.upper(), getattr(self, attribute))}`"
+                for attribute in attributes
+            ]
+        )
 
 
 global_config = GlobalConfig()

@@ -27,7 +27,9 @@ class ChatGPT:
             base_url=base_url,
         )
 
-    def ask(self, text: str, system_prompt: list[dict[str, str]] | None = None) -> Generator[str, None, None]:
+    def ask(
+        self, text: str, system_prompt: list[dict[str, str]] | None = None, add_to_context: bool = True
+    ) -> Generator[str, None, None]:
         logger.debug(f"Sending prompt to GPT: {text!r}")
         user_prompt = {"role": "user", "content": text}
         if system_prompt is None:
@@ -41,7 +43,9 @@ class ChatGPT:
             **gpt_config,
         )
 
-        context.put(user_prompt)
+        if add_to_context:
+            context.put(user_prompt)
+
         response_text = ""
         if global_config.openai_streaming:
             logger.debug("Using OpenAI streaming mode")
@@ -69,7 +73,8 @@ class ChatGPT:
                 logger.debug(f"Yielding GPT response: {response_text!r}")
                 yield response_text
 
-        context.put({"role": "assistant", "content": response_text})
+        if add_to_context:
+            context.put({"role": "assistant", "content": response_text})
 
     def set_config(self, config: GlobalConfig):
         self.client.api_key = config.openai_api_key

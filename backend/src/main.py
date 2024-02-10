@@ -1,10 +1,10 @@
+import asyncio
 import json
 from contextlib import asynccontextmanager
 import sys
 
 import fastapi
 from loguru import logger
-
 from src.handler import event_handler
 from src.models import Config, Event, IncomingEvent
 from src.websocket import ws
@@ -20,7 +20,7 @@ logger.add("logs/{time}.log", rotation="1 day", level="DEBUG", compression="zip"
 @asynccontextmanager
 async def lifespan_handler(_app: fastapi.FastAPI):
     logger.info("Starting server")
-    start_dashboard()
+    start_dashboard(asyncio.get_event_loop())
     yield
     logger.info("Stopping server")
 
