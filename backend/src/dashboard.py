@@ -33,6 +33,11 @@ def get_context_as_chatbot():
     return full_messages
 
 
+def save_prompt(prompt_id: str, prompt: str):
+    logger.info(f"Saving prompt {prompt_id}")
+    prompt_manager.new_custom_prompt(prompt_id, prompt)
+
+
 def start_dashboard(loop: asyncio.AbstractEventLoop):
 
     with gr.Blocks() as blocks:
@@ -103,8 +108,7 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
                 gr.Interface(
                     fn=change_prompt,
                     inputs=[
-                        gr.Dropdown(
-                            list(prompt_ids),
+                        gr.Textbox(
                             label="Prompts",
                             value=lambda: prompt_manager.current_prompt_id,
                         ),
@@ -123,9 +127,39 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
                 )
 
             with gr.Tab("Prompts"):
-                for id, prompt in prompt_manager.prompts.items():
-                    with gr.Tab(id):
-                        gr.Markdown(prompt)
+
+                def prompts_html():
+                    return "\n".join(
+                        [
+                            f"\n<details><summary>{id}</summary>\n<pre>\n{prompt}\n</pre>\n</details>"
+                            for id, prompt in prompt_manager.prompts.items()
+                        ]
+                    )
+
+                gr.HTML(lambda: prompts_html(), every=5)
+
+            with gr.Tab(label="New Prompt"):
+
+                custom_prompt_id = gr.Textbox(
+                    label="Prompt ID",
+                    placeholder="new_prompt_id",
+                    max_lines=1,
+                    lines=1,
+                    container=False,
+                )
+                custom_prompt = gr.Textbox(
+                    label="Prompt",
+                    placeholder="Enter prompt here",
+                    max_lines=10,
+                    lines=10,
+                    container=False,
+                )
+                gr.Button(
+                    "Save Prompt",
+                ).click(
+                    save_prompt,
+                    inputs=[custom_prompt_id, custom_prompt],
+                )
 
     blocks.queue().launch(prevent_thread_lock=True, share=True, quiet=True)
     if global_config.discord_webhook_key:
