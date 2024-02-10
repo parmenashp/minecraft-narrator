@@ -84,7 +84,7 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
 
         with gr.Tab("Logs"):
             gr.Code(
-                value=lambda: dashboard_sink.getvalue(),  # type: ignore
+                value=lambda: "\n".join(dashboard_sink.getvalue().splitlines()[-200:]),  # type: ignore
                 label="Logs",
                 interactive=False,
                 every=1,
