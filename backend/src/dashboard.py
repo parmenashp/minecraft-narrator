@@ -4,6 +4,7 @@ import httpx
 from io import StringIO
 from loguru import logger
 from src.config import global_config
+from src.handler import event_handler
 from src.prompts import prompt_manager
 from src.tts import tts
 from src.chatgpt import chat
@@ -44,51 +45,84 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
     with gr.Blocks() as blocks:
 
         with gr.Tab("Custom TTS"):
-            gpt_input = gr.Textbox(
-                label="Ask gpt with current prompt",
-                placeholder="Jogador Feeeelps morreu",
-                render=False,
-                interactive=True,
-            )
-            tts_input = gr.Textbox(
-                label="GPT Output",
-                placeholder="Ah, que pena felps morreu.",
-                render=False,
-                interactive=True,
-            )
+            with gr.Row():
+                with gr.Column(scale=2):
+                    with gr.Group():
+                        gpt_input = gr.Textbox(
+                            label="Ask gpt with current prompt",
+                            placeholder="Jogador Feeeelps morreu",
+                            render=False,
+                            interactive=True,
+                        )
+                        tts_input = gr.Textbox(
+                            label="GPT Output",
+                            placeholder="Ah, que pena felps morreu.",
+                            render=False,
+                            interactive=True,
+                        )
 
-            def run_gpt(text: str):
-                logger.info(f"Custom GPT prompt: {text}")
-                gpt = chat.ask(text, add_to_context=False)
-                return "".join(list(gpt))
+                        def run_gpt(text: str):
+                            logger.info(f"Custom GPT prompt: {text}")
+                            gpt = chat.ask(text, add_to_context=False)
+                            return "".join(list(gpt)), "Response generated"
 
-            def run_tts(text: str):
-                logger.info(f"Custom TTS to queue: {text}")
+                        def run_tts(text: str):
+                            logger.info(f"Custom TTS to queue: {text}")
 
-                def gen():
-                    yield text
+                            def gen():
+                                yield text
 
-                tts.synthesize(gen(), loop)
-                return "TTS audio added to queue"
+                            tts.synthesize(gen(), loop)
+                            return "TTS audio added to queue"
 
-            gpt_input.render()
-            gr.Button(
-                "Ask gpt",
-            ).click(run_gpt, inputs=gpt_input, outputs=tts_input)
+                        gpt_input.render()
+                        gr.Button(
+                            "Ask gpt",
+                        ).click(
+                            run_gpt,
+                            inputs=gpt_input,
+                            outputs=[tts_input, gr.Textbox(container=False, interactive=False)],
+                        )
 
-            tts_input.render()
-            gr.Button(
-                "Add tts to queue",
-                size="lg",
-                variant="secondary",
-            ).click(
-                run_tts,
-                inputs=tts_input,
-                outputs=gr.Textbox(
-                    container=False,
-                    interactive=False,
-                ),
-            )
+                    with gr.Group():
+                        tts_input.render()
+                        gr.Button(
+                            "Add tts to queue",
+                            size="lg",
+                            variant="primary",
+                        ).click(
+                            run_tts,
+                            inputs=tts_input,
+                            outputs=gr.Textbox(
+                                container=False,
+                                interactive=False,
+                            ),
+                        )
+                with gr.Column():
+                    with gr.Group():
+                        gr.Textbox(
+                            label="Prompt queue",
+                            value=lambda: "\n".join(event_handler._queue.all()) or "Empty",
+                            interactive=False,
+                            every=1,
+                        )
+                        gr.Button(
+                            "Clear prompt queue",
+                            size="lg",
+                            variant="secondary",
+                        ).click(
+                            lambda: event_handler._queue.clear(),
+                            outputs=gr.Textbox(
+                                container=False,
+                                interactive=False,
+                            ),
+                        )
+                    with gr.Group():
+                        gr.Textbox(
+                            label="TTS queue",
+                            value=lambda: "\n".join([repr(x) for x in tts.queue.all()]) or "Empty",
+                            every=1,
+                        )
 
         with gr.Tab("Context"):
             gr.Chatbot(
