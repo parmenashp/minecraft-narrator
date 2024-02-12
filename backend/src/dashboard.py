@@ -58,11 +58,13 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
             )
 
             def run_gpt(text: str):
-                logger.info(f"Custom TTS: {text}")
+                logger.info(f"Custom GPT prompt: {text}")
                 gpt = chat.ask(text, add_to_context=False)
                 return "".join(list(gpt))
 
             def run_tts(text: str):
+                logger.info(f"Custom TTS to queue: {text}")
+
                 def gen():
                     yield text
 
@@ -75,7 +77,18 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
             ).click(run_gpt, inputs=gpt_input, outputs=tts_input)
 
             tts_input.render()
-            gr.Button("Add tts to queue").click(run_tts, inputs=tts_input)
+            gr.Button(
+                "Add tts to queue",
+                size="lg",
+                variant="secondary",
+            ).click(
+                run_tts,
+                inputs=tts_input,
+                outputs=gr.Textbox(
+                    container=False,
+                    interactive=False,
+                ),
+            )
 
         with gr.Tab("Context"):
             gr.Chatbot(
