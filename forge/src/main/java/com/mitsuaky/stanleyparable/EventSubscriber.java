@@ -22,6 +22,8 @@ import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.AdvancementEvent.AdvancementEarnEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.player.PlayerSleepInBedEvent;
+import net.minecraftforge.event.entity.player.PlayerWakeUpEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -58,6 +60,7 @@ public class EventSubscriber {
         PLAYER_CHAT("player_chat"),
         PLAYER_ATE("player_ate"),
         RIDING("riding"),
+        WAKE_UP("wake_up"),
         JOIN_WORLD("join_world");
 
         private final String value;
@@ -213,6 +216,17 @@ public class EventSubscriber {
         String originalPlayerName = event.getEntity().getName().getString();
         String player = getPlayerName(event.getEntity());
         wsClient.sendEvent(Event.PLAYER_DEATH.getValue(), String.format("Jogador \"%s\" morreu \"%s\"", player, deathCause.replace(originalPlayerName, player)));
+    }
+
+    @SubscribeEvent
+    public static void onPlayerWakeUp(PlayerWakeUpEvent event) {
+        LOGGER.debug("PlayerWakeUpEvent triggered");
+        if (event.getEntity() == null) {
+            LOGGER.debug("PlayerWakeUpEvent triggered without valid player");
+            return;
+        }
+
+        wsClient.sendEvent(Event.WAKE_UP.getValue(), String.format("Jogador \"%s\" foi dormir e acordou.", getPlayerName(event.getEntity())));
     }
 
     @SubscribeEvent
