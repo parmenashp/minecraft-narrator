@@ -23,6 +23,7 @@ class Event(StrEnum):
     RIDING = "riding"
     WAKE_UP = "wake_up"
     JOIN_WORLD = "join_world"
+    ITEM_FISHED = "item_fished"
     CONFIG = "config"
 
 
