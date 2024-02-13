@@ -3,7 +3,7 @@ import subprocess
 import threading
 import os
 from typing import Generator, Iterator
-from elevenlabs import generate, set_api_key
+from elevenlabs import generate, set_api_key, Voice, VoiceSettings
 from loguru import logger
 
 from src.models import Action, OutgoingAction
@@ -83,9 +83,11 @@ class TTS:
         else:
             elevenlabs_text = wrapped_generator()
         logger.info(f"Using {global_config.elevenlabs_buffer_size} elevenlabs buffer size")
+        voice = Voice(voice_id=self.voice_id, settings=VoiceSettings(stability=0.05, similarity_boost=0.75, style=0.75))
+
         gen = generate(
             text=elevenlabs_text,
-            voice=self.voice_id,
+            voice=voice,
             stream=global_config.elevenlabs_streaming,
             model="eleven_multilingual_v2",
             stream_chunk_size=global_config.elevenlabs_buffer_size,
