@@ -20,6 +20,7 @@ class Event(StrEnum):
     DIMENSION_CHANGED = "dimension_changed"
     PLAYER_CHAT = "player_chat"
     PLAYER_ATE = "player_ate"
+    RIDING = "riding"
     JOIN_WORLD = "join_world"
     CONFIG = "config"
 

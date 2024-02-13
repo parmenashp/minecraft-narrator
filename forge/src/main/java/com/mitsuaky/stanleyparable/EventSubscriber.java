@@ -9,6 +9,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.Item;
@@ -41,6 +42,7 @@ public class EventSubscriber {
 
     private static boolean isChestOpen = false;
     private static Set<String> lastInventory = null;
+    private static boolean isRiding = false;
 
     public enum Event {
         ITEM_CRAFTED("item_crafted"),
@@ -55,6 +57,7 @@ public class EventSubscriber {
         DIMENSION_CHANGED("dimension_changed"),
         PLAYER_CHAT("player_chat"),
         PLAYER_ATE("player_ate"),
+        RIDING("riding"),
         JOIN_WORLD("join_world");
 
         private final String value;
@@ -132,6 +135,25 @@ public class EventSubscriber {
                 }
             }
             isChestOpen = false;
+        }
+
+        // Custom riding event
+        if (event.player.isPassenger()) {
+            if (!isRiding) {
+                String player = getPlayerName(event.player);
+                Entity entity = event.player.getVehicle();
+                assert entity != null;
+                String vehicle = getAsName(entity);
+                String vehiclePositionedInBlock = entity.getBlockStateOn().getBlock().getName().getString();
+                if (entity instanceof Mob) {
+                    wsClient.sendEvent(Event.RIDING.getValue(), String.format("Jogador \"%s\" montou em um(a) \"%s\"", player, vehicle));
+                } else {
+                    wsClient.sendEvent(Event.RIDING.getValue(), String.format("Jogador \"%s\" montou em um(a) \"%s\" posicionado em um(a) \"%s\"", player, vehicle, vehiclePositionedInBlock));
+                }
+            }
+            isRiding = true;
+        } else {
+            isRiding = false;
         }
     }
 
