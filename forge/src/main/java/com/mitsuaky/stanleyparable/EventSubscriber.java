@@ -19,6 +19,7 @@ import net.minecraftforge.client.event.RegisterClientCommandsEvent;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
+import net.minecraftforge.event.entity.player.AnvilRepairEvent;
 import net.minecraftforge.event.entity.player.ItemFishedEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.AdvancementEvent.AdvancementEarnEvent;
@@ -63,6 +64,7 @@ public class EventSubscriber {
         RIDING("riding"),
         WAKE_UP("wake_up"),
         ITEM_FISHED("item_fished"),
+        ITEM_REPAIR("item_repair"),
         JOIN_WORLD("join_world");
 
         private final String value;
@@ -241,6 +243,21 @@ public class EventSubscriber {
         isFishing = true;
         String itemName = getAsName(event.getDrops().get(0));
         wsClient.sendEvent(Event.ITEM_FISHED.getValue(), String.format("Jogador \"%s\" pescou um(a) \"%s\"", getPlayerName(event.getEntity()), itemName));
+    }
+
+    @SubscribeEvent
+    public static void onPlayerRepair(AnvilRepairEvent event) {
+        LOGGER.debug("PlayerRepairEvent triggered");
+        if (event.getEntity() == null || event.getEntity() instanceof ServerPlayer) {
+            LOGGER.debug("PlayerRepairEvent triggered without valid player");
+            return;
+        }
+
+        String player = getPlayerName(event.getEntity());
+        String itemLeft = getAsName(event.getLeft());
+        String itemRight = getAsName(event.getRight());
+        String message = String.format("Jogador \"%s\" juntou \"%s\" e \"%s\" na bigorna", player, itemLeft, itemRight);
+        wsClient.sendEvent(Event.ITEM_REPAIR.getValue(), message);
     }
 
     @SubscribeEvent
