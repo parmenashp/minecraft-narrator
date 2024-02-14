@@ -10,6 +10,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.Item;
@@ -18,6 +19,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterClientCommandsEvent;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.living.BabyEntitySpawnEvent;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.player.AnvilRepairEvent;
@@ -37,6 +39,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Mod.EventBusSubscriber(modid = "stanleyparable", bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class EventSubscriber {
@@ -67,6 +72,7 @@ public class EventSubscriber {
         ITEM_FISHED("item_fished"),
         ITEM_REPAIR("item_repair"),
         ANIMAL_BREED("animal_breed"),
+        ITEM_TOSS("item_toss"),
         JOIN_WORLD("join_world");
 
         private final String value;
@@ -273,6 +279,32 @@ public class EventSubscriber {
         String parentA = getAsName(event.getParentA());
         String message = String.format("Jogador \"%s\" acasalou dois/duas \"%s\"", player, parentA);
         wsClient.sendEvent(Event.ANIMAL_BREED.getValue(), message);
+    }
+
+    @SubscribeEvent
+    public static void onItemToss(ItemTossEvent event) {
+        LOGGER.debug("ItemTossEvent triggered");
+        if (event.getPlayer() == null || event.getEntity() == null) {
+            LOGGER.debug("ItemTossEvent triggered without valid parameters");
+            return;
+        }
+        String player = getPlayerName(event.getPlayer());
+        String itemName = getAsName(event.getEntity().getItem());
+
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.schedule(() -> {
+            ItemEntity item = event.getEntity();
+            if (item.wasOnFire) {
+                wsClient.sendEvent(Event.ITEM_TOSS.getValue(), String.format("Jogador \"%s\" queimou \"%s\"", player, itemName));
+            } else if (item.onGround()) {
+                wsClient.sendEvent(Event.ITEM_TOSS.getValue(), String.format("Jogador \"%s\" jogou \"%s\" no chão", player, itemName));
+            } else if (item.isInWater()) {
+                wsClient.sendEvent(Event.ITEM_TOSS.getValue(), String.format("Jogador \"%s\" jogou \"%s\" na água", player, itemName));
+            } else if (item.isInLava()) {
+                wsClient.sendEvent(Event.ITEM_TOSS.getValue(), String.format("Jogador \"%s\" jogou \"%s\" na lava", player, itemName));
+            }
+            scheduler.shutdown();
+        }, 2, TimeUnit.SECONDS);
     }
 
     @SubscribeEvent

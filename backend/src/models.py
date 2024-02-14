@@ -26,6 +26,7 @@ class Event(StrEnum):
     ITEM_FISHED = "item_fished"
     ITEM_REPAIR = "item_repair"
     ANIMAL_BREED = "animal_breed"
+    ITEM_TOSS = "item_toss"
     CONFIG = "config"
 
 
