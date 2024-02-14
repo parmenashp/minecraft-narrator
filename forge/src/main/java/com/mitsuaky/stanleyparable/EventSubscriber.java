@@ -18,6 +18,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterClientCommandsEvent;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.living.BabyEntitySpawnEvent;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.player.AnvilRepairEvent;
 import net.minecraftforge.event.entity.player.ItemFishedEvent;
@@ -65,6 +66,7 @@ public class EventSubscriber {
         WAKE_UP("wake_up"),
         ITEM_FISHED("item_fished"),
         ITEM_REPAIR("item_repair"),
+        ANIMAL_BREED("animal_breed"),
         JOIN_WORLD("join_world");
 
         private final String value;
@@ -258,6 +260,19 @@ public class EventSubscriber {
         String itemRight = getAsName(event.getRight());
         String message = String.format("Jogador \"%s\" juntou \"%s\" e \"%s\" na bigorna", player, itemLeft, itemRight);
         wsClient.sendEvent(Event.ITEM_REPAIR.getValue(), message);
+    }
+
+    @SubscribeEvent
+    public static void onAnimalBreed(BabyEntitySpawnEvent event) {
+        LOGGER.debug("AnimalBreedEvent triggered");
+        if (event.getCausedByPlayer() == null || event.getParentA() == null || event.getParentB() == null) {
+            LOGGER.debug("AnimalBreedEvent triggered without valid parameters");
+            return;
+        }
+        String player = getPlayerName(event.getCausedByPlayer());
+        String parentA = getAsName(event.getParentA());
+        String message = String.format("Jogador \"%s\" acasalou dois/duas \"%s\"", player, parentA);
+        wsClient.sendEvent(Event.ANIMAL_BREED.getValue(), message);
     }
 
     @SubscribeEvent

@@ -25,6 +25,7 @@ class Event(StrEnum):
     JOIN_WORLD = "join_world"
     ITEM_FISHED = "item_fished"
     ITEM_REPAIR = "item_repair"
+    ANIMAL_BREED = "animal_breed"
     CONFIG = "config"
 
 
