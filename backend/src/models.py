@@ -21,7 +21,12 @@ class Event(StrEnum):
     PLAYER_CHAT = "player_chat"
     PLAYER_ATE = "player_ate"
     RIDING = "riding"
+    WAKE_UP = "wake_up"
     JOIN_WORLD = "join_world"
+    ITEM_FISHED = "item_fished"
+    ITEM_REPAIR = "item_repair"
+    ANIMAL_BREED = "animal_breed"
+    ITEM_TOSS = "item_toss"
     CONFIG = "config"
 
 

@@ -10,6 +10,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.Item;
@@ -18,10 +19,15 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterClientCommandsEvent;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.item.ItemTossEvent;
+import net.minecraftforge.event.entity.living.BabyEntitySpawnEvent;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
+import net.minecraftforge.event.entity.player.AnvilRepairEvent;
+import net.minecraftforge.event.entity.player.ItemFishedEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.AdvancementEvent.AdvancementEarnEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.player.PlayerWakeUpEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -33,6 +39,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Mod.EventBusSubscriber(modid = "stanleyparable", bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class EventSubscriber {
@@ -43,6 +52,7 @@ public class EventSubscriber {
     private static boolean isChestOpen = false;
     private static Set<String> lastInventory = null;
     private static boolean isRiding = false;
+    private static boolean isFishing = false;
 
     public enum Event {
         ITEM_CRAFTED("item_crafted"),
@@ -58,6 +68,11 @@ public class EventSubscriber {
         PLAYER_CHAT("player_chat"),
         PLAYER_ATE("player_ate"),
         RIDING("riding"),
+        WAKE_UP("wake_up"),
+        ITEM_FISHED("item_fished"),
+        ITEM_REPAIR("item_repair"),
+        ANIMAL_BREED("animal_breed"),
+        ITEM_TOSS("item_toss"),
         JOIN_WORLD("join_world");
 
         private final String value;
@@ -216,6 +231,83 @@ public class EventSubscriber {
     }
 
     @SubscribeEvent
+    public static void onPlayerWakeUp(PlayerWakeUpEvent event) {
+        LOGGER.debug("PlayerWakeUpEvent triggered");
+        if (event.getEntity() == null) {
+            LOGGER.debug("PlayerWakeUpEvent triggered without valid player");
+            return;
+        }
+
+        wsClient.sendEvent(Event.WAKE_UP.getValue(), String.format("Jogador \"%s\" foi dormir e acordou.", getPlayerName(event.getEntity())));
+    }
+
+    @SubscribeEvent
+    public static void onPlayerFish(ItemFishedEvent event) {
+        LOGGER.debug("PlayerFishEvent triggered");
+        if (event.getEntity() == null) {
+            LOGGER.debug("PlayerFishEvent triggered without valid player");
+            return;
+        }
+        isFishing = true;
+        String itemName = getAsName(event.getDrops().get(0));
+        wsClient.sendEvent(Event.ITEM_FISHED.getValue(), String.format("Jogador \"%s\" pescou um(a) \"%s\"", getPlayerName(event.getEntity()), itemName));
+    }
+
+    @SubscribeEvent
+    public static void onPlayerRepair(AnvilRepairEvent event) {
+        LOGGER.debug("PlayerRepairEvent triggered");
+        if (event.getEntity() == null || event.getEntity() instanceof ServerPlayer) {
+            LOGGER.debug("PlayerRepairEvent triggered without valid player");
+            return;
+        }
+
+        String player = getPlayerName(event.getEntity());
+        String itemLeft = getAsName(event.getLeft());
+        String itemRight = getAsName(event.getRight());
+        String message = String.format("Jogador \"%s\" juntou \"%s\" e \"%s\" na bigorna", player, itemLeft, itemRight);
+        wsClient.sendEvent(Event.ITEM_REPAIR.getValue(), message);
+    }
+
+    @SubscribeEvent
+    public static void onAnimalBreed(BabyEntitySpawnEvent event) {
+        LOGGER.debug("AnimalBreedEvent triggered");
+        if (event.getCausedByPlayer() == null || event.getParentA() == null || event.getParentB() == null) {
+            LOGGER.debug("AnimalBreedEvent triggered without valid parameters");
+            return;
+        }
+        String player = getPlayerName(event.getCausedByPlayer());
+        String parentA = getAsName(event.getParentA());
+        String message = String.format("Jogador \"%s\" acasalou dois/duas \"%s\"", player, parentA);
+        wsClient.sendEvent(Event.ANIMAL_BREED.getValue(), message);
+    }
+
+    @SubscribeEvent
+    public static void onItemToss(ItemTossEvent event) {
+        LOGGER.debug("ItemTossEvent triggered");
+        if (event.getPlayer() == null || event.getEntity() == null) {
+            LOGGER.debug("ItemTossEvent triggered without valid parameters");
+            return;
+        }
+        String player = getPlayerName(event.getPlayer());
+        String itemName = getAsName(event.getEntity().getItem());
+
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.schedule(() -> {
+            ItemEntity item = event.getEntity();
+            if (item.wasOnFire) {
+                wsClient.sendEvent(Event.ITEM_TOSS.getValue(), String.format("Jogador \"%s\" queimou \"%s\"", player, itemName));
+            } else if (item.onGround()) {
+                wsClient.sendEvent(Event.ITEM_TOSS.getValue(), String.format("Jogador \"%s\" jogou \"%s\" no chão", player, itemName));
+            } else if (item.isInWater()) {
+                wsClient.sendEvent(Event.ITEM_TOSS.getValue(), String.format("Jogador \"%s\" jogou \"%s\" na água", player, itemName));
+            } else if (item.isInLava()) {
+                wsClient.sendEvent(Event.ITEM_TOSS.getValue(), String.format("Jogador \"%s\" jogou \"%s\" na lava", player, itemName));
+            }
+            scheduler.shutdown();
+        }, 2, TimeUnit.SECONDS);
+    }
+
+    @SubscribeEvent
     public static void onAchievement(AdvancementEarnEvent event) {
         LOGGER.debug("AdvancementEvent triggered");
         if (event.getEntity() == null) {
@@ -263,6 +355,10 @@ public class EventSubscriber {
         String item = getAsName(event.getStack());
         int amount = event.getStack().getCount();
         String player = getPlayerName(event.getEntity());
+        if (isFishing) {
+            isFishing = false;
+            return;
+        }
         wsClient.sendEvent(Event.ITEM_PICKUP.getValue(), String.format("Jogador \"%s\" pegou \"%d\" \"%s\"", player, amount, item));
     }
 
