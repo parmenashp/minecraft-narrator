@@ -3,7 +3,7 @@ import subprocess
 import threading
 import os
 from typing import Generator, Iterator
-from elevenlabs import generate, set_api_key
+from elevenlabs import generate, Voice, VoiceSettings
 from loguru import logger
 
 from src.models import Action, OutgoingAction
@@ -16,22 +16,15 @@ from src.utils import singleton
 @singleton
 class TTS:
     def __init__(self):
-        self.voice_id = ""
         self.is_playing = False
         self.queue: Queue[Generator] = Queue(maxsize=2)
 
-        if not os.path.isfile("mpv.exe"):
-            logger.warning("mpv.exe not found, TTS disabled")
-            global_config.tts = False
-
-        if global_config.elevenlabs_api_key != "":
-            set_api_key(global_config.elevenlabs_api_key)
-        else:
-            global_config.tts = False
-
-        if global_config.elevenlabs_voice_id != "":
-            self.voice_id = global_config.elevenlabs_voice_id
-        else:
+        if (
+            not os.path.isfile("mpv.exe") or
+            not global_config.elevenlabs_api_key or
+            not global_config.elevenlabs_voice_id
+        ):
+            logger.warning("mpv.exe or keys not found, TTS disabled")
             global_config.tts = False
 
     def synthesize(self, gen: Generator[str, None, None], loop: asyncio.AbstractEventLoop) -> None:
@@ -83,9 +76,15 @@ class TTS:
         else:
             elevenlabs_text = wrapped_generator()
         logger.info(f"Using {global_config.elevenlabs_buffer_size} elevenlabs buffer size")
+        voice = Voice(
+            voice_id=global_config.elevenlabs_voice_id,
+            settings=VoiceSettings(stability=0.05, similarity_boost=0.75, style=0.75),
+        )
+
         gen = generate(
             text=elevenlabs_text,
-            voice=self.voice_id,
+            voice=voice,
+            api_key=global_config.elevenlabs_api_key,
             stream=global_config.elevenlabs_streaming,
             model="eleven_multilingual_v2",
             stream_chunk_size=global_config.elevenlabs_buffer_size,
@@ -150,10 +149,6 @@ class TTS:
             mpv_process.wait()
         finally:
             self.finished_playing(loop)
-
-    def set_config(self, config):
-        self.voice_id = config.elevenlabs_voice_id
-        set_api_key(config.elevenlabs_api_key)
 
 
 tts = TTS()

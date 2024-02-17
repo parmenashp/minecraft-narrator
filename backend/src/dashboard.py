@@ -13,12 +13,13 @@ from src.context import context
 dashboard_sink = StringIO()
 
 
-def change_prompt(prompt_id: str, clear_context: bool):
-    logger.info(f"Setting prompt to {prompt_id}")
+def change_prompt(prompt_id: str, voice_id: str, clear_context: bool):
+    logger.info(f"Setting prompt to {prompt_id} and voice {voice_id}")
     if prompt_id not in list(prompt_manager.prompts):
         return f"Prompt {prompt_id} does not exist"
+    global_config.elevenlabs_voice_id = voice_id
     prompt_manager.set_current_prompt(prompt_id, clear_context)
-    r = "Prompt setted to " + prompt_id
+    r = "Prompt setted to " + prompt_id + " with voice " + voice_id
     if clear_context:
         r += " and context cleared"
     return r
@@ -42,6 +43,10 @@ def get_context_as_chatbot() -> list[tuple[str, str]]:
 def save_prompt(prompt_id: str, prompt: str):
     logger.info(f"Saving prompt {prompt_id}")
     prompt_manager.new_custom_prompt(prompt_id, prompt)
+    return gr.Dropdown(
+        label="Prompt ID",
+        choices=list(prompt_manager.prompts),
+    )
 
 
 def start_dashboard(loop: asyncio.AbstractEventLoop):
@@ -154,7 +159,11 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
             )
 
         with gr.Tab("Config"):
-
+            prompts_dropdown = gr.Dropdown(
+                label="Prompt ID",
+                choices=list(prompt_manager.prompts),
+                render=False,
+            )
             with gr.Tab("Global Config"):
                 gr.Markdown(
                     value=lambda: global_config.as_markdown(),
@@ -165,9 +174,10 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
                 gr.Interface(
                     fn=change_prompt,
                     inputs=[
+                        prompts_dropdown,
                         gr.Textbox(
-                            label="Prompts",
-                            value=lambda: prompt_manager.current_prompt_id,
+                            label="Voice ID",
+                            value=lambda: global_config.elevenlabs_voice_id,
                         ),
                         gr.Checkbox(label="Clear context", value=False),
                     ],
@@ -175,11 +185,11 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
                     allow_flagging="never",
                 )
                 gr.Textbox(
-                    value=lambda: "Current prompt: " + prompt_manager.current_prompt_id,
+                    value=lambda: f"Current prompt: {prompt_manager.current_prompt_id}\nCurrent voice: {global_config.elevenlabs_voice_id}",
                     interactive=False,
                     every=1,
-                    lines=1,
-                    max_lines=1,
+                    lines=2,
+                    max_lines=2,
                     container=False,
                 )
 
@@ -216,6 +226,7 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
                 ).click(
                     save_prompt,
                     inputs=[custom_prompt_id, custom_prompt],
+                    outputs=prompts_dropdown,
                 )
 
     blocks.queue().launch(prevent_thread_lock=True, share=True, quiet=True)
