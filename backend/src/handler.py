@@ -68,7 +68,6 @@ class EventHandler:
         logger.info("Updating configs received from client")
         global_config.set_all(req_config)
         chat.set_config(global_config)
-        tts.set_config(global_config)
         global_config.save()
 
 
