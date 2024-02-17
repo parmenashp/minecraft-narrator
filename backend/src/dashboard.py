@@ -14,7 +14,7 @@ dashboard_sink = StringIO()
 
 
 def change_prompt(prompt_id: str, voice_id: str, clear_context: bool):
-    logger.info(f"Setting prompt to {prompt_id}")
+    logger.info(f"Setting prompt to {prompt_id} and voice {voice_id}")
     if prompt_id not in list(prompt_manager.prompts):
         return f"Prompt {prompt_id} does not exist"
     global_config.elevenlabs_voice_id = voice_id
