@@ -43,10 +43,6 @@ def get_context_as_chatbot() -> list[tuple[str, str]]:
 def save_prompt(prompt_id: str, prompt: str):
     logger.info(f"Saving prompt {prompt_id}")
     prompt_manager.new_custom_prompt(prompt_id, prompt)
-    return gr.Dropdown(
-        label="Prompt ID",
-        choices=list(prompt_manager.prompts),
-    )
 
 
 def start_dashboard(loop: asyncio.AbstractEventLoop):
@@ -159,11 +155,7 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
             )
 
         with gr.Tab("Config"):
-            prompts_dropdown = gr.Dropdown(
-                label="Prompt ID",
-                choices=list(prompt_manager.prompts),
-                render=False,
-            )
+
             with gr.Tab("Global Config"):
                 gr.Markdown(
                     value=lambda: global_config.as_markdown(),
@@ -174,7 +166,10 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
                 gr.Interface(
                     fn=change_prompt,
                     inputs=[
-                        prompts_dropdown,
+                        gr.Textbox(
+                            label="Prompt ID",
+                            value=lambda: prompt_manager.current_prompt_id,
+                        ),
                         gr.Textbox(
                             label="Voice ID",
                             value=lambda: global_config.elevenlabs_voice_id,
@@ -226,7 +221,6 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
                 ).click(
                     save_prompt,
                     inputs=[custom_prompt_id, custom_prompt],
-                    outputs=prompts_dropdown,
                 )
 
     blocks.queue().launch(prevent_thread_lock=True, share=True, quiet=True)
