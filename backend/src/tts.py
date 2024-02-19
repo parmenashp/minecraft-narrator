@@ -22,7 +22,8 @@ class TTS:
         if (
             not os.path.isfile("mpv.exe") or
             not global_config.elevenlabs_api_key or
-            not global_config.elevenlabs_voice_id
+            not global_config.elevenlabs_voice_id or
+            not global_config.elevenlabs_model
         ):
             logger.warning("mpv.exe or keys not found, TTS disabled")
             global_config.tts = False
@@ -86,7 +87,7 @@ class TTS:
             voice=voice,
             api_key=global_config.elevenlabs_api_key,
             stream=global_config.elevenlabs_streaming,
-            model="eleven_multilingual_v2",
+            model=global_config.elevenlabs_model, # type: ignore
             stream_chunk_size=global_config.elevenlabs_buffer_size,
         )
         stream_thread = threading.Thread(
