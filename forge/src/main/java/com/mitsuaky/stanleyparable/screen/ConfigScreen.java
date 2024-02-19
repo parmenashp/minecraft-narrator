@@ -173,6 +173,10 @@ public class ConfigScreen extends Screen {
 
 
         this.addRenderableWidget(new Button.Builder(Component.translatable("gui.stanleyparable.token.title"), button -> {
+            ClientConfig.COOLDOWN_INDIVIDUAL.set(coolDownIndividual);
+            ClientConfig.COOLDOWN_GLOBAL.set(coolDownGlobal);
+            ClientConfig.NARRATOR_VOLUME.set(narratorVolume);
+            ClientConfig.AKA.set(akaWidget.getValue());
             assert this.minecraft != null;
             this.minecraft.setScreen(new TokenScreen(this));
         }).pos(commonX, commonY).size(commonWidth, commonHeight).build());
