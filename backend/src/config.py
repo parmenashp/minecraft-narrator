@@ -47,6 +47,7 @@ class GlobalConfig:
     elevenlabs_streaming: bool = env_or_default("ELEVENLABS_STREAMING", "false").lower() == "true"
     elevenlabs_api_key: str = env_or_default("ELEVENLABS_API_KEY")
     elevenlabs_voice_id: str = env_or_default("ELEVENLABS_VOICE_ID")
+    elevenlabs_model: Optional[str] = env_or_default("ELEVENLABS_MODEL", "eleven_multilingual_v2")
 
     narrator_volume: int = int(env_or_default("NARRATOR_VOLUME", "100"))
 

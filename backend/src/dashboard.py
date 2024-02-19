@@ -13,13 +13,14 @@ from src.context import context
 dashboard_sink = StringIO()
 
 
-def change_prompt(prompt_id: str, voice_id: str, clear_context: bool):
+def change_prompt(prompt_id: str, voice_id: str, model: str, clear_context: bool):
     logger.info(f"Setting prompt to {prompt_id} and voice {voice_id}")
     if prompt_id not in list(prompt_manager.prompts):
         return f"Prompt {prompt_id} does not exist"
     global_config.elevenlabs_voice_id = voice_id
+    global_config.elevenlabs_model = model
     prompt_manager.set_current_prompt(prompt_id, clear_context)
-    r = "Prompt setted to " + prompt_id + " with voice " + voice_id
+    r = f"Prompt setted to {prompt_id} with model {model} and voice {voice_id}"
     if clear_context:
         r += " and context cleared"
     return r
@@ -174,17 +175,22 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
                             label="Voice ID",
                             value=lambda: global_config.elevenlabs_voice_id,
                         ),
+                        gr.Dropdown(
+                            label="Voice Model",
+                            choices=["eleven_multilingual_v2", "eleven_multilingual_v1"],
+                            value=lambda: global_config.elevenlabs_model,
+                        ),
                         gr.Checkbox(label="Clear context", value=False),
                     ],
                     outputs="text",
                     allow_flagging="never",
                 )
                 gr.Textbox(
-                    value=lambda: f"Current prompt: {prompt_manager.current_prompt_id}\nCurrent voice: {global_config.elevenlabs_voice_id}",
+                    value=lambda: f"Current prompt: {prompt_manager.current_prompt_id}\nCurrent voice: {global_config.elevenlabs_voice_id}\nCurrent model: {global_config.elevenlabs_model}",
                     interactive=False,
                     every=1,
-                    lines=2,
-                    max_lines=2,
+                    lines=3,
+                    max_lines=3,
                     container=False,
                 )
 
