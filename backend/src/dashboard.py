@@ -9,6 +9,7 @@ from src.prompts import prompt_manager
 from src.tts import tts
 from src.chatgpt import chat
 from src.context import context
+from src.websocket import ws
 
 dashboard_sink = StringIO()
 
@@ -44,6 +45,37 @@ def get_context_as_chatbot() -> list[tuple[str, str]]:
 def save_prompt(prompt_id: str, prompt: str):
     logger.info(f"Saving prompt {prompt_id}")
     prompt_manager.new_custom_prompt(prompt_id, prompt)
+
+
+async def change_personality(personality_id: str, checkboxes: list):
+    clear_context = "Clear context" in checkboxes
+    notify_minecraft = "Notify Minecraft" in checkboxes
+    logger.info(f"Setting personality to {personality_id}")
+
+    if personality_id not in list(prompt_manager.personalities):
+        return f"Personality {personality_id} does not exist"
+
+    prompt_manager.set_personality(personality_id, clear_context)
+    prompt_manager.set_current_prompt(prompt_manager.personalities[personality_id]["prompt_id"], clear_context)
+    global_config.elevenlabs_voice_id = prompt_manager.personalities[personality_id]["voice_id"]
+    global_config.elevenlabs_model = prompt_manager.personalities[personality_id]["model"]
+
+    if notify_minecraft:
+        await ws.broadcast({"action": "new_personality", "data": personality_id})
+
+    return f"Personality setted to {personality_id}"
+
+
+def new_personality(personality_id: str, prompt_id: str, model: str, voice_id: str):
+    logger.info(f"Creating new personality {personality_id}")
+
+    prompt_manager.personalities[personality_id] = {
+        "prompt_id": prompt_id,
+        "voice_id": voice_id,
+        "model": model,
+    }
+    prompt_manager.save()
+    return f"Personality {personality_id} created"
 
 
 def start_dashboard(loop: asyncio.AbstractEventLoop):
@@ -163,7 +195,65 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
                     every=5,
                 )
 
+            with gr.Tab("Change Personality"):
+                gr.Interface(
+                    fn=change_personality,
+                    inputs=[
+                        gr.Textbox(
+                            label="Personality",
+                            value=lambda: prompt_manager.current_personality_id,
+                        ),
+                        gr.CheckboxGroup(
+                            label="Clear context",
+                            choices=["Clear context", "Notify Minecraft"],
+                            container=False,
+                        ),
+                    ],
+                    outputs="text",
+                )
+
+            with gr.Tab("Personalities"):
+
+                def personalities_html():
+                    return "\n".join(
+                        [
+                            f"\n<details><summary>{key}</summary>\n<pre>\n{prompt_manager.personalities[key]}\n</pre>\n</details>"
+                            for key in prompt_manager.personalities.keys()
+                        ]
+                    )
+
+                gr.HTML(
+                    value=lambda: personalities_html(),
+                    every=5,
+                )
+
+            with gr.Tab("New personality"):
+                gr.Interface(
+                    fn=new_personality,
+                    inputs=[
+                        gr.Textbox(
+                            label="Personality name",
+                            placeholder="personality_name",
+                        ),
+                        gr.Textbox(
+                            label="Prompt ID",
+                            placeholder="prompt0",
+                        ),
+                        gr.Dropdown(
+                            label="Model ID",
+                            choices=["eleven_multilingual_v2", "eleven_multilingual_v1"],
+                        ),
+                        gr.Textbox(
+                            label="Voice ID",
+                            placeholder="9Fa9ozDyMkNFPnyRbRZD",
+                        ),
+                    ],
+                    outputs="text",
+                    allow_flagging="never",
+                )
+
             with gr.Tab("Change Prompt"):
+
                 gr.Interface(
                     fn=change_prompt,
                     inputs=[
@@ -228,6 +318,27 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
                     save_prompt,
                     inputs=[custom_prompt_id, custom_prompt],
                 )
+        with gr.Tab("ElevenLabs Voices"):
+            full_html = '<div id="voice-container" style="margin-top: 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">'
+
+            for voice in tts.get_voices():
+                html = f"""
+                <div style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                <h2 style="margin-top: 0;">{voice.name}</h2>
+                <p>ID: {voice.voice_id}</p>
+                <p>Category: {voice.category}</p>
+                <p>Description: None</p>
+                <p>Labels: {voice.labels}</p>
+                <p>Samples: {voice.samples}</p>
+                <p>Design: {voice.design}</p>
+                <p>Settings: {voice.settings}</p>
+                <audio controls style="margin-top: 10px;"><source src="{voice.preview_url}"></audio>
+                </div>"""
+                full_html += html
+
+            full_html += "</div>"
+
+            gr.HTML(full_html)
 
     blocks.queue().launch(prevent_thread_lock=True, share=True, quiet=True)
     if global_config.discord_webhook_key:
