@@ -3,7 +3,7 @@ import subprocess
 import threading
 import os
 from typing import Generator, Iterator
-from elevenlabs import generate, Voice, VoiceSettings
+from elevenlabs import generate, Voice, VoiceSettings, Voices
 from loguru import logger
 
 from src.models import Action, OutgoingAction
@@ -151,5 +151,9 @@ class TTS:
         finally:
             self.finished_playing(loop)
 
+    def get_voices(self):
+        os.environ["ELEVEN_API_KEY"] = global_config.elevenlabs_api_key
+        voices = Voices.from_api(global_config.elevenlabs_api_key)
+        return voices.items
 
 tts = TTS()
