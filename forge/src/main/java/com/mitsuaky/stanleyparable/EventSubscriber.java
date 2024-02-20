@@ -4,10 +4,13 @@ import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -431,6 +434,15 @@ public class EventSubscriber {
             }
             return null;
         });
+
+        wsClient.addEventListener("new_personality", jsonObject -> {
+            if (ClientConfig.SEND_TO_CHAT.get()) {
+                player.sendSystemMessage(Component.nullToEmpty("Personalidade alterada!"));
+            }
+            player.level().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.MASTER, 1.0F, 1.0F);
+            return null;
+        });
+
         String worldName = Objects.requireNonNull(player.getServer()).getWorldData().getLevelName();
         String playerName = getPlayerName(player);
         wsClient.sendEvent(Event.JOIN_WORLD.getValue(), String.format("Jogador \"%s\" entrou no mundo \"%s\"", playerName, worldName));

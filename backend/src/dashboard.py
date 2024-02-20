@@ -9,6 +9,7 @@ from src.prompts import prompt_manager
 from src.tts import tts
 from src.chatgpt import chat
 from src.context import context
+from src.websocket import ws
 
 dashboard_sink = StringIO()
 
@@ -46,17 +47,22 @@ def save_prompt(prompt_id: str, prompt: str):
     prompt_manager.new_custom_prompt(prompt_id, prompt)
 
 
-def change_personality(personality_id: str, clear_context: bool):
+async def change_personality(personality_id: str, checkboxes: list):
+    clear_context = "Clear context" in checkboxes
+    notify_minecraft = "Notify Minecraft" in checkboxes
     logger.info(f"Setting personality to {personality_id}")
+
     if personality_id not in list(prompt_manager.personalities):
         return f"Personality {personality_id} does not exist"
+
     prompt_manager.set_personality(personality_id, clear_context)
-    prompt_manager.set_current_prompt(
-        prompt_manager.personalities[personality_id]["prompt_id"],
-        clear_context,
-    )
+    prompt_manager.set_current_prompt(prompt_manager.personalities[personality_id]["prompt_id"], clear_context)
     global_config.elevenlabs_voice_id = prompt_manager.personalities[personality_id]["voice_id"]
     global_config.elevenlabs_model = prompt_manager.personalities[personality_id]["model"]
+
+    if notify_minecraft:
+        await ws.broadcast({"action": "new_personality", "data": personality_id})
+
     return f"Personality setted to {personality_id}"
 
 
@@ -197,9 +203,10 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
                             label="Personality",
                             value=lambda: prompt_manager.current_personality_id,
                         ),
-                        gr.Checkbox(
+                        gr.CheckboxGroup(
                             label="Clear context",
-                            value=False,
+                            choices=["Clear context", "Notify Minecraft"],
+                            container=False,
                         ),
                     ],
                     outputs="text",
