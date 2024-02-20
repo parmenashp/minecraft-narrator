@@ -16,8 +16,8 @@
     "personalities": {
       "waldemar": {
         "prompt_id": "less_context_very_sarcastic_50_words",
-        "voice_id": "eleven_multilingual_v2",
-        "model": "9Fa9ozDyMkNFPnyRbRZD"
+        "voice_id": "9Fa9ozDyMkNFPnyRbRZD",
+        "model": "eleven_multilingual_v2"
       }
     },
     "current_personality_id": "waldemar"
