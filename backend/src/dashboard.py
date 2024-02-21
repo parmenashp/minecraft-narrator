@@ -79,9 +79,7 @@ def new_personality(personality_id: str, prompt_id: str, model: str, voice_id: s
 
 
 def start_dashboard(loop: asyncio.AbstractEventLoop):
-
     with gr.Blocks() as blocks:
-
         with gr.Tab("Custom TTS"):
             with gr.Row():
                 with gr.Column(scale=2):
@@ -188,7 +186,6 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
             )
 
         with gr.Tab("Config"):
-
             with gr.Tab("Global Config"):
                 gr.Markdown(
                     value=lambda: global_config.as_markdown(),
@@ -218,7 +215,7 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
                     return "\n".join(
                         [
                             f"\n<details><summary>{key}</summary>\n<pre>\n{prompt_manager.personalities[key]}\n</pre>\n</details>"
-                            for key in prompt_manager.personalities.keys()
+                            for key in prompt_manager.personalities
                         ]
                     )
 
@@ -253,7 +250,6 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
                 )
 
             with gr.Tab("Change Prompt"):
-
                 gr.Interface(
                     fn=change_prompt,
                     inputs=[
@@ -297,7 +293,6 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
                 gr.HTML(lambda: prompts_html(), every=5)
 
             with gr.Tab(label="New Prompt"):
-
                 custom_prompt_id = gr.Textbox(
                     label="Prompt ID",
                     placeholder="new_prompt_id",
@@ -322,18 +317,25 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
             full_html = '<div id="voice-container" style="margin-top: 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">'
 
             for voice in tts.get_voices():
-                html = f"""
-                <div style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                <h2 style="margin-top: 0;">{voice.name}</h2>
-                <p>ID: {voice.voice_id}</p>
-                <p>Category: {voice.category}</p>
-                <p>Description: None</p>
-                <p>Labels: {voice.labels}</p>
-                <p>Samples: {voice.samples}</p>
-                <p>Design: {voice.design}</p>
-                <p>Settings: {voice.settings}</p>
-                <audio controls style="margin-top: 10px;"><source src="{voice.preview_url}"></audio>
-                </div>"""
+                attributes = [
+                    ("ID", voice.voice_id),
+                    ("Category", voice.category),
+                    ("Description", voice.description),
+                    ("Labels", voice.labels),
+                    ("Samples", voice.samples),
+                    ("Design", voice.design),
+                    ("Settings", voice.settings),
+                ]
+
+                html = '<div style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">'
+                html += f'<h2 style="margin-top: 0;">{voice.name}</h2>'
+
+                for attr_name, attr_value in attributes:
+                    if attr_value is not None:
+                        html += f"<p>{attr_name}: {attr_value}</p>"
+
+                html += f'<audio controls style="margin-top: 10px;"><source src="{voice.preview_url}"></audio>'
+                html += "</div>"
                 full_html += html
 
             full_html += "</div>"
