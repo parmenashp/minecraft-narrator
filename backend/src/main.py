@@ -8,7 +8,8 @@ from loguru import logger
 from src.handler import event_handler
 from src.models import Config, Event, IncomingEvent
 from src.websocket import ws
-from src.dashboard import start_dashboard, dashboard_sink
+from src.dashboard import start_dashboard
+from src.components.tabs.logs import dashboard_sink
 
 # TODO: Add option to enable debug logs to stdout with backtrace and diagnose when developing
 logger.remove()  # Remove default logger

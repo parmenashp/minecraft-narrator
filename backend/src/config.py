@@ -49,6 +49,10 @@ class GlobalConfig:
     elevenlabs_voice_id: str = env_or_default("ELEVENLABS_VOICE_ID")
     elevenlabs_model: Optional[str] = env_or_default("ELEVENLABS_MODEL", "eleven_multilingual_v2")
 
+    voice_stability: Optional[float] = float(env_or_default("VOICE_STABILITY", "0.30"))
+    voice_similarity_boost: Optional[float] = float(env_or_default("VOICE_SIMILARITY_BOOST", "0.75"))
+    voice_style: Optional[float] = float(env_or_default("VOICE_STYLE", "0.40"))
+
     narrator_volume: int = int(env_or_default("NARRATOR_VOLUME", "100"))
 
     discord_webhook_key: Optional[str] = env_or_default("DISCORD_WEBHOOK_KEY")

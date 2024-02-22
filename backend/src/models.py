@@ -18,6 +18,7 @@ class Event(StrEnum):
     ITEM_SMELTED = "item_smelted"
     MOB_KILLED = "mob_killed"
     DIMENSION_CHANGED = "dimension_changed"
+    TIME_CHANGED = "time_changed"
     PLAYER_CHAT = "player_chat"
     PLAYER_ATE = "player_ate"
     RIDING = "riding"
