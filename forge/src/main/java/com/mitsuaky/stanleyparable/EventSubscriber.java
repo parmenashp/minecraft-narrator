@@ -4,7 +4,6 @@ import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -56,6 +55,7 @@ public class EventSubscriber {
     private static Set<String> lastInventory = null;
     private static boolean isRiding = false;
     private static boolean isFishing = false;
+    private static String timeState = "";
 
     public enum Event {
         ITEM_CRAFTED("item_crafted"),
@@ -68,6 +68,7 @@ public class EventSubscriber {
         ITEM_SMELTED("item_smelted"),
         MOB_KILLED("mob_killed"),
         DIMENSION_CHANGED("dimension_changed"),
+        TIME_CHANGED("time_changed"),
         PLAYER_CHAT("player_chat"),
         PLAYER_ATE("player_ate"),
         RIDING("riding"),
@@ -172,6 +173,19 @@ public class EventSubscriber {
             isRiding = true;
         } else {
             isRiding = false;
+        }
+
+        // Custom time event
+        long time = event.player.level().dayTime();
+        if (0 == time && !timeState.equals("day")) {
+            wsClient.sendEvent(Event.TIME_CHANGED.getValue(), "O sol nasceu no minecraft");
+            timeState = "day";
+        } else if (12000 == time && !timeState.equals("sunset")) {
+            wsClient.sendEvent(Event.TIME_CHANGED.getValue(), "O sol está se pondo no minecraft");
+            timeState = "sunset";
+        } else if (13000 == time && !timeState.equals("night")) {
+            wsClient.sendEvent(Event.TIME_CHANGED.getValue(), "O sol se pôs no minecraft e está escuro");
+            timeState = "night";
         }
     }
 
