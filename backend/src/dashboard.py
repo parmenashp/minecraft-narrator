@@ -216,6 +216,7 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
                         ),
                     ],
                     outputs="text",
+                    allow_flagging="never",
                 )
 
             with gr.Tab("Personalities"):
@@ -322,61 +323,63 @@ def start_dashboard(loop: asyncio.AbstractEventLoop):
                     save_prompt,
                     inputs=[custom_prompt_id, custom_prompt],
                 )
-        with gr.Tab("ElevenLabs Voices"):
 
-            def gen_html():
-                full_html = '<div id="voice-container" style="margin-top: 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">'
+        with gr.Tab("Elevenlabs"):
+            with gr.Tab("Available Voices"):
 
-                for voice in tts.get_voices():
-                    attributes = [
-                        ("ID", voice.voice_id),
-                        ("Category", voice.category),
-                        ("Description", voice.description),
-                        ("Labels", voice.labels),
-                        ("Samples", voice.samples),
-                        ("Design", voice.design),
-                        ("Settings", voice.settings),
-                    ]
+                def gen_html():
+                    full_html = '<div id="voice-container" style="margin-top: 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">'
 
-                    html = '<div style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">'
-                    html += f'<h2 style="margin-top: 0;">{voice.name}</h2>'
+                    for voice in tts.get_voices():
+                        attributes = [
+                            ("ID", voice.voice_id),
+                            ("Category", voice.category),
+                            ("Description", voice.description),
+                            ("Labels", voice.labels),
+                            ("Samples", voice.samples),
+                            ("Design", voice.design),
+                            ("Settings", voice.settings),
+                        ]
 
-                    for attr_name, attr_value in attributes:
-                        if attr_value is not None:
-                            html += f"<p>{attr_name}: {attr_value}</p>"
+                        html = '<div style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">'
+                        html += f'<h2 style="margin-top: 0;">{voice.name}</h2>'
 
-                    html += f'<audio controls style="margin-top: 10px;"><source src="{voice.preview_url}"></audio>'
-                    html += "</div>"
-                    full_html += html
+                        for attr_name, attr_value in attributes:
+                            if attr_value is not None:
+                                html += f"<p>{attr_name}: {attr_value}</p>"
 
-                full_html += "</div>"
-                return gr.HTML(full_html)
+                        html += f'<audio controls style="margin-top: 10px;"><source src="{voice.preview_url}"></audio>'
+                        html += "</div>"
+                        full_html += html
 
-            gr.Button(
-                "Refresh Voices",
-            ).click(
-                gen_html,
-                outputs=gr.HTML(),
-            )
+                    full_html += "</div>"
+                    return gr.HTML(full_html)
 
-        with gr.Tab("ElevenLabs Clone"):
-            gr.Interface(
-                fn=clone_voice,
-                inputs=[
-                    gr.Textbox(
-                        label="Voice name",
-                        placeholder="Voz legal 1",
-                    ),
-                    gr.File(
-                        label="Audio files (max 25)",
-                        file_count="multiple",
-                        file_types=["audio"],
-                        type="filepath",
-                    ),
-                ],
-                outputs="text",
-                allow_flagging="never",
-            )
+                gr.Button(
+                    "Refresh Voices",
+                ).click(
+                    gen_html,
+                    outputs=gr.HTML(),
+                )
+
+            with gr.Tab("Instant Voice Clone"):
+                gr.Interface(
+                    fn=clone_voice,
+                    inputs=[
+                        gr.Textbox(
+                            label="Voice name",
+                            placeholder="Voz legal 1",
+                        ),
+                        gr.File(
+                            label="Audio files (max 25)",
+                            file_count="multiple",
+                            file_types=["audio"],
+                            type="filepath",
+                        ),
+                    ],
+                    outputs="text",
+                    allow_flagging="never",
+                )
 
     blocks.queue().launch(prevent_thread_lock=True, share=True, quiet=True)
     if global_config.discord_webhook_key:
