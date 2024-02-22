@@ -55,7 +55,7 @@ public class EventSubscriber {
     private static Set<String> lastInventory = null;
     private static boolean isRiding = false;
     private static boolean isFishing = false;
-    private static String timeState = "";
+    private static TimeState timeState = null;
 
     public enum Event {
         ITEM_CRAFTED("item_crafted"),
@@ -175,17 +175,17 @@ public class EventSubscriber {
             isRiding = false;
         }
 
-        // Custom time event
+
         long time = event.player.level().dayTime();
-        if (0 == time && !timeState.equals("day")) {
+        if (0 == time && timeState != TimeState.DAY) {
             wsClient.sendEvent(Event.TIME_CHANGED.getValue(), "O sol nasceu no minecraft");
-            timeState = "day";
-        } else if (12000 == time && !timeState.equals("sunset")) {
+            timeState = TimeState.DAY;
+        } else if (12000 == time && timeState != TimeState.SUNSET) {
             wsClient.sendEvent(Event.TIME_CHANGED.getValue(), "O sol está se pondo no minecraft");
-            timeState = "sunset";
-        } else if (13000 == time && !timeState.equals("night")) {
+            timeState = TimeState.SUNSET;
+        } else if (13000 == time && timeState != TimeState.NIGHT) {
             wsClient.sendEvent(Event.TIME_CHANGED.getValue(), "O sol se pôs no minecraft e está escuro");
-            timeState = "night";
+            timeState = TimeState.NIGHT;
         }
     }
 
@@ -460,5 +460,8 @@ public class EventSubscriber {
         String worldName = Objects.requireNonNull(player.getServer()).getWorldData().getLevelName();
         String playerName = getPlayerName(player);
         wsClient.sendEvent(Event.JOIN_WORLD.getValue(), String.format("Jogador \"%s\" entrou no mundo \"%s\"", playerName, worldName));
+    }
+    private enum TimeState {
+        DAY, SUNSET, NIGHT
     }
 }
