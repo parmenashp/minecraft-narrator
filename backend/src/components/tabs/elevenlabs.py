@@ -1,5 +1,7 @@
+from elevenlabs import Voice
 import gradio as gr
 from src.tts import tts
+from src.config import global_config
 from loguru import logger
 
 
@@ -41,6 +43,25 @@ def gen_voices_html():
     return gr.HTML(full_html)
 
 
+def delete_voice(voice_id: str) -> str:
+    voice = Voice(voice_id=voice_id)
+    try:
+        voice.delete()
+        logger.info(f"Voice {voice_id} deleted")
+        return "Voice deleted with success!"
+    except Exception as e:
+        logger.info(f"Failed to delete {voice_id} error: {e}")
+        return f"Failed to delete voice error: {e}"
+
+
+def set_voice_settings(stability: float, style: float, similarity_boost: float):
+    global_config.voice_stability = stability
+    global_config.voice_style = style
+    global_config.voice_similarity_boost = similarity_boost
+    global_config.save()
+    return "Voice settings updated with success!"
+
+
 def elevenlabs_tab():
     with gr.Tab("Elevenlabs") as tab:
         with gr.Tab("Available Voices"):
@@ -62,6 +83,44 @@ def elevenlabs_tab():
                         file_count="multiple",
                         file_types=["audio"],
                         type="filepath",
+                    ),
+                ],
+                outputs="text",
+                allow_flagging="never",
+            )
+
+        with gr.Tab("Delete Voice Clone"):
+            gr.Interface(
+                fn=delete_voice,
+                inputs=[gr.Textbox(label="Voice ID to delete")],
+                outputs="text",
+                allow_flagging="never",
+            )
+
+        with gr.Tab("Voice Settings"):
+            gr.Interface(
+                fn=set_voice_settings,
+                inputs=[
+                    gr.Slider(
+                        label="Stability",
+                        value=global_config.voice_stability,
+                        minimum=0.01,
+                        maximum=1.00,
+                        step=0.01,
+                    ),
+                    gr.Slider(
+                        label="Style",
+                        value=global_config.voice_style,
+                        minimum=0.01,
+                        maximum=1.00,
+                        step=0.01,
+                    ),
+                    gr.Slider(
+                        label="Similarity Boost",
+                        value=global_config.voice_similarity_boost,
+                        minimum=0.01,
+                        maximum=1.00,
+                        step=0.01,
                     ),
                 ],
                 outputs="text",

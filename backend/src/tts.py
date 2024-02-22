@@ -79,7 +79,11 @@ class TTS:
         logger.info(f"Using {global_config.elevenlabs_buffer_size} elevenlabs buffer size")
         voice = Voice(
             voice_id=global_config.elevenlabs_voice_id,
-            settings=VoiceSettings(stability=0.05, similarity_boost=0.75, style=0.75),
+            settings=VoiceSettings(
+                stability=global_config.voice_stability,  # type: ignore
+                similarity_boost=global_config.voice_similarity_boost,  # type: ignore
+                style=global_config.voice_style,
+            ),
         )
 
         gen = generate(
