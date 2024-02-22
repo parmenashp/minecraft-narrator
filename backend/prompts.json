@@ -22,10 +22,15 @@
         "voice_id": "9Fa9ozDyMkNFPnyRbRZD",
         "model": "eleven_multilingual_v2"
       },
+      "waldemar_puto": {
+        "prompt_id": "puto_arrombado_xinga_demais",
+        "voice_id": "9Fa9ozDyMkNFPnyRbRZD",
+        "model": "eleven_multilingual_v2"
+      },
       "pescador_puto": {
         "prompt_id": "objetivo_pescador",
         "voice_id": "t0jbNlBVZ17f02VDIeMI",
-        "model": "eleven_multilingual_v1"
+        "model": "eleven_multilingual_v2"
       },
       "asmr_puto": {
         "prompt_id": "objetivo_relaxar_asmr",
@@ -35,7 +40,7 @@
       "padeiro_puto": {
         "prompt_id": "objetivo_padeiro",
         "voice_id": "ZQe5CZNOzWyzPSCn5a3c",
-        "model": "eleven_multilingual_v1"
+        "model": "eleven_multilingual_v2"
       }
     },
     "current_personality_id": "waldemar"
