@@ -3,7 +3,7 @@ import subprocess
 import threading
 import os
 from typing import Generator, Iterator
-from elevenlabs import generate, Voice, VoiceSettings, Voices
+from elevenlabs import generate, Voice, VoiceSettings, Voices, VoiceClone
 from loguru import logger
 
 from src.models import Action, OutgoingAction
@@ -20,10 +20,10 @@ class TTS:
         self.queue: Queue[Generator] = Queue(maxsize=2)
 
         if (
-            not os.path.isfile("mpv.exe") or
-            not global_config.elevenlabs_api_key or
-            not global_config.elevenlabs_voice_id or
-            not global_config.elevenlabs_model
+            not os.path.isfile("mpv.exe")
+            or not global_config.elevenlabs_api_key
+            or not global_config.elevenlabs_voice_id
+            or not global_config.elevenlabs_model
         ):
             logger.warning("mpv.exe or keys not found, TTS disabled")
             global_config.tts = False
@@ -87,7 +87,7 @@ class TTS:
             voice=voice,
             api_key=global_config.elevenlabs_api_key,
             stream=global_config.elevenlabs_streaming,
-            model=global_config.elevenlabs_model, # type: ignore
+            model=global_config.elevenlabs_model,  # type: ignore
             stream_chunk_size=global_config.elevenlabs_buffer_size,
         )
         stream_thread = threading.Thread(
@@ -155,5 +155,22 @@ class TTS:
         os.environ["ELEVEN_API_KEY"] = global_config.elevenlabs_api_key
         voices = Voices.from_api(global_config.elevenlabs_api_key)
         return voices.items
+
+    def clone_voice_from_files(self, voice_name: str, files: list[str]) -> tuple[str, Voice | None]:
+        os.environ["ELEVEN_API_KEY"] = global_config.elevenlabs_api_key
+        clone_settings = VoiceClone(
+            name=voice_name,
+            files=files,
+        )
+        logger.info(f"Cloning voice {voice_name} with files {files}")
+        try:
+            r = Voice.from_clone(clone_settings)
+        except Exception as e:
+            logger.error(f"Error cloning voice: {e}")
+            return f"Error Cloning voice: {e}", None
+
+        logger.info(f"Voice cloned successfully: {r}")
+        return "Voice cloned successfully", r
+
 
 tts = TTS()
