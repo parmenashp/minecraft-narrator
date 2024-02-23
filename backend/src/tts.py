@@ -17,7 +17,7 @@ from src.utils import singleton
 class TTS:
     def __init__(self):
         self.is_playing = False
-        self.queue: Queue[Generator] = Queue(maxsize=2)
+        self.queue: Queue[Generator | str] = Queue(maxsize=2)
 
         if (
             not os.path.isfile("mpv.exe")
@@ -28,12 +28,15 @@ class TTS:
             logger.warning("mpv.exe or keys not found, TTS disabled")
             global_config.tts = False
 
-    def synthesize(self, gen: Generator[str, None, None], loop: asyncio.AbstractEventLoop) -> None:
+    def synthesize(self, gen: Generator[str, None, None] | str, loop: asyncio.AbstractEventLoop) -> None:
         self.queue.put(gen)
         if not self.is_playing:
             self.is_playing = True
             next_gen = self.queue.get()
-            self.play_next(next_gen, loop)
+            if isinstance(next_gen, str):
+                self.play_next_str(next_gen, loop)
+            else:
+                self.play_next(next_gen, loop)
         else:
             logger.debug("TTS already playing, added to queue")
 
@@ -116,11 +119,56 @@ class TTS:
             loop,
         )
 
+    def play_next_str(self, text: str, loop: asyncio.AbstractEventLoop) -> None:
+        logger.debug("Playing next")
+        if global_config.tts is False:
+            try:
+                response = OutgoingAction(
+                    action=Action.SEND_CHAT,
+                    data=text,
+                )
+                asyncio.run_coroutine_threadsafe(ws.broadcast(response.model_dump()), loop)
+            finally:
+                self.finished_playing(loop)
+            return
+
+        logger.info(f"Using {global_config.elevenlabs_buffer_size} elevenlabs buffer size")
+        gen = generate(
+            text=text,
+            voice=global_config.elevenlabs_voice_id,
+            stream=global_config.elevenlabs_streaming,
+            model="eleven_multilingual_v2",
+            stream_chunk_size=global_config.elevenlabs_buffer_size,
+        )
+        stream_thread = threading.Thread(
+            target=self.stream,
+            kwargs={"audio": gen, "loop": loop},
+        )
+        stream_thread.start()
+        if text == "":
+            response = OutgoingAction(
+                action=Action.IGNORE,
+                data="Não foi possível gerar texto",
+            )
+            self.finished_playing(loop)
+        else:
+            response = OutgoingAction(
+                action=Action.SEND_CHAT,
+                data=text,
+            )
+        asyncio.run_coroutine_threadsafe(
+            ws.broadcast(response.model_dump()),
+            loop,
+        )
+
     def finished_playing(self, loop: asyncio.AbstractEventLoop):
         if len(self.queue.all()) > 0:
             self.is_playing = True
             next_gen = self.queue.get()
-            self.play_next(next_gen, loop)
+            if isinstance(next_gen, str):
+                self.play_next_str(next_gen, loop)
+            else:
+                self.play_next(next_gen, loop)
         else:
             self.is_playing = False
 

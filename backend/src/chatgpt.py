@@ -1,4 +1,4 @@
-from typing import Generator, cast
+from typing import Callable, Generator, cast
 from openai import OpenAI, Stream
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from loguru import logger
@@ -29,7 +29,7 @@ class ChatGPT:
 
     def ask(
         self, text: str, system_prompt: list[dict[str, str]] | None = None, add_to_context: bool = True
-    ) -> Generator[str, None, None]:
+    ) -> Callable[[], Generator[str, None, None]] | Callable[[], str | None]:
         logger.debug(f"Sending prompt to GPT: {text!r}")
         user_prompt = {"role": "user", "content": text}
         if system_prompt is None:
@@ -46,35 +46,45 @@ class ChatGPT:
         if add_to_context:
             context.put(user_prompt)
 
-        response_text = ""
         if global_config.openai_streaming:
-            logger.debug("Using OpenAI streaming mode")
-            logger.info(f"Using {global_config.chatgpt_buffer_size} chatgpt buffer size")
-            response = cast(Stream[ChatCompletionChunk], response)
-            buffer = ""
-            for chunk in response:
-                delta = chunk.choices[0].delta.content
-                if delta:
-                    response_text += delta
-                    buffer += delta
-                    if len(buffer) >= global_config.chatgpt_buffer_size:
-                        logger.debug(f"Yielding GPT response: {buffer!r}")
-                        yield buffer
-                        buffer = ""
-            if buffer:
-                logger.debug(f"Yielding GPT response: {buffer!r}")
-                yield buffer
+
+            def response_gen() -> Generator[str, None, None]:
+                nonlocal response
+                response_text = ""
+                logger.debug("Using OpenAI streaming mode")
+                logger.info(f"Using {global_config.chatgpt_buffer_size} chatgpt buffer size")
+                response = cast(Stream[ChatCompletionChunk], response)
+                buffer = ""
+                for chunk in response:
+                    delta = chunk.choices[0].delta.content
+                    if delta:
+                        response_text += delta
+                        buffer += delta
+                        if len(buffer) >= global_config.chatgpt_buffer_size:
+                            logger.debug(f"Yielding GPT response: {buffer!r}")
+                            yield buffer
+                            buffer = ""
+                if buffer:
+                    logger.debug(f"Yielding GPT response: {buffer!r}")
+                    yield buffer
+                if add_to_context:
+                    context.put({"role": "assistant", "content": response_text})
+
+            return response_gen
 
         else:
-            logger.debug("Using OpenAI non-streaming mode")
-            response = cast(ChatCompletion, response)
-            response_text = response.choices[0].message.content
-            if response_text:
-                logger.debug(f"Yielding GPT response: {response_text!r}")
-                yield response_text
 
-        if add_to_context:
-            context.put({"role": "assistant", "content": response_text})
+            def response_str() -> str | None:
+                nonlocal response
+                logger.debug("Using OpenAI non-streaming mode")
+                response = cast(ChatCompletion, response)
+                response_text = response.choices[0].message.content
+                logger.debug(f"Yielding GPT response: {response_text!r}")
+                if add_to_context:
+                    context.put({"role": "assistant", "content": response_text})
+                return response_text
+
+            return response_str
 
     def set_config(self, config: GlobalConfig):
         self.client.api_key = config.openai_api_key

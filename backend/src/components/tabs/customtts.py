@@ -1,3 +1,4 @@
+from typing import Iterator
 import gradio as gr
 from loguru import logger
 from src.chatgpt import chat
@@ -24,20 +25,24 @@ def customTTS_tab(loop):
                         interactive=True,
                     )
 
-                    def run_gpt(text: str):
+                    def run_gpt(text: str) -> tuple[str, str]:
                         logger.info(f"Custom GPT prompt: {text}")
                         gpt = chat.ask(text, add_to_context=False)
-                        return "".join(list(gpt)), "Response generated"
+                        gpt = gpt()
+
+                        if isinstance(gpt, str):
+                            return gpt, "Response generated"
+                        if isinstance(gpt, Iterator):
+                            return "".join(list(gpt)), "Response generated"
+
+                        return "No response", "No response"
 
                     def run_tts(text: str, add_to_context: bool):
                         logger.info(f"Custom TTS to queue: {text}")
                         if add_to_context:
                             context.put({"role": "assistant", "content": text})
 
-                        def gen():
-                            yield text
-
-                        tts.synthesize(gen(), loop)
+                        tts.synthesize(text, loop)
                         return "TTS audio added to queue"
 
                     gpt_input.render()
