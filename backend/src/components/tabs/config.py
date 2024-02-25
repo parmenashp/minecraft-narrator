@@ -1,3 +1,4 @@
+import json
 import gradio as gr
 from src.config import global_config
 from src.prompts import prompt_manager
@@ -37,7 +38,8 @@ async def change_personality(personality_id: str, checkboxes: list):
     global_config.elevenlabs_model = prompt_manager.personalities[personality_id]["model"]
 
     if notify_minecraft:
-        await ws.broadcast({"action": "new_personality", "data": personality_id})
+        data = json.dumps(prompt_manager.personalities[personality_id])
+        await ws.broadcast({"action": "new_personality", "data": data})
 
     return f"Personality setted to {personality_id}"
 
