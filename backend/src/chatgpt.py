@@ -69,6 +69,7 @@ class ChatGPT:
         text: str,
         system_prompt: list[dict[str, str]] | None = None,
         add_to_context: bool = True,
+        hypertranslate: bool | None = global_config.hypertranslate,
     ) -> Generator[str, None, None] | str | None:
         logger.debug(f"Sending prompt to GPT: {text!r}")
 
@@ -83,15 +84,15 @@ class ChatGPT:
             "presence_penalty": 0,
             "stop": ["\n"],
         }
-        user_prompt = [{"role": "user", "content": text}]
-        messages: list = system_prompt + context.all() + user_prompt
+        user_prompt = {"role": "user", "content": text}
+        messages: list = system_prompt + context.all() + [user_prompt]
 
         response = self.completion(messages, gpt_config)()
 
         if add_to_context:
             context.put(user_prompt)
 
-        if global_config.hypertranslate:
+        if hypertranslate:
             if isinstance(response, Iterator):
                 response = "".join(list(response))
 
@@ -122,7 +123,8 @@ class ChatGPT:
         system_prompt = """
         Seu trabalho é pegar o texto enviado pelo usuário e transformar em um texto sem muito sentido, como se estivesse traduzindo o texto para 300 línguas diferentes, e depois de volta para português, a resposta não deve ter sentido, gere coisas aleatórias.
         Você não deve retornar nada além do texto transformado.
-        Você não deve traduzir nada. Apenas envie o texto transformado em coisas sem sentido.
+        Você não deve traduzir nada.
+        Apenas envie o texto transformado em coisas sem sentido.
         As frases transformadas não devem ter coesão.
         Você deve escrever coisas aleatórias.
 
@@ -135,6 +137,9 @@ class ChatGPT:
 
         Por outro lado, o novo modelo estrutural aqui preconizado possibilita uma melhor visão global das novas proposições.
         R:Este é considerado o novo lar legal.
+
+        Ah, Felps, abraçando a noite escura como um velho amigo. Com um machado na mão, ele afasta monstros e lendas. Um caçador nasce, não do medo, mas da pura ironia. Bravo!
+        R:Olá, este é meu velho amigo Philip do Cavaleiro das Trevas. Lute contra anjos e demônios com machados, não tema ninguém além dos pecadores.
 
         E assim, Feeeelps escolheu ignorar a ferramenta mais básica em Minecraft para quebrar um minério de diamante com as próprias mãos. Uma decisão audaciosa, sem dúvida. Pena que as mãos não são picaretas e o diamante permanecerá eternamente na rocha, aguardando alguém que entenda como jogar.
         R:Philip decide abrir uma mina de diamantes. Esta é uma má decisão. Mas os soldados não ouviram as nossas palavras.
