@@ -1,21 +1,12 @@
-from typing import Callable, Generator, cast
+from typing import Callable, Generator, Iterator, cast
 from openai import OpenAI, Stream
-from openai.types.chat import ChatCompletion, ChatCompletionChunk
+from openai.types.chat import ChatCompletion, ChatCompletionChunk, ChatCompletionMessageParam
 from loguru import logger
 
 from src.config import global_config, GlobalConfig
 from src.context import context
 from src.prompts import prompt_manager
 from src.utils import singleton
-
-gpt_config = {
-    "temperature": 1,
-    "max_tokens": 256,
-    "top_p": 1,
-    "frequency_penalty": 0,
-    "presence_penalty": 0,
-    "stop": ["\n"],
-}
 
 
 @singleton
@@ -27,15 +18,9 @@ class ChatGPT:
             base_url=base_url,
         )
 
-    def ask(
-        self, text: str, system_prompt: list[dict[str, str]] | None = None, add_to_context: bool = True
+    def completion(
+        self, messages: list[ChatCompletionMessageParam], gpt_config: dict
     ) -> Callable[[], Generator[str, None, None]] | Callable[[], str | None]:
-        logger.debug(f"Sending prompt to GPT: {text!r}")
-        user_prompt = {"role": "user", "content": text}
-        if system_prompt is None:
-            system_prompt = prompt_manager.get_current_prompt()
-        messages: list = system_prompt + context.all() + [user_prompt]
-
         response: ChatCompletion | Stream[ChatCompletionChunk] = self.client.chat.completions.create(
             model=self.model,
             messages=messages,
@@ -43,16 +28,13 @@ class ChatGPT:
             **gpt_config,
         )
 
-        if add_to_context:
-            context.put(user_prompt)
-
         if global_config.openai_streaming:
 
             def response_gen() -> Generator[str, None, None]:
                 nonlocal response
                 response_text = ""
                 logger.debug("Using OpenAI streaming mode")
-                logger.info(f"Using {global_config.chatgpt_buffer_size} chatgpt buffer size")
+                logger.debug(f"Using {global_config.chatgpt_buffer_size} chatgpt buffer size")
                 response = cast(Stream[ChatCompletionChunk], response)
                 buffer = ""
                 for chunk in response:
@@ -67,8 +49,6 @@ class ChatGPT:
                 if buffer:
                     logger.debug(f"Yielding GPT response: {buffer!r}")
                     yield buffer
-                if add_to_context:
-                    context.put({"role": "assistant", "content": response_text})
 
             return response_gen
 
@@ -80,11 +60,109 @@ class ChatGPT:
                 response = cast(ChatCompletion, response)
                 response_text = response.choices[0].message.content
                 logger.debug(f"Yielding GPT response: {response_text!r}")
-                if add_to_context:
-                    context.put({"role": "assistant", "content": response_text})
                 return response_text
 
             return response_str
+
+    def ask(
+        self,
+        text: str,
+        system_prompt: list[dict[str, str]] | None = None,
+        add_to_context: bool = True,
+    ) -> Generator[str, None, None] | str | None:
+        logger.debug(f"Sending prompt to GPT: {text!r}")
+
+        if system_prompt is None:
+            system_prompt = prompt_manager.get_current_prompt()
+
+        gpt_config = {
+            "temperature": 1,
+            "max_tokens": 256,
+            "top_p": 1,
+            "frequency_penalty": 0,
+            "presence_penalty": 0,
+            "stop": ["\n"],
+        }
+        user_prompt = [{"role": "user", "content": text}]
+        messages: list = system_prompt + context.all() + user_prompt
+
+        response = self.completion(messages, gpt_config)()
+
+        if add_to_context:
+            context.put(user_prompt)
+
+        if global_config.hypertranslate:
+            if isinstance(response, Iterator):
+                response = "".join(list(response))
+
+            hyper_response = self.hyper_gpt(response)()
+
+            if isinstance(hyper_response, Iterator):
+
+                def wrap() -> Generator[str, None, None]:
+                    nonlocal hyper_response
+                    full_text = ""
+                    for c in hyper_response:
+                        full_text += c
+                        yield c
+                    if add_to_context:
+                        context.put({"role": "assistant", "content": full_text})
+
+                return wrap()
+
+            elif isinstance(hyper_response, str):
+                if add_to_context:
+                    context.put({"role": "assistant", "content": hyper_response})
+
+                return hyper_response
+
+        return response
+
+    def hyper_gpt(self, text: str | None) -> Callable[[], Generator[str, None, None]] | Callable[[], str | None]:
+        system_prompt = """
+        Seu trabalho é pegar o texto enviado pelo usuário e transformar em um texto sem muito sentido, como se estivesse traduzindo o texto para 300 línguas diferentes, e depois de volta para português, a resposta não deve ter sentido, gere coisas aleatórias.
+        Você não deve retornar nada além do texto transformado.
+        Você não deve traduzir nada. Apenas envie o texto transformado em coisas sem sentido.
+        As frases transformadas não devem ter coesão.
+        Você deve escrever coisas aleatórias.
+
+        Exemplos: '''
+        Hoje está um dia lindo lá fora. Que legal!
+        R:Outro bom dia. O que isso significa?
+
+        Felps quebrou areia com as mãos... duas vezes. Que esforço hercúleo! E para quê? Para pegar mais areia! Incrível como a vida é cheia de desafios emocionantes e recompensas... arenosas. Será que Felps vai construir um castelo de areia ou apenas admirar seu vasto suprimento de grãos minerais?
+        R:Ao se sentar, ele enterrou as mãos na areia. Não perca! Venha sozinho, uma vida feliz é cheia de desafios e recompensas. A casa de Phelps é feita de areia ou pedra?
+
+        Por outro lado, o novo modelo estrutural aqui preconizado possibilita uma melhor visão global das novas proposições.
+        R:Este é considerado o novo lar legal.
+
+        E assim, Feeeelps escolheu ignorar a ferramenta mais básica em Minecraft para quebrar um minério de diamante com as próprias mãos. Uma decisão audaciosa, sem dúvida. Pena que as mãos não são picaretas e o diamante permanecerá eternamente na rocha, aguardando alguém que entenda como jogar.
+        R:Philip decide abrir uma mina de diamantes. Esta é uma má decisão. Mas os soldados não ouviram as nossas palavras.
+        '''
+
+        Não repita os exemplos.
+        Não gere nada com "R:".
+        Retorne apenas a frase transformada.
+        """
+
+        logger.debug(f"Sending prompt to Hyper-GPT: {text!r}")
+        user_message = {"role": "user", "content": text}
+        system_message = {"role": "system", "content": system_prompt}
+        messages: list = [system_message] + [user_message]
+
+        response = self.completion(
+            messages,
+            {
+                "temperature": 1.2,
+                "max_tokens": 256,
+                "top_p": 1,
+                "frequency_penalty": 0,
+                "presence_penalty": 0,
+                "stop": ["\n"],
+            },
+        )
+
+        return response
 
     def set_config(self, config: GlobalConfig):
         self.client.api_key = config.openai_api_key

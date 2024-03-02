@@ -53,6 +53,8 @@ class GlobalConfig:
     voice_similarity_boost: Optional[float] = float(env_or_default("VOICE_SIMILARITY_BOOST", "0.75"))
     voice_style: Optional[float] = float(env_or_default("VOICE_STYLE", "0.40"))
 
+    hypertranslate: bool = env_or_default("HYPERTRANSLATE", "false").lower() == "true"
+
     narrator_volume: int = int(env_or_default("NARRATOR_VOLUME", "100"))
 
     discord_webhook_key: Optional[str] = env_or_default("DISCORD_WEBHOOK_KEY")
