@@ -127,27 +127,28 @@ class ChatGPT:
         Apenas envie o texto transformado em coisas sem sentido.
         As frases transformadas não devem ter coesão.
         Você deve escrever coisas aleatórias.
+        Não apenas troque algumas palavras, gere frases aleatórias, insira perguntas, exclamações, etc.
+        O texto transformado não precisa ter o mesmo formato que o texto original.
+
+        Não repita os exemplos.
+        Retorne apenas a frase transformada.
 
         Exemplos: '''
         Hoje está um dia lindo lá fora. Que legal!
-        R:Outro bom dia. O que isso significa?
+        Outro bom dia. O que isso significa?
 
         Felps quebrou areia com as mãos... duas vezes. Que esforço hercúleo! E para quê? Para pegar mais areia! Incrível como a vida é cheia de desafios emocionantes e recompensas... arenosas. Será que Felps vai construir um castelo de areia ou apenas admirar seu vasto suprimento de grãos minerais?
-        R:Ao se sentar, ele enterrou as mãos na areia. Não perca! Venha sozinho, uma vida feliz é cheia de desafios e recompensas. A casa de Phelps é feita de areia ou pedra?
+        Ao se sentar, ele enterrou as mãos na areia. Não perca! Venha sozinho, uma vida feliz é cheia de desafios e recompensas. A casa de Phelps é feita de areia ou pedra?
 
         Por outro lado, o novo modelo estrutural aqui preconizado possibilita uma melhor visão global das novas proposições.
-        R:Este é considerado o novo lar legal.
+        Este é considerado o novo lar legal.
 
         Ah, Felps, abraçando a noite escura como um velho amigo. Com um machado na mão, ele afasta monstros e lendas. Um caçador nasce, não do medo, mas da pura ironia. Bravo!
-        R:Olá, este é meu velho amigo Philip do Cavaleiro das Trevas. Lute contra anjos e demônios com machados, não tema ninguém além dos pecadores.
+        Olá, este é meu velho amigo Philip do Cavaleiro das Trevas. Lute contra anjos e demônios com machados, não tema ninguém além dos pecadores.
 
         E assim, Feeeelps escolheu ignorar a ferramenta mais básica em Minecraft para quebrar um minério de diamante com as próprias mãos. Uma decisão audaciosa, sem dúvida. Pena que as mãos não são picaretas e o diamante permanecerá eternamente na rocha, aguardando alguém que entenda como jogar.
-        R:Philip decide abrir uma mina de diamantes. Esta é uma má decisão. Mas os soldados não ouviram as nossas palavras.
+        Philip decide abrir uma mina de diamantes. Esta é uma má decisão. Mas os soldados não ouviram as nossas palavras.
         '''
-
-        Não repita os exemplos.
-        Não gere nada com "R:".
-        Retorne apenas a frase transformada.
         """
 
         logger.debug(f"Sending prompt to Hyper-GPT: {text!r}")
@@ -158,7 +159,7 @@ class ChatGPT:
         response = self.completion(
             messages,
             {
-                "temperature": 1.2,
+                "temperature": 1.3,
                 "max_tokens": 256,
                 "top_p": 1,
                 "frequency_penalty": 0,
