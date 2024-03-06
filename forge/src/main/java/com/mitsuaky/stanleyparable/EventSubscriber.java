@@ -6,6 +6,8 @@ import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -14,7 +16,9 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.FireworkRocketEntity;
 import net.minecraft.world.inventory.ChestMenu;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -453,7 +457,34 @@ public class EventSubscriber {
             if (ClientConfig.SEND_TO_CHAT.get()) {
                 player.sendSystemMessage(Component.nullToEmpty("Personalidade alterada!"));
             }
-            player.level().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.MASTER, 1.0F, 1.0F);
+            player.level().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.PLAYER_LEVELUP, SoundSource.MASTER, 1.5F, 1.0F);
+            return null;
+        });
+
+        wsClient.addEventListener("fireworks", jsonObject -> {
+            ItemStack itemStack = new ItemStack(net.minecraft.world.item.Items.FIREWORK_ROCKET);
+            CompoundTag fireworksTag = new CompoundTag();
+            fireworksTag.putFloat("Flight", 0.4F);
+            fireworksTag.putInt("LifeTime", 40);
+            fireworksTag.putInt("Life", 10);
+            ListTag explosions = new ListTag();
+            for (int i = 0; i < 3; i++) {
+                CompoundTag explosion = new CompoundTag();
+                explosion.putByte("Type", (byte) 4);
+                explosion.putBoolean("Flicker", Math.random() > 0.5);
+                explosion.putBoolean("Trail", Math.random() > 0.5);
+                explosion.putIntArray("Colors", new int[]{DyeColor.byId(i).getFireworkColor()});
+                explosions.add(explosion);
+            }
+            fireworksTag.put("Explosions", explosions);
+            CompoundTag NBTTag = new CompoundTag();
+            NBTTag.put("Fireworks", fireworksTag);
+            itemStack.setTag(NBTTag);
+            for (int i = 0; i < 10; i++) {
+                float angle = (i * 36) * ((float) Math.PI / 180);
+                FireworkRocketEntity firework = new FireworkRocketEntity(player.level(), player.getX() + Math.sin(angle) * 2, player.getY(), player.getZ() + Math.cos(angle) * 2, itemStack);
+                player.level().addFreshEntity(firework);
+            }
             return null;
         });
 

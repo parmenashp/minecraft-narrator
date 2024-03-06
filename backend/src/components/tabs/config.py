@@ -26,6 +26,7 @@ def save_prompt(prompt_id: str, prompt: str):
 async def change_personality(personality_id: str, checkboxes: list):
     clear_context = "Clear context" in checkboxes
     notify_minecraft = "Notify Minecraft" in checkboxes
+    fireworks = "Fireworks" in checkboxes
     logger.info(f"Setting personality to {personality_id}")
 
     if personality_id not in list(prompt_manager.personalities):
@@ -38,6 +39,9 @@ async def change_personality(personality_id: str, checkboxes: list):
 
     if notify_minecraft:
         await ws.broadcast({"action": "new_personality", "data": personality_id})
+
+    if fireworks:
+        await ws.broadcast({"action": "fireworks"})
 
     return f"Personality setted to {personality_id}"
 
@@ -72,7 +76,7 @@ def config_tab():
                     ),
                     gr.CheckboxGroup(
                         label="Clear context",
-                        choices=["Clear context", "Notify Minecraft"],
+                        choices=["Clear context", "Notify Minecraft", "Fireworks"],
                         container=False,
                     ),
                 ],
