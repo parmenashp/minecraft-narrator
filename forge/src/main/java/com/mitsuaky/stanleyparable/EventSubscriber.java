@@ -1,5 +1,6 @@
 package com.mitsuaky.stanleyparable;
 
+import com.google.gson.JsonObject;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.DisplayInfo;
@@ -457,6 +458,9 @@ public class EventSubscriber {
             if (ClientConfig.SEND_TO_CHAT.get()) {
                 player.sendSystemMessage(Component.nullToEmpty("Personalidade alterada!"));
             }
+            JsonObject personality = jsonObject.getAsJsonObject("data");
+            String voiceID = personality.get("voice_id").getAsString();
+            ClientConfig.ELEVENLABS_VOICE_ID.set(voiceID);
             player.level().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.PLAYER_LEVELUP, SoundSource.MASTER, 1.5F, 1.0F);
             return null;
         });
@@ -492,6 +496,7 @@ public class EventSubscriber {
         String playerName = getPlayerName(player);
         wsClient.sendEvent(Event.JOIN_WORLD.getValue(), String.format("Jogador \"%s\" entrou no mundo \"%s\"", playerName, worldName));
     }
+
     private enum TimeState {
         DAY, SUNSET, NIGHT
     }

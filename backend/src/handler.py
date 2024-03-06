@@ -55,6 +55,7 @@ class EventHandler:
             return
 
         gpt_response_generator = chat.ask(outgoing.data)
+        gpt_response_generator = gpt_response_generator()
 
         threading.Thread(
             target=tts.synthesize,

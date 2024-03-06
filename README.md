@@ -11,16 +11,21 @@ streamer [Felps](https://www.twitch.tv/felps). Ele utiliza a geração de texto
 da [OpenAI](https://openai.com/product#made-for-developers) e a conversão de texto em fala
 do [ElevenLabs](https://elevenlabs.io/).
 
-## Estrutura do Projeto
 
-- **Backend**: Responsável pela comunicação entre o mod de Minecraft, OpenAI e ElevenLabs.
-- **Mod do Forge**: Envia eventos do jogo para o backend e retorna as respostas para o chat do jogo. Este mod é
-  compatível com a versão 1.20.2 do Minecraft.
+## Deseja baixar e jogar o mod?
+
+ ⚠ Antes de baixar e tentar rodar o mod por conta própria, dê uma olhada na [Wiki](https://github.com/parmenashp/minecraft-narrator/wiki/Instala%C3%A7%C3%A3o-e-Configura%C3%A7%C3%A3o)!
 
 ## Contribuições
 
 Contribuições são encorajadas. Sinta-se livre para sugerir melhorias, reportar bugs ou até mesmo implementar novas
 funcionalidades. Sua participação é poggers!
+
+## Estrutura do Projeto
+
+- **Backend**: Responsável pela comunicação entre o mod de Minecraft, OpenAI e ElevenLabs.
+- **Mod do Forge**: Envia eventos do jogo para o backend e retorna as respostas para o chat do jogo. Este mod é
+  compatível com a versão 1.20.2 do Minecraft.
 
 ## Configuração e Instalação
 
