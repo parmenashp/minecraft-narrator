@@ -1,6 +1,7 @@
 package com.mitsuaky.stanleyparable;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.DisplayInfo;
@@ -458,7 +459,8 @@ public class EventSubscriber {
             if (ClientConfig.SEND_TO_CHAT.get()) {
                 player.sendSystemMessage(Component.nullToEmpty("Personalidade alterada!"));
             }
-            JsonObject personality = jsonObject.getAsJsonObject("data");
+            String data = jsonObject.get("data").getAsString();
+            JsonObject personality = JsonParser.parseString(data).getAsJsonObject();
             String voiceID = personality.get("voice_id").getAsString();
             ClientConfig.ELEVENLABS_VOICE_ID.set(voiceID);
             player.level().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.PLAYER_LEVELUP, SoundSource.MASTER, 1.5F, 1.0F);
