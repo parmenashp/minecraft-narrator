@@ -133,11 +133,20 @@ class TTS:
             return
 
         logger.info(f"Using {global_config.elevenlabs_buffer_size} elevenlabs buffer size")
+        voice = Voice(
+            voice_id=global_config.elevenlabs_voice_id,
+            settings=VoiceSettings(
+                stability=global_config.voice_stability,  # type: ignore
+                similarity_boost=global_config.voice_similarity_boost,  # type: ignore
+                style=global_config.voice_style,
+            ),
+        )
         gen = generate(
             text=text,
-            voice=global_config.elevenlabs_voice_id,
+            voice=voice,
+            api_key=global_config.elevenlabs_api_key,
             stream=global_config.elevenlabs_streaming,
-            model="eleven_multilingual_v2",
+            model=global_config.elevenlabs_model,  # type: ignore
             stream_chunk_size=global_config.elevenlabs_buffer_size,
         )
         stream_thread = threading.Thread(
