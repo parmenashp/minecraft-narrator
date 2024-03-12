@@ -50,8 +50,6 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
                 case Event.CONFIG:
                     config: Config = json.loads(incoming_event.data, object_hook=lambda d: Config(**d))
                     event_handler.handle_config_event(config)
-                # case Event.VOICE_ACTIVATE:
-                #     event_handler.handle_voice_activate_event()
                 case _:
                     logger.info(f"Incoming event data: {incoming_event.data!r}")
                     await event_handler.handle_game_event(incoming_event)
@@ -67,7 +65,6 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
 async def handle_websocket_microphone(websocket: fastapi.WebSocket):
     logger.info(f"New Microphone connection: {websocket.client}")
     await websocket.accept()
-    final_text = ""
     try:
         while True:
             data = await websocket.receive_json()
@@ -75,11 +72,9 @@ async def handle_websocket_microphone(websocket: fastapi.WebSocket):
                 break
             speech = OutgoingAction(
                 action=Action.SPEECH_DATA,
-                data=data["text"],
+                data=json.dumps(data, ensure_ascii=False),
             )
             await ws.broadcast(speech.model_dump())
-            if data["final"]:
-                final_text += data["text"]
     except Exception as e:
         logger.info(f"Microphone Client {websocket.client} disconnected")
         if not isinstance(e, fastapi.WebSocketDisconnect):

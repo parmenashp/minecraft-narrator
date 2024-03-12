@@ -29,7 +29,7 @@ class Event(StrEnum):
     ANIMAL_BREED = "animal_breed"
     ITEM_TOSS = "item_toss"
     CONFIG = "config"
-    VOICE_DEACTIVATE = "voice_deactivate"
+    VOICE_COMPLETE = "voice_complete"
     VOICE_ACTIVATE = "voice_activate"
 
 

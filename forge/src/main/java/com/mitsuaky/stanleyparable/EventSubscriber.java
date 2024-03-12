@@ -469,13 +469,6 @@ public class EventSubscriber {
             return null;
         });
 
-        wsClient.addEventListener("speech_data", jsonObject -> {
-            String text = jsonObject.get("data").getAsString();
-            Component msg = Component.literal(text).withStyle(ChatFormatting.YELLOW);
-            player.displayClientMessage(msg, true);
-            return null;
-        });
-
         wsClient.addEventListener("fireworks", jsonObject -> {
             ItemStack itemStack = new ItemStack(net.minecraft.world.item.Items.FIREWORK_ROCKET);
             CompoundTag fireworksTag = new CompoundTag();
