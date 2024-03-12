@@ -31,6 +31,7 @@ public class ClientEvents {
                     player.playSound(SoundEvents.NOTE_BLOCK_HARP.value(), 1.0F, 0.6F);
                     player.displayClientMessage(Component.literal("Você desativou o microfone."), true);
                     if (!fullText.isEmpty()) {
+                        player.sendSystemMessage(Component.literal(fullText).withStyle(ChatFormatting.GREEN));
                         String playerName = EventSubscriber.getPlayerName(player);
                         String msg = "Jogador " + playerName + " falou para você: " + fullText;
                         wsClient.sendEvent("voice_complete", msg);
@@ -54,14 +55,10 @@ public class ClientEvents {
                                 fullText += ". " + text;
                             }
                         }
-                        if (!fullText.isEmpty()) {
-                            player.sendSystemMessage(Component.literal(fullText).withStyle(ChatFormatting.GREEN));
-                        }
+
                         return null;
                     });
                     player.playSound(SoundEvents.NOTE_BLOCK_HARP.value(), 1.0F, 1.0F);
-                    String s = "botão" + micActivated;
-                    player.sendSystemMessage(Component.literal(s));
                     wsClient.sendEvent("voice_activate", "");
                 }
             }

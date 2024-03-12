@@ -9,8 +9,11 @@
 
 <body>
     <button onclick="start_speech()">
-        Click to Start
+        Reconnect
     </button>
+    <div>
+        <span id="status_span">Waiting</span>
+    </div>
     <div id="transcript">
         <p>
             <span id="final_span"></span>
@@ -21,7 +24,7 @@
         const SPLIT_MIN_LENGTH = 120;
         const splitDelay = 2700;
         const wsUrl = `ws://${window.location.host}/mic`;
-        const ws = new WebSocket(wsUrl);
+        let ws = new WebSocket(wsUrl);
         const delay = 1000;
         function normalizeTranscript(text) {
             // Trim
@@ -39,6 +42,14 @@
         }
 
         function start_speech() {
+            status_span.innerHTML = "Connecting...";
+            ws = new WebSocket(wsUrl);
+            ws.onopen = () => {
+                status_span.innerHTML = "Connected";
+            };
+            ws.onclose = () => {
+                status_span.innerHTML = "Disconnected";
+            };
             console.log("starting speech");
             const SpeechRecognition = //@ts-ignore
                 window.SpeechRecognition || webkitSpeechRecognition;
@@ -71,12 +82,12 @@
                 const text = normalizeTranscript(result[0].transcript);
 
                 final_span.innerHTML = text;
-
-                console.log(text);
+                
                 // Ignore partials between each partial caption
                 if (!result.isFinal && lastCaptions && ((lastCaptions + splitDelay) > Date.now())) {
                     return;
                 }
+                console.log(text);
 
                 // Ignore first partial captions
                 if (text && (result.isFinal || lastCaptions)) {
@@ -149,16 +160,17 @@
                 }
             }
             speech.onend = () => {
-                    // If stopping just after start: Probably not supported
-                    if (startTime && ((Date.now() - startTime) < 1000)) {
-                        alert('Couldn\'t start speech recognition, it may not be supported in your browser, try using Chrome or Edge');
-                    } else {
-                        speech.start();
-                        // Reset partial results
-                        lastText = '';
-                        ignoreLength = 0;
-                        lastCaptions = null;
-                    }
+                // If stopping just after start: Probably not supported
+                if (startTime && ((Date.now() - startTime) < 1000)) {
+                    return;
+                    //alert('Couldn\'t start speech recognition, it may not be supported in your browser, try using Chrome or Edge');
+                } else {
+                    speech.start();
+                    // Reset partial results
+                    lastText = '';
+                    ignoreLength = 0;
+                    lastCaptions = null;
+                }
 
             }
 
