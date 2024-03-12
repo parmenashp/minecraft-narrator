@@ -29,6 +29,8 @@ class Event(StrEnum):
     ANIMAL_BREED = "animal_breed"
     ITEM_TOSS = "item_toss"
     CONFIG = "config"
+    VOICE_DEACTIVATE = "voice_deactivate"
+    VOICE_ACTIVATE = "voice_activate"
 
 
 class IncomingEvent(BaseModel):
@@ -57,7 +59,7 @@ class Action(StrEnum):
     IGNORE = "ignore"
     SEND_CHAT = "send_chat"
     NEW_PERSONALITY = "new_personality"
-    VOICE_DETECTED = "voice_detected"
+    SPEECH_DATA = "speech_data"
 
 
 class OutgoingAction(BaseModel):

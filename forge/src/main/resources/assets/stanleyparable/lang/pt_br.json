@@ -19,5 +19,7 @@
   "gui.stanleyparable.buffer_chatgpt": "Tamanho do Buffer do ChatGPT: ",
   "gui.stanleyparable.elevenlabs_streaming": "Eleven Labs streaming",
   "gui.stanleyparable.openai_streaming": "OpenAI streaming",
-  "item.stanleyparable.bare_hands": "Próprias mãos"
+  "item.stanleyparable.bare_hands": "Próprias mãos",
+  "key.category.narrator": "Narrador IA",
+  "key.voice_activate": "Segure para falar"
 }

@@ -67,6 +67,9 @@ public class WebSocketClient {
     }
 
     public static WebSocketClient getInstance() {
+        if (instance == null) {
+            instance = new WebSocketClient();
+        }
         return instance;
     }
 

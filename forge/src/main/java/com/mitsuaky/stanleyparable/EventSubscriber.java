@@ -57,7 +57,7 @@ import java.util.concurrent.TimeUnit;
 public class EventSubscriber {
     private static final Logger LOGGER = LogManager.getLogger(EventSubscriber.class);
 
-    private static final WebSocketClient wsClient = new WebSocketClient();
+    private static final WebSocketClient wsClient = WebSocketClient.getInstance();
 
     private static boolean isChestOpen = false;
     private static Set<String> lastInventory = null;
@@ -469,7 +469,7 @@ public class EventSubscriber {
             return null;
         });
 
-        wsClient.addEventListener("voice_detected", jsonObject -> {
+        wsClient.addEventListener("speech_data", jsonObject -> {
             String text = jsonObject.get("data").getAsString();
             Component msg = Component.literal(text).withStyle(ChatFormatting.YELLOW);
             player.displayClientMessage(msg, true);
