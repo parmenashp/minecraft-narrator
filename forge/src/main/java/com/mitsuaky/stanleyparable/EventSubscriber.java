@@ -3,6 +3,7 @@ package com.mitsuaky.stanleyparable;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.brigadier.CommandDispatcher;
+import net.minecraft.ChatFormatting;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.client.Minecraft;
@@ -11,6 +12,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -464,6 +466,13 @@ public class EventSubscriber {
             String voiceID = personality.get("voice_id").getAsString();
             ClientConfig.ELEVENLABS_VOICE_ID.set(voiceID);
             player.level().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.PLAYER_LEVELUP, SoundSource.MASTER, 1.5F, 1.0F);
+            return null;
+        });
+
+        wsClient.addEventListener("voice_detected", jsonObject -> {
+            String text = jsonObject.get("data").getAsString();
+            Component msg = Component.literal(text).withStyle(ChatFormatting.YELLOW);
+            player.displayClientMessage(msg, true);
             return null;
         });
 

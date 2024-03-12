@@ -57,6 +57,7 @@ class Action(StrEnum):
     IGNORE = "ignore"
     SEND_CHAT = "send_chat"
     NEW_PERSONALITY = "new_personality"
+    VOICE_DETECTED = "voice_detected"
 
 
 class OutgoingAction(BaseModel):

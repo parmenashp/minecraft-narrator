@@ -20,7 +20,7 @@
 
         const SPLIT_MIN_LENGTH = 120;
         const splitDelay = 2700;
-        const wsUrl = `wss://${window.location.host}/micws`;
+        const wsUrl = `ws://${window.location.host}/mic`;
         const ws = new WebSocket(wsUrl);
         const delay = 1000;
         function normalizeTranscript(text) {

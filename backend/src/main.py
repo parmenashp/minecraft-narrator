@@ -4,9 +4,11 @@ from contextlib import asynccontextmanager
 import sys
 
 import fastapi
+
+from fastapi.staticfiles import StaticFiles
 from loguru import logger
 from src.handler import event_handler
-from src.models import Config, Event, IncomingEvent
+from src.models import Config, Event, IncomingEvent, Action, OutgoingAction
 from src.websocket import ws
 from src.dashboard import start_dashboard
 from src.components.tabs.logs import dashboard_sink
@@ -57,3 +59,27 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
         ws.disconnect(websocket)
         if not isinstance(e, fastapi.WebSocketDisconnect):
             raise e
+
+
+@app.websocket("/mic")
+async def handle_websocket_microphone(websocket: fastapi.WebSocket):
+    logger.info(f"New Microphone connection: {websocket.client}")
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_json()
+            if data == "close":
+                break
+            if data["final"]:
+                speech = OutgoingAction(
+                    action=Action.VOICE_DETECTED,
+                    data=data["text"],
+                )
+                await ws.broadcast(speech.model_dump())
+    except Exception as e:
+        logger.info(f"Microphone Client {websocket.client} disconnected")
+        if not isinstance(e, fastapi.WebSocketDisconnect):
+            raise e
+
+
+app.mount("/speech", StaticFiles(directory="src/speech"), name="speech")
