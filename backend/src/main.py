@@ -29,6 +29,8 @@ async def lifespan_handler(_app: fastapi.FastAPI):
 
 
 app = fastapi.FastAPI(lifespan=lifespan_handler)
+voice_listening = False
+mic_ws: fastapi.WebSocket | None = None
 
 
 @app.websocket("/ws")
@@ -50,6 +52,18 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
                 case Event.CONFIG:
                     config: Config = json.loads(incoming_event.data, object_hook=lambda d: Config(**d))
                     event_handler.handle_config_event(config)
+                case Event.VOICE_ACTIVATE:
+                    if mic_ws is not None:
+                        await mic_ws.send_text("start_listening")
+
+                    global voice_listening
+                    voice_listening = True
+                case Event.VOICE_COMPLETE:
+                    if mic_ws is not None:
+                        await mic_ws.send_text("stop_listening")
+                    voice_listening = False
+                    logger.info(f"Incoming voice data: {incoming_event.data!r}")
+                    await event_handler.handle_game_event(incoming_event)
                 case _:
                     logger.info(f"Incoming event data: {incoming_event.data!r}")
                     await event_handler.handle_game_event(incoming_event)
@@ -65,6 +79,8 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
 async def handle_websocket_microphone(websocket: fastapi.WebSocket):
     logger.info(f"New Microphone connection: {websocket.client}")
     await websocket.accept()
+    global mic_ws
+    mic_ws = websocket
     try:
         while True:
             data = await websocket.receive_json()
@@ -74,9 +90,11 @@ async def handle_websocket_microphone(websocket: fastapi.WebSocket):
                 action=Action.SPEECH_DATA,
                 data=json.dumps(data, ensure_ascii=False),
             )
-            await ws.broadcast(speech.model_dump())
+            if voice_listening:
+                await ws.broadcast(speech.model_dump())
     except Exception as e:
         logger.info(f"Microphone Client {websocket.client} disconnected")
+        mic_ws = None
         if not isinstance(e, fastapi.WebSocketDisconnect):
             raise e
 

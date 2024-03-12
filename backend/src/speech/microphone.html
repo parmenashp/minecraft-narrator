@@ -24,7 +24,7 @@
         const SPLIT_MIN_LENGTH = 120;
         const splitDelay = 2700;
         const wsUrl = `ws://${window.location.host}/mic`;
-        let ws = new WebSocket(wsUrl);
+        let ws;
         const delay = 1000;
         function normalizeTranscript(text) {
             // Trim
@@ -42,16 +42,12 @@
         }
 
         function start_speech() {
+            if (ws) {
+                ws.close();
+            }
             status_span.innerHTML = "Connecting...";
             ws = new WebSocket(wsUrl);
-            ws.onopen = () => {
-                status_span.innerHTML = "Connected";
-            };
-            ws.onclose = () => {
-                status_span.innerHTML = "Disconnected";
-            };
-            console.log("starting speech");
-            const SpeechRecognition = //@ts-ignore
+            let SpeechRecognition = //@ts-ignore
                 window.SpeechRecognition || webkitSpeechRecognition;
 
             if (!SpeechRecognition) {
@@ -60,122 +56,146 @@
                 );
                 return;
             }
-            const speech = new SpeechRecognition();
-            speech.lang = "pt-BR";
-            speech.continuous = true;
-            speech.interimResults = true;
-            speech.maxAlternatives = 1;
-
-
-            let lastCaptions = null;
-            // Last text
-            let lastText = '';
-            // Length of text to ignore (When start of text has already been sent as final)
-            let ignoreLength = 0;
-            let startTime = 0;
-            speech.onstart = () => {
-                if (!startTime) startTime = Date.now();
-            }
-            speech.onresult = (event) => {
-                const result = event.results[event.resultIndex];
-
-                const text = normalizeTranscript(result[0].transcript);
-
-                final_span.innerHTML = text;
-                
-                // Ignore partials between each partial caption
-                if (!result.isFinal && lastCaptions && ((lastCaptions + splitDelay) > Date.now())) {
+            let speech = null;
+            ws.onopen = () => {
+                status_span.innerHTML = "Connected";
+            };
+            ws.onclose = () => {
+                status_span.innerHTML = "Disconnected";
+            };
+            ws.onmessage = (event) => {
+                if (event.data === "stop_listening") {
+                    status_span.innerHTML = "Game not listening";
+                    speech.abort();
+                    speech = null;
                     return;
                 }
-                console.log(text);
+                if (event.data === "start_listening") {
+                    status_span.innerHTML = "Game listening";
+                    speech = new SpeechRecognition();
 
-                // Ignore first partial captions
-                if (text && (result.isFinal || lastCaptions)) {
+                    console.log("starting speech");
 
-                    // Duration/delay is time since last partial sent
-                    // Default duration is split delay ( happens mostly when results received in wrong order )
-                    let duration = splitDelay;
-                    if (lastCaptions) {
-                        duration = Date.now() - lastCaptions;
+                    speech.lang = "pt-BR";
+                    speech.continuous = true;
+                    speech.interimResults = true;
+                    speech.maxAlternatives = 1;
+
+
+                    let lastCaptions = null;
+                    // Last text
+                    let lastText = '';
+                    // Length of text to ignore (When start of text has already been sent as final)
+                    let ignoreLength = 0;
+                    let startTime = 0;
+                    speech.onstart = () => {
+                        if (!startTime) startTime = Date.now();
+                    }
+                    speech.onresult = (event) => {
+                        const result = event.results[event.resultIndex];
+
+                        const text = normalizeTranscript(result[0].transcript);
+
+                        final_span.innerHTML = text;
+
+                        // Ignore partials between each partial caption
+                        if (!result.isFinal && lastCaptions && ((lastCaptions + splitDelay) > Date.now())) {
+                            return;
+                        }
+                        console.log(text);
+
+                        // Ignore first partial captions
+                        if (text && (result.isFinal || lastCaptions)) {
+
+                            // Duration/delay is time since last partial sent
+                            // Default duration is split delay ( happens mostly when results received in wrong order )
+                            let duration = splitDelay;
+                            if (lastCaptions) {
+                                duration = Date.now() - lastCaptions;
+                            }
+
+                            let currentPart = text.slice(ignoreLength).trim();
+
+                            // If partial text too long: try to split it
+                            if (!result.isFinal && currentPart.length > SPLIT_MIN_LENGTH && lastText.length && text.toLowerCase().startsWith(lastText.toLowerCase())) {
+
+                                // Text splitted: Send last part as final + Send next part as first partial
+                                const part = lastText.slice(ignoreLength);
+                                // Send first sentence part as final
+                                ws_data = JSON.stringify({
+                                    final: true,
+                                    duration: 0,
+                                    text: part,
+                                    delay: duration - (delay - 500),
+                                    timestamp: Date.now()
+                                });
+                                ws.send(ws_data);
+
+                                ignoreLength = lastText.length;
+                                currentPart = text.slice(ignoreLength).trim();
+
+                                // Send next part as partial
+                                ws_data = JSON.stringify({
+                                    final: false,
+                                    duration,
+                                    text: currentPart,
+                                    delay: duration - (delay + 250),
+                                    timestamp: Date.now()
+                                });
+                                ws.send(ws_data);
+                            } else {
+                                // Text not splitted
+                                // Send it normally
+                                ws_data = JSON.stringify({
+                                    text: currentPart,
+                                    duration,
+                                    delay: duration - delay,
+                                    final: result.isFinal,
+                                    timestamp: Date.now()
+                                });
+                                ws.send(ws_data);
+                            }
+
+                            if (!result.isFinal) {
+                                // Store partial text to compare it with next version
+                                lastText = text;
+                            } else {
+                                // Clear partial text when finished
+                                lastText = '';
+                                ignoreLength = 0;
+                            }
+                        }
+
+                        if (result.isFinal) {
+                            // Reset timestamps when sentence ends
+                            lastCaptions = null;
+                        } else {
+                            // Setup timestamp for next partial time
+                            lastCaptions = Date.now();
+                        }
+                    }
+                    speech.onend = () => {
+                        // If stopping just after start: Probably not supported
+                        if (startTime && ((Date.now() - startTime) < 1000)) {
+                            return;
+                            //alert('Couldn\'t start speech recognition, it may not be supported in your browser, try using Chrome or Edge');
+                        } else {
+                            if (speech) {
+                                speech.start();
+                            }
+                            // Reset partial results
+                            lastText = '';
+                            ignoreLength = 0;
+                            lastCaptions = null;
+                        }
+
                     }
 
-                    let currentPart = text.slice(ignoreLength).trim();
 
-                    // If partial text too long: try to split it
-                    if (!result.isFinal && currentPart.length > SPLIT_MIN_LENGTH && lastText.length && text.toLowerCase().startsWith(lastText.toLowerCase())) {
-
-                        // Text splitted: Send last part as final + Send next part as first partial
-                        const part = lastText.slice(ignoreLength);
-                        // Send first sentence part as final
-                        ws_data = JSON.stringify({
-                            final: true,
-                            duration: 0,
-                            text: part,
-                            delay: duration - (delay - 500),
-                            timestamp: Date.now()
-                        });
-                        ws.send(ws_data);
-
-                        ignoreLength = lastText.length;
-                        currentPart = text.slice(ignoreLength).trim();
-
-                        // Send next part as partial
-                        ws_data = JSON.stringify({
-                            final: false,
-                            duration,
-                            text: currentPart,
-                            delay: duration - (delay + 250),
-                            timestamp: Date.now()
-                        });
-                        ws.send(ws_data);
-                    } else {
-                        // Text not splitted
-                        // Send it normally
-                        ws_data = JSON.stringify({
-                            text: currentPart,
-                            duration,
-                            delay: duration - delay,
-                            final: result.isFinal,
-                            timestamp: Date.now()
-                        });
-                        ws.send(ws_data);
-                    }
-
-                    if (!result.isFinal) {
-                        // Store partial text to compare it with next version
-                        lastText = text;
-                    } else {
-                        // Clear partial text when finished
-                        lastText = '';
-                        ignoreLength = 0;
-                    }
-                }
-
-                if (result.isFinal) {
-                    // Reset timestamps when sentence ends
-                    lastCaptions = null;
-                } else {
-                    // Setup timestamp for next partial time
-                    lastCaptions = Date.now();
-                }
-            }
-            speech.onend = () => {
-                // If stopping just after start: Probably not supported
-                if (startTime && ((Date.now() - startTime) < 1000)) {
-                    return;
-                    //alert('Couldn\'t start speech recognition, it may not be supported in your browser, try using Chrome or Edge');
-                } else {
                     speech.start();
-                    // Reset partial results
-                    lastText = '';
-                    ignoreLength = 0;
-                    lastCaptions = null;
                 }
+            };
 
-            }
-
-
-            speech.start();
         }
     </script>
 </body>

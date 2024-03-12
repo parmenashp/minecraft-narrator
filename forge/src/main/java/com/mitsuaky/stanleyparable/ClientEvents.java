@@ -2,6 +2,7 @@ package com.mitsuaky.stanleyparable;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -60,6 +61,8 @@ public class ClientEvents {
                     });
                     player.playSound(SoundEvents.NOTE_BLOCK_HARP.value(), 1.0F, 1.0F);
                     wsClient.sendEvent("voice_activate", "");
+                    String key = KeyBinding.VOICE_KEY.getKey().getDisplayName().getString();
+                    player.displayClientMessage(Component.literal("Escutando... Aperte " + key + " novamente para parar."), true);
                 }
             }
         }
