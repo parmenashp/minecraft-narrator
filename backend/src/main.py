@@ -8,10 +8,11 @@ import fastapi
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
 from src.handler import event_handler
-from src.models import Config, Event, IncomingEvent, Action, OutgoingAction
+from src.models import Config, Event, IncomingEvent
 from src.websocket import ws
 from src.dashboard import start_dashboard
 from src.components.tabs.logs import dashboard_sink
+from src.voice import voice
 
 # TODO: Add option to enable debug logs to stdout with backtrace and diagnose when developing
 logger.remove()  # Remove default logger
@@ -29,8 +30,6 @@ async def lifespan_handler(_app: fastapi.FastAPI):
 
 
 app = fastapi.FastAPI(lifespan=lifespan_handler)
-voice_listening = False
-mic_ws: fastapi.WebSocket | None = None
 
 
 @app.websocket("/ws")
@@ -53,17 +52,9 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
                     config: Config = json.loads(incoming_event.data, object_hook=lambda d: Config(**d))
                     event_handler.handle_config_event(config)
                 case Event.VOICE_ACTIVATE:
-                    if mic_ws is not None:
-                        await mic_ws.send_text("start_listening")
-
-                    global voice_listening
-                    voice_listening = True
+                    await voice.handle_voice_activate()
                 case Event.VOICE_COMPLETE:
-                    if mic_ws is not None:
-                        await mic_ws.send_text("stop_listening")
-                    voice_listening = False
-                    logger.info(f"Incoming voice data: {incoming_event.data!r}")
-                    await event_handler.handle_game_event(incoming_event)
+                    await voice.handle_voice_complete(incoming_event)
                 case _:
                     logger.info(f"Incoming event data: {incoming_event.data!r}")
                     await event_handler.handle_game_event(incoming_event)
@@ -75,28 +66,5 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
             raise e
 
 
-@app.websocket("/mic")
-async def handle_websocket_microphone(websocket: fastapi.WebSocket):
-    logger.info(f"New Microphone connection: {websocket.client}")
-    await websocket.accept()
-    global mic_ws
-    mic_ws = websocket
-    try:
-        while True:
-            data = await websocket.receive_json()
-            if data == "close":
-                break
-            speech = OutgoingAction(
-                action=Action.SPEECH_DATA,
-                data=json.dumps(data, ensure_ascii=False),
-            )
-            if voice_listening:
-                await ws.broadcast(speech.model_dump())
-    except Exception as e:
-        logger.info(f"Microphone Client {websocket.client} disconnected")
-        mic_ws = None
-        if not isinstance(e, fastapi.WebSocketDisconnect):
-            raise e
-
-
 app.mount("/speech", StaticFiles(directory="src/speech"), name="speech")
+app.add_websocket_route("/mic", voice.handle_websocket_microphone)
