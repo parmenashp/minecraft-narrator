@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.concurrent.*;
 import java.util.function.Function;
 
-
 public class WebSocketClient {
     private static WebSocketClient instance;
     private static final Logger LOGGER = LogManager.getLogger(WebSocketClient.class);
