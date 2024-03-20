@@ -4,9 +4,13 @@ import com.mitsuaky.stanleyparable.StanleyParableMod;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class Messages {
+    private static final Logger LOGGER = LogManager.getLogger(Messages.class);
+
 
     private static SimpleChannel INSTANCE;
 
@@ -39,6 +43,7 @@ public class Messages {
     }
 
     public static <MSG> void sendToPlayer(MSG message, ServerPlayer player) {
+        LOGGER.debug("Sending {} to {}", message, player);
         PacketDistributor.PacketTarget target = PacketDistributor.PLAYER.with(player);
         INSTANCE.send(message, target);
     }

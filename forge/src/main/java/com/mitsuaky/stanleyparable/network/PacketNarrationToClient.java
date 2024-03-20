@@ -31,7 +31,7 @@ public class PacketNarrationToClient {
     public void handle(CustomPayloadEvent.Context ctx) {
         ctx.enqueueWork(() -> {
             //Client-side
-            LOGGER.debug("Received packet from " + event);
+            LOGGER.debug("Received packet for " + event);
             Event e = Event.valueOf(event.toUpperCase());
             ClientEventHandler.handle(e, msg);
         });

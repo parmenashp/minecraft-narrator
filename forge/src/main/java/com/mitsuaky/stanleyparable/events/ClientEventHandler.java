@@ -10,7 +10,7 @@ public class ClientEventHandler {
     private static final WebSocketClient wsClient = WebSocketClient.getInstance();
 
     public static void handle(Event event, String msg) {
-        LOGGER.debug("Sending packet to " + event.getValue() + msg);
+        LOGGER.debug("Sending {}:{} to backend", event.getValue(), msg);
         wsClient.sendEvent(event.getValue(), msg);
     }
 }

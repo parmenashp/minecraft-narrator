@@ -1,10 +1,13 @@
 package com.mitsuaky.stanleyparable.events;
 
 import com.mitsuaky.stanleyparable.StanleyParableMod;
+import com.mitsuaky.stanleyparable.commands.NarratorCommands;
 import com.mitsuaky.stanleyparable.network.Messages;
 import com.mitsuaky.stanleyparable.network.PacketNarrationToClient;
+import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.DisplayInfo;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -13,6 +16,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.living.BabyEntitySpawnEvent;
@@ -58,6 +62,13 @@ public class ServerEvents {
 //        }
     }
 
+
+    @SubscribeEvent
+    public static void registerCommands(RegisterCommandsEvent event) {
+        LOGGER.debug("RegisterCommandsEvent triggered");
+        CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
+        NarratorCommands.register(dispatcher);
+    }
 
     @SubscribeEvent
     public static void onBlockBreak(BlockEvent.BreakEvent event) {
