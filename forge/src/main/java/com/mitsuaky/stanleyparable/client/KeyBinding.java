@@ -1,4 +1,4 @@
-package com.mitsuaky.stanleyparable;
+package com.mitsuaky.stanleyparable.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;

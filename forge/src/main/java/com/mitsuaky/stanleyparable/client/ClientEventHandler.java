@@ -1,6 +1,6 @@
-package com.mitsuaky.stanleyparable.events;
+package com.mitsuaky.stanleyparable.client;
 
-import com.mitsuaky.stanleyparable.WebSocketClient;
+import com.mitsuaky.stanleyparable.events.Event;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

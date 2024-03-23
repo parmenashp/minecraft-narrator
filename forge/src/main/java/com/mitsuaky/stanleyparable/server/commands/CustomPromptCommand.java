@@ -1,4 +1,4 @@
-package com.mitsuaky.stanleyparable.commands;
+package com.mitsuaky.stanleyparable.server.commands;
 
 import com.mitsuaky.stanleyparable.events.Event;
 import com.mitsuaky.stanleyparable.network.Messages;

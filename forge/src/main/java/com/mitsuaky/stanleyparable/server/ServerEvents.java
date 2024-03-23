@@ -1,7 +1,8 @@
-package com.mitsuaky.stanleyparable.events;
+package com.mitsuaky.stanleyparable.server;
 
 import com.mitsuaky.stanleyparable.StanleyParableMod;
-import com.mitsuaky.stanleyparable.commands.NarratorCommands;
+import com.mitsuaky.stanleyparable.server.commands.NarratorCommands;
+import com.mitsuaky.stanleyparable.events.Event;
 import com.mitsuaky.stanleyparable.network.Messages;
 import com.mitsuaky.stanleyparable.network.PacketNarrationToClient;
 import com.mojang.brigadier.CommandDispatcher;

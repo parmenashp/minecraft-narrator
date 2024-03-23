@@ -1,9 +1,13 @@
-package com.mitsuaky.stanleyparable.events;
+package com.mitsuaky.stanleyparable.client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mitsuaky.stanleyparable.*;
-import com.mitsuaky.stanleyparable.screen.ConfigScreen;
+import com.mitsuaky.stanleyparable.client.ClientConfig;
+import com.mitsuaky.stanleyparable.client.KeyBinding;
+import com.mitsuaky.stanleyparable.client.WebSocketClient;
+import com.mitsuaky.stanleyparable.client.screen.ConfigScreen;
+import com.mitsuaky.stanleyparable.events.Event;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;

@@ -1,4 +1,4 @@
-package com.mitsuaky.stanleyparable.screen.widget;
+package com.mitsuaky.stanleyparable.client.screen.widget;
 
 import net.minecraft.Util;
 import net.minecraft.client.gui.Font;

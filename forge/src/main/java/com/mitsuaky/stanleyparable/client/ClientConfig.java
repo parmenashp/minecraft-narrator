@@ -1,4 +1,4 @@
-package com.mitsuaky.stanleyparable;
+package com.mitsuaky.stanleyparable.client;
 
 import com.google.gson.JsonObject;
 import net.minecraftforge.common.ForgeConfigSpec;

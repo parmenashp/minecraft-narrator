@@ -1,8 +1,8 @@
-package com.mitsuaky.stanleyparable.screen;
+package com.mitsuaky.stanleyparable.client.screen;
 
-import com.mitsuaky.stanleyparable.ClientConfig;
-import com.mitsuaky.stanleyparable.WebSocketClient;
-import com.mitsuaky.stanleyparable.screen.widget.PingWidget;
+import com.mitsuaky.stanleyparable.client.ClientConfig;
+import com.mitsuaky.stanleyparable.client.WebSocketClient;
+import com.mitsuaky.stanleyparable.client.screen.widget.PingWidget;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;

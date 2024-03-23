@@ -1,4 +1,4 @@
-package com.mitsuaky.stanleyparable.screen.widget;
+package com.mitsuaky.stanleyparable.client.screen.widget;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
