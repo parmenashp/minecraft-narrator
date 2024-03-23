@@ -20,6 +20,7 @@ public enum Event {
     ITEM_REPAIR("item_repair"),
     ANIMAL_BREED("animal_breed"),
     ITEM_TOSS("item_toss"),
+    SET_SYSTEM("set_system"),
     CUSTOM_PROMPT("custom_prompt"),
     JOIN_WORLD("join_world");
 

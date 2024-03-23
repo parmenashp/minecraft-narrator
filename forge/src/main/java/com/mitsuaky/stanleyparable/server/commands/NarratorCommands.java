@@ -12,6 +12,7 @@ public class NarratorCommands {
         dispatcher.register(
                 Commands.literal("minecraftnarrator")
                         .then(CustomPromptCommand.register())
+                        .then(SystemPromptCommand.register())
         );
     }
 }

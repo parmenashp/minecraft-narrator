@@ -30,6 +30,7 @@ class Event(StrEnum):
     ITEM_TOSS = "item_toss"
     CONFIG = "config"
     CUSTOM_PROMPT = "custom_prompt"
+    SET_SYSTEM = "set_system"
     VOICE_COMPLETE = "voice_complete"
     VOICE_ACTIVATE = "voice_activate"
 
