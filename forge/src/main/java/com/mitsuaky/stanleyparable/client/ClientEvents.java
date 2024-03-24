@@ -3,9 +3,6 @@ package com.mitsuaky.stanleyparable.client;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mitsuaky.stanleyparable.*;
-import com.mitsuaky.stanleyparable.client.ClientConfig;
-import com.mitsuaky.stanleyparable.client.KeyBinding;
-import com.mitsuaky.stanleyparable.client.WebSocketClient;
 import com.mitsuaky.stanleyparable.client.screen.ConfigScreen;
 import com.mitsuaky.stanleyparable.events.Event;
 import com.mojang.brigadier.CommandDispatcher;
@@ -64,10 +61,6 @@ public class ClientEvents {
 
         public static String getAsName(ItemStack itemStack) {
             return Component.translatable(itemStack.getDescriptionId()).getString();
-        }
-
-        public static String getAsName(net.minecraft.world.level.block.Block block) {
-            return block.getName().getString();
         }
 
         public static String getAsName(Entity entity) {
@@ -230,11 +223,10 @@ public class ClientEvents {
 
         @SubscribeEvent
         public static void onPlayerJoin(EntityJoinLevelEvent event) {
-            if (!(event.getEntity() instanceof LocalPlayer)) {
+            if (!(event.getEntity() instanceof LocalPlayer player)) {
                 return;
             }
             ClientConfig.applyServerConfig();
-            Entity player = event.getEntity();
             wsClient.addEventListener("send_chat", jsonObject -> {
                 if (ClientConfig.SEND_TO_CHAT.get()) {
                     player.sendSystemMessage(Component.nullToEmpty(jsonObject.get("data").getAsString()));
