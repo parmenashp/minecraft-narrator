@@ -9,6 +9,7 @@ import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,12 +29,16 @@ public class SystemPromptCommand {
     private static int runCmd(CommandContext<CommandSourceStack> ctx) {
         LOGGER.debug("Set system prompt command triggered");
 
-        ServerPlayer player = ctx.getSource().getPlayer();
+        MinecraftServer server = ctx.getSource().getServer();
         String msg = StringArgumentType.getString(ctx, "promptID");
         String event = Event.SET_SYSTEM.getValue();
-        Messages.sendToPlayer(new PacketNarrationToClient(event, msg), player);
-
-        ctx.getSource().sendSuccess(() -> Component.literal("Sent to backend"), false);
-        return 1;
+        try {
+            Messages.sendToTargetPlayer(new PacketNarrationToClient(event, msg), server);
+            ctx.getSource().sendSuccess(() -> Component.literal("Sent to backend"), false);
+            return 1;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal(e.getMessage()));
+            return 0;
+        }
     }
 }

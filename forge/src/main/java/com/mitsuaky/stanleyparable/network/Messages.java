@@ -1,11 +1,18 @@
 package com.mitsuaky.stanleyparable.network;
 
 import com.mitsuaky.stanleyparable.StanleyParableMod;
+import com.mitsuaky.stanleyparable.server.ServerConfig;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.PlayerList;
 import net.minecraftforge.network.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import javax.annotation.Nullable;
+import java.util.Objects;
+import java.util.UUID;
 
 
 public class Messages {
@@ -48,4 +55,18 @@ public class Messages {
         INSTANCE.send(message, target);
     }
 
+    public static <MSG> void sendToTargetPlayer(MSG message, MinecraftServer server) throws Exception {
+
+        PlayerList players = server.getPlayerList();
+        UUID targetPlayerUUID = UUID.fromString(ServerConfig.TARGET_PLAYER_UUID.get());
+        ServerPlayer targetPlayer = players.getPlayer(targetPlayerUUID);
+        if (targetPlayer == null) {
+            throw new Exception(String.format("Player with uuid %s not found", targetPlayerUUID));
+        }
+
+        LOGGER.debug("Sending {} to {}", message, targetPlayer);
+        PacketDistributor.PacketTarget target = PacketDistributor.PLAYER.with(targetPlayer);
+        INSTANCE.send(message, target);
+
+    }
 }

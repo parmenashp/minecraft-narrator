@@ -13,6 +13,7 @@ public class NarratorCommands {
                 Commands.literal("minecraftnarrator")
                         .then(CustomPromptCommand.register())
                         .then(SystemPromptCommand.register())
+                        .then(SetPlayerCommand.register())
         );
     }
 }

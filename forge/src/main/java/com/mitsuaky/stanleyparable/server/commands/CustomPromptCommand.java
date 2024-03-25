@@ -8,7 +8,8 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -23,10 +24,15 @@ public class CustomPromptCommand {
 
     private static int runCmd(CommandContext<CommandSourceStack> ctx) {
         LOGGER.debug("Custom prompt command triggered");
-        ServerPlayer player = ctx.getSource().getPlayer();
+        MinecraftServer server = ctx.getSource().getServer();
         String msg = StringArgumentType.getString(ctx, "userMessage");
         String event = Event.CUSTOM_PROMPT.getValue();
-        Messages.sendToPlayer(new PacketNarrationToClient(event, msg), player);
-        return 1;
+        try {
+            Messages.sendToTargetPlayer(new PacketNarrationToClient(event, msg), server);
+            return 1;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal(e.getMessage()));
+            return 0;
+        }
     }
 }
