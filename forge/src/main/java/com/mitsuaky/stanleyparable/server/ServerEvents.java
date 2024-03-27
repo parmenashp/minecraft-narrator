@@ -2,9 +2,9 @@ package com.mitsuaky.stanleyparable.server;
 
 import com.mitsuaky.stanleyparable.StanleyParableMod;
 import com.mitsuaky.stanleyparable.server.commands.NarratorCommands;
-import com.mitsuaky.stanleyparable.events.Event;
-import com.mitsuaky.stanleyparable.network.Messages;
-import com.mitsuaky.stanleyparable.network.PacketNarrationToClient;
+import com.mitsuaky.stanleyparable.common.events.Event;
+import com.mitsuaky.stanleyparable.common.network.Messages;
+import com.mitsuaky.stanleyparable.common.network.PacketEventToClient;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.DisplayInfo;
@@ -93,7 +93,7 @@ public class ServerEvents {
         ServerPlayer serverPlayer = (ServerPlayer) event.getPlayer();
         String e = Event.BLOCK_BROKEN.getValue();
         String msg = String.format("Jogador \"%s\" quebrou \"%s\" com \"%s\"", player, block, tool_name);
-        Messages.sendToPlayer(new PacketNarrationToClient(e, msg), serverPlayer);
+        Messages.sendToPlayer(new PacketEventToClient(e, msg), serverPlayer);
         //wsClient.sendEvent(Event.BLOCK_BROKEN.getValue(), String.format("Jogador \"%s\" quebrou \"%s\" com \"%s\"", player, block, tool_name));
     }
 
@@ -112,7 +112,7 @@ public class ServerEvents {
         String e = Event.BLOCK_PLACED.getValue();
         String msg = String.format("Jogador \"%s\" colocou \"%s\"", player, block);
         ServerPlayer serverPlayer = (ServerPlayer) event.getEntity();
-        Messages.sendToPlayer(new PacketNarrationToClient(e, msg), serverPlayer);
+        Messages.sendToPlayer(new PacketEventToClient(e, msg), serverPlayer);
         //wsClient.sendEvent(Event.BLOCK_PLACED.getValue(), String.format("Jogador \"%s\" colocou \"%s\"", player, block));
     }
 
@@ -129,7 +129,7 @@ public class ServerEvents {
         String e = Event.ITEM_FISHED.getValue();
         String msg = String.format("Jogador \"%s\" pescou um(a) \"%s\"", getPlayerName(event.getEntity()), itemName);
         ServerPlayer serverPlayer = (ServerPlayer) event.getEntity();
-        Messages.sendToPlayer(new PacketNarrationToClient(e, msg), serverPlayer);
+        Messages.sendToPlayer(new PacketEventToClient(e, msg), serverPlayer);
         //wsClient.sendEvent(Event.ITEM_FISHED.getValue(), String.format("Jogador \"%s\" pescou um(a) \"%s\"", getPlayerName(event.getEntity()), itemName));
     }
 
@@ -152,7 +152,7 @@ public class ServerEvents {
         String e = Event.ITEM_PICKUP.getValue();
         String msg = String.format("Jogador \"%s\" pegou \"%d\" \"%s\"", player, amount, item);
         ServerPlayer serverPlayer = (ServerPlayer) event.getEntity();
-        Messages.sendToPlayer(new PacketNarrationToClient(e, msg), serverPlayer);
+        Messages.sendToPlayer(new PacketEventToClient(e, msg), serverPlayer);
         //wsClient.sendEvent(Event.ITEM_PICKUP.getValue(), String.format("Jogador \"%s\" pegou \"%d\" \"%s\"", player, amount, item));
     }
 
@@ -169,7 +169,7 @@ public class ServerEvents {
         String e = Event.PLAYER_CHAT.getValue();
         String msg = String.format("Jogador \"%s\" escreveu no chat do jogo \"%s\"", player, message);
         ServerPlayer serverPlayer = event.getPlayer();
-        Messages.sendToPlayer(new PacketNarrationToClient(e, msg), serverPlayer);
+        Messages.sendToPlayer(new PacketEventToClient(e, msg), serverPlayer);
         //wsClient.sendEvent(Event.PLAYER_CHAT.getValue(), String.format("Jogador \"%s\" escreveu no chat do jogo \"%s\"", player, message));
     }
 
@@ -188,7 +188,7 @@ public class ServerEvents {
         String e = Event.PLAYER_DEATH.getValue();
         String msg = String.format("Jogador \"%s\" morreu \"%s\"", player, deathCause.replace(originalPlayerName, player));
         ServerPlayer serverPlayer = (ServerPlayer) event.getEntity();
-        Messages.sendToPlayer(new PacketNarrationToClient(e, msg), serverPlayer);
+        Messages.sendToPlayer(new PacketEventToClient(e, msg), serverPlayer);
         //wsClient.sendEvent(Event.PLAYER_DEATH.getValue(), String.format("Jogador \"%s\" morreu \"%s\"", player, deathCause.replace(originalPlayerName, player)));
     }
 
@@ -205,7 +205,7 @@ public class ServerEvents {
         LOGGER.debug(String.format("SERVER -> CLIENT: AnimalBreedEvent: %s", message));
         String e = Event.ANIMAL_BREED.getValue();
         ServerPlayer serverPlayer = (ServerPlayer) event.getCausedByPlayer();
-        Messages.sendToPlayer(new PacketNarrationToClient(e, message), serverPlayer);
+        Messages.sendToPlayer(new PacketEventToClient(e, message), serverPlayer);
 
         //wsClient.sendEvent(Event.ANIMAL_BREED.getValue(), message);
     }
@@ -230,22 +230,22 @@ public class ServerEvents {
             if (item.wasOnFire) {
                 LOGGER.debug(String.format("SERVER -> CLIENT: ItemTossEvent: \"%s\" queimou \"%s\"", player, itemName));
                 String msg = String.format("Jogador \"%s\" queimou \"%s\"", player, itemName);
-                Messages.sendToPlayer(new PacketNarrationToClient(e, msg), serverPlayer);
+                Messages.sendToPlayer(new PacketEventToClient(e, msg), serverPlayer);
                 //wsClient.sendEvent(Event.ITEM_TOSS.getValue(), String.format("Jogador \"%s\" queimou \"%s\"", player, itemName));
             } else if (item.onGround()) {
                 LOGGER.debug(String.format("SERVER -> CLIENT: ItemTossEvent: \"%s\" jogou \"%s\" no chão", player, itemName));
                 String msg = String.format("Jogador \"%s\" jogou \"%s\" no chão", player, itemName);
-                Messages.sendToPlayer(new PacketNarrationToClient(e, msg), serverPlayer);
+                Messages.sendToPlayer(new PacketEventToClient(e, msg), serverPlayer);
                 //wsClient.sendEvent(Event.ITEM_TOSS.getValue(), String.format("Jogador \"%s\" jogou \"%s\" no chão", player, itemName));
             } else if (item.isInWater()) {
                 LOGGER.debug(String.format("SERVER -> CLIENT: ItemTossEvent: \"%s\" jogou \"%s\" na água", player, itemName));
                 String msg = String.format("Jogador \"%s\" jogou \"%s\" na água", player, itemName);
-                Messages.sendToPlayer(new PacketNarrationToClient(e, msg), serverPlayer);
+                Messages.sendToPlayer(new PacketEventToClient(e, msg), serverPlayer);
                 //wsClient.sendEvent(Event.ITEM_TOSS.getValue(), String.format("Jogador \"%s\" jogou \"%s\" na água", player, itemName));
             } else if (item.isInLava()) {
                 LOGGER.debug(String.format("SERVER -> CLIENT: ItemTossEvent: \"%s\" jogou \"%s\" na lava", player, itemName));
                 String msg = String.format("Jogador \"%s\" jogou \"%s\" na lava", player, itemName);
-                Messages.sendToPlayer(new PacketNarrationToClient(e, msg), serverPlayer);
+                Messages.sendToPlayer(new PacketEventToClient(e, msg), serverPlayer);
                 //wsClient.sendEvent(Event.ITEM_TOSS.getValue(), String.format("Jogador \"%s\" jogou \"%s\" na lava", player, itemName));
             }
             scheduler.shutdown();
@@ -277,7 +277,7 @@ public class ServerEvents {
         LOGGER.debug(String.format("SERVER -> CLIENT: AdvancementEvent: \"%s\" obteve a conquista \"%s\": \"%s\"", player, advancementTitle, advancementDescription));
         String e = Event.ADVANCEMENT.getValue();
         ServerPlayer serverPlayer = (ServerPlayer) event.getEntity();
-        Messages.sendToPlayer(new PacketNarrationToClient(e, String.format("Jogador \"%s\" obteve a conquista \"%s\": \"%s\"", player, advancementTitle, advancementDescription)), serverPlayer);
+        Messages.sendToPlayer(new PacketEventToClient(e, String.format("Jogador \"%s\" obteve a conquista \"%s\": \"%s\"", player, advancementTitle, advancementDescription)), serverPlayer);
         //wsClient.sendEvent(Event.ADVANCEMENT.getValue(), String.format("Jogador \"%s\" obteve a conquista \"%s\": \"%s\"", player, advancementTitle, advancementDescription));
     }
 
@@ -299,7 +299,7 @@ public class ServerEvents {
         LOGGER.debug(String.format("SERVER -> CLIENT: MobKilledEvent: \"%s\" matou \"%s\" com \"%s\"", playerName, mob, weapon_name));
         String e = Event.MOB_KILLED.getValue();
         ServerPlayer serverPlayer = (ServerPlayer) player;
-        Messages.sendToPlayer(new PacketNarrationToClient(e, String.format("Jogador \"%s\" matou \"%s\" com \"%s\"", playerName, mob, weapon_name)), serverPlayer);
+        Messages.sendToPlayer(new PacketEventToClient(e, String.format("Jogador \"%s\" matou \"%s\" com \"%s\"", playerName, mob, weapon_name)), serverPlayer);
         //wsClient.sendEvent(Event.MOB_KILLED.getValue(), String.format("Jogador \"%s\" matou \"%s\" com \"%s\"", playerName, mob, weapon_name));
     }
 }

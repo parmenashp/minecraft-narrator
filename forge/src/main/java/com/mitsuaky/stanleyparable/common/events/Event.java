@@ -1,4 +1,4 @@
-package com.mitsuaky.stanleyparable.events;
+package com.mitsuaky.stanleyparable.common.events;
 
 public enum Event {
     ITEM_CRAFTED("item_crafted"),

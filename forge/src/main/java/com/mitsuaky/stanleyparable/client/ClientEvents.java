@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mitsuaky.stanleyparable.*;
 import com.mitsuaky.stanleyparable.client.screen.ConfigScreen;
-import com.mitsuaky.stanleyparable.events.Event;
+import com.mitsuaky.stanleyparable.common.events.Event;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;

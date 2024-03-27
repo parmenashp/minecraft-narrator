@@ -1,24 +1,24 @@
-package com.mitsuaky.stanleyparable.network;
+package com.mitsuaky.stanleyparable.common.network;
 
 import com.mitsuaky.stanleyparable.client.ClientEventHandler;
 import com.mitsuaky.stanleyparable.client.ClientEvents;
-import com.mitsuaky.stanleyparable.events.Event;
+import com.mitsuaky.stanleyparable.common.events.Event;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.event.network.CustomPayloadEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class PacketNarrationToClient {
+public class PacketEventToClient {
     private static final Logger LOGGER = LogManager.getLogger(ClientEvents.ClientForgeEvents.class);
     private final String event;
     private final String msg;
 
-    public PacketNarrationToClient(String event, String msg) {
+    public PacketEventToClient(String event, String msg) {
         this.event = event;
         this.msg = msg;
     }
 
-    public PacketNarrationToClient(FriendlyByteBuf buf) {
+    public PacketEventToClient(FriendlyByteBuf buf) {
         event = buf.readUtf();
         msg = buf.readUtf();
     }

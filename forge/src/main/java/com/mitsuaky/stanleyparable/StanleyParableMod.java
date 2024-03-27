@@ -1,7 +1,7 @@
 package com.mitsuaky.stanleyparable;
 
 import com.mitsuaky.stanleyparable.client.ClientConfig;
-import com.mitsuaky.stanleyparable.network.Messages;
+import com.mitsuaky.stanleyparable.common.network.Messages;
 import com.mitsuaky.stanleyparable.client.screen.ConfigScreen;
 import com.mitsuaky.stanleyparable.server.ServerConfig;
 import net.minecraftforge.api.distmarker.Dist;

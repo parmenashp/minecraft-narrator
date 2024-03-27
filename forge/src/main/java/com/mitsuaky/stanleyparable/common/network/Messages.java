@@ -1,4 +1,4 @@
-package com.mitsuaky.stanleyparable.network;
+package com.mitsuaky.stanleyparable.common.network;
 
 import com.mitsuaky.stanleyparable.StanleyParableMod;
 import com.mitsuaky.stanleyparable.server.ServerConfig;
@@ -10,8 +10,6 @@ import net.minecraftforge.network.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.annotation.Nullable;
-import java.util.Objects;
 import java.util.UUID;
 
 
@@ -37,10 +35,10 @@ public class Messages {
 
         INSTANCE = net;
 
-        net.messageBuilder(PacketNarrationToClient.class, id(), NetworkDirection.PLAY_TO_CLIENT)
-                .decoder(PacketNarrationToClient::new)
-                .encoder(PacketNarrationToClient::toBytes)
-                .consumerMainThread(PacketNarrationToClient::handle)
+        net.messageBuilder(PacketEventToClient.class, id(), NetworkDirection.PLAY_TO_CLIENT)
+                .decoder(PacketEventToClient::new)
+                .encoder(PacketEventToClient::toBytes)
+                .consumerMainThread(PacketEventToClient::handle)
                 .add();
     }
 

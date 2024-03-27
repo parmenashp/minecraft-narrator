@@ -1,8 +1,8 @@
 package com.mitsuaky.stanleyparable.server.commands;
 
-import com.mitsuaky.stanleyparable.events.Event;
-import com.mitsuaky.stanleyparable.network.Messages;
-import com.mitsuaky.stanleyparable.network.PacketNarrationToClient;
+import com.mitsuaky.stanleyparable.common.events.Event;
+import com.mitsuaky.stanleyparable.common.network.Messages;
+import com.mitsuaky.stanleyparable.common.network.PacketEventToClient;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -28,7 +28,7 @@ public class CustomPromptCommand {
         String msg = StringArgumentType.getString(ctx, "userMessage");
         String event = Event.CUSTOM_PROMPT.getValue();
         try {
-            Messages.sendToTargetPlayer(new PacketNarrationToClient(event, msg), server);
+            Messages.sendToTargetPlayer(new PacketEventToClient(event, msg), server);
             return 1;
         } catch (Exception e) {
             ctx.getSource().sendFailure(Component.literal(e.getMessage()));

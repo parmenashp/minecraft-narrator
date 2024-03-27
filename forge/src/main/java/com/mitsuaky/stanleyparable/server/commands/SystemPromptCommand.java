@@ -1,8 +1,8 @@
 package com.mitsuaky.stanleyparable.server.commands;
 
-import com.mitsuaky.stanleyparable.events.Event;
-import com.mitsuaky.stanleyparable.network.Messages;
-import com.mitsuaky.stanleyparable.network.PacketNarrationToClient;
+import com.mitsuaky.stanleyparable.common.events.Event;
+import com.mitsuaky.stanleyparable.common.network.Messages;
+import com.mitsuaky.stanleyparable.common.network.PacketEventToClient;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -10,7 +10,6 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerPlayer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,7 +32,7 @@ public class SystemPromptCommand {
         String msg = StringArgumentType.getString(ctx, "promptID");
         String event = Event.SET_SYSTEM.getValue();
         try {
-            Messages.sendToTargetPlayer(new PacketNarrationToClient(event, msg), server);
+            Messages.sendToTargetPlayer(new PacketEventToClient(event, msg), server);
             ctx.getSource().sendSuccess(() -> Component.literal("Sent to backend"), false);
             return 1;
         } catch (Exception e) {
