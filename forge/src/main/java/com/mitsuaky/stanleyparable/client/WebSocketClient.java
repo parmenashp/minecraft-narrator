@@ -58,7 +58,7 @@ public class WebSocketClient {
             WebSocket.Builder webSocketBuilder = httpClient.newWebSocketBuilder();
             webSocket = webSocketBuilder.buildAsync(URI.create(WebSocketClient.SERVER_URI), new WebSocketListener()).join();
         } catch (Exception ex) {
-            LOGGER.error("Could not connect to websocket: " + ex.getMessage(), ex);
+            LOGGER.error("Could not connect to websocket: " + ex.getMessage());
             LOGGER.info("Trying to reconnect...");
             ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
             executorService.schedule(this::connect, 5, TimeUnit.SECONDS);
