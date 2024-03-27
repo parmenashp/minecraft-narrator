@@ -63,6 +63,10 @@ public class ServerEvents {
 //        }
     }
 
+    public static boolean isTargetPlayer(Entity player) {
+        return player instanceof Player && player.getStringUUID().equals(ServerConfig.TARGET_PLAYER_UUID.get());
+    }
+
 
     @SubscribeEvent
     public static void registerCommands(RegisterCommandsEvent event) {
@@ -74,10 +78,11 @@ public class ServerEvents {
     @SubscribeEvent
     public static void onBlockBreak(BlockEvent.BreakEvent event) {
         LOGGER.debug("BlockBreakEvent triggered");
-        if (event.getPlayer() == null || event.getState().isAir()) {
+        if (event.getPlayer() == null || event.getState().isAir() || !isTargetPlayer(event.getPlayer())) {
             LOGGER.debug("BlockBreakEvent triggered without valid player or block state");
             return;
         }
+
         Item tool = event.getPlayer().getMainHandItem().getItem();
         String tool_name = getAsName(event.getPlayer().getMainHandItem());
         if (tool.getDescriptionId().equals("block.minecraft.air")) {
@@ -95,10 +100,11 @@ public class ServerEvents {
     @SubscribeEvent
     public static void onBlockPlace(BlockEvent.EntityPlaceEvent event) {
         LOGGER.debug("BlockPlaceEvent triggered");
-        if (event.getEntity() == null || event.getPlacedBlock().isAir() || !(event.getEntity() instanceof Player)) {
+        if (event.getEntity() == null || event.getPlacedBlock().isAir() || !(event.getEntity() instanceof Player) || !isTargetPlayer(event.getEntity())) {
             LOGGER.debug("BlockPlaceEvent triggered without valid player or block state");
             return;
         }
+
 
         String block = getAsName(event.getPlacedBlock().getBlock());
         String player = getPlayerName(event.getEntity());
@@ -113,7 +119,7 @@ public class ServerEvents {
     @SubscribeEvent
     public static void onPlayerFish(ItemFishedEvent event) {
         LOGGER.debug("PlayerFishEvent triggered");
-        if (event.getEntity() == null) {
+        if (event.getEntity() == null || !isTargetPlayer(event.getEntity())) {
             LOGGER.debug("PlayerFishEvent triggered without valid player");
             return;
         }
@@ -130,7 +136,7 @@ public class ServerEvents {
     @SubscribeEvent
     public static void onItemPickup(PlayerEvent.ItemPickupEvent event) {
         LOGGER.debug("ItemPickupEvent triggered");
-        if (event.getEntity() == null || event.getStack().isEmpty()) {
+        if (event.getEntity() == null || event.getStack().isEmpty() || !isTargetPlayer(event.getEntity())) {
             LOGGER.debug("ItemPickupEvent triggered without valid player or item");
             return;
         }
@@ -153,8 +159,8 @@ public class ServerEvents {
     @SubscribeEvent
     public static void onClientChat(ServerChatEvent event) {
         LOGGER.debug("ClientChatEvent triggered");
-        if (event.getRawText().startsWith("/")) {
-            LOGGER.debug("ClientChatEvent triggered but is a command");
+        if (!isTargetPlayer(event.getPlayer())) {
+            LOGGER.debug("ClientChatEvent triggered without valid player");
             return;
         }
         String message = event.getRawText();
@@ -170,8 +176,8 @@ public class ServerEvents {
     @SubscribeEvent
     public static void onPlayerDeath(LivingDeathEvent event) {
         LOGGER.debug("Player LivingDeathEvent triggered");
-        if (event.getEntity() == null || !(event.getEntity() instanceof Player)) {
-            LOGGER.debug("LivingDeathEvent triggered but is not a player");
+        if (event.getEntity() == null || !isTargetPlayer(event.getEntity())) {
+            LOGGER.debug("LivingDeathEvent triggered but is not a valid player");
             return;
         }
 
@@ -189,7 +195,7 @@ public class ServerEvents {
     @SubscribeEvent
     public static void onAnimalBreed(BabyEntitySpawnEvent event) {
         LOGGER.debug("AnimalBreedEvent triggered");
-        if (event.getCausedByPlayer() == null || event.getParentA() == null || event.getParentB() == null) {
+        if (event.getCausedByPlayer() == null || event.getParentA() == null || event.getParentB() == null || !isTargetPlayer(event.getCausedByPlayer())) {
             LOGGER.debug("AnimalBreedEvent triggered without valid parameters");
             return;
         }
@@ -207,7 +213,7 @@ public class ServerEvents {
     @SubscribeEvent
     public static void onItemToss(ItemTossEvent event) {
         LOGGER.debug("ItemTossEvent triggered");
-        if (event.getPlayer() == null || event.getEntity() == null) {
+        if (event.getPlayer() == null || event.getEntity() == null || !isTargetPlayer(event.getPlayer())) {
             LOGGER.debug("ItemTossEvent triggered without valid parameters");
             return;
         }
@@ -249,7 +255,7 @@ public class ServerEvents {
     @SubscribeEvent
     public static void onAchievement(AdvancementEvent.AdvancementEarnEvent event) {
         LOGGER.debug("AdvancementEvent triggered");
-        if (event.getEntity() == null) {
+        if (event.getEntity() == null || !isTargetPlayer(event.getEntity())) {
             LOGGER.debug("AdvancementEvent triggered without valid player");
             return;
         }
@@ -278,7 +284,7 @@ public class ServerEvents {
     @SubscribeEvent
     public static void onMobKilled(LivingDeathEvent event) {
         LOGGER.debug("MobKilledEvent triggered");
-        if (event.getEntity() == null || event.getSource().getEntity() == null || !(event.getSource().getEntity() instanceof Player player)) {
+        if (event.getEntity() == null || event.getSource().getEntity() == null || !(event.getSource().getEntity() instanceof Player player) || !isTargetPlayer(event.getSource().getEntity())) {
             LOGGER.debug("MobKilledEvent triggered without valid player or mob");
             return;
         }
