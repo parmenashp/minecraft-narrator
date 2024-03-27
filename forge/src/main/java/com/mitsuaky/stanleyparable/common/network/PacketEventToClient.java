@@ -9,7 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class PacketEventToClient {
-    private static final Logger LOGGER = LogManager.getLogger(ClientEvents.ClientForgeEvents.class);
+    private static final Logger LOGGER = LogManager.getLogger(PacketEventToClient.class);
     private final String event;
     private final String msg;
 
