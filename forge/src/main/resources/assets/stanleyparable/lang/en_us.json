@@ -21,5 +21,5 @@
   "gui.stanleyparable.openai_streaming": "OpenAI streaming",
   "item.stanleyparable.bare_hands": "Bare Hands",
   "key.category.narrator": "AI Narrator",
-  "key.voice_activate": "Hold to speak"
+  "key.voice_activate": "Toggle microphone"
 }
