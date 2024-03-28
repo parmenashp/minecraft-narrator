@@ -13,20 +13,20 @@ import net.minecraft.server.MinecraftServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class CustomPromptCommand {
-    private static final Logger LOGGER = LogManager.getLogger(CustomPromptCommand.class);
+public class CustomTTSCommand {
+    private static final Logger LOGGER = LogManager.getLogger(CustomTTSCommand.class);
 
     static ArgumentBuilder<CommandSourceStack, ?> register() {
-        return Commands.literal("prompt")
-                .then(Commands.argument("userMessage", StringArgumentType.greedyString())
-                        .executes(CustomPromptCommand::runCmd));
+        return Commands.literal("tts")
+                .then(Commands.argument("ttsMessage", StringArgumentType.greedyString())
+                        .executes(CustomTTSCommand::runCmd));
     }
 
     private static int runCmd(CommandContext<CommandSourceStack> ctx) {
-        LOGGER.debug("Custom prompt command triggered");
+        LOGGER.debug("Custom TTS command triggered");
         MinecraftServer server = ctx.getSource().getServer();
-        String msg = StringArgumentType.getString(ctx, "userMessage");
-        String event = Event.CUSTOM_PROMPT.getValue();
+        String msg = StringArgumentType.getString(ctx, "ttsMessage");
+        String event = Event.CUSTOM_TTS.getValue();
         try {
             Messages.sendToTargetPlayer(new PacketEventToClient(event, msg), server);
             return 1;

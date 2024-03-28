@@ -22,6 +22,7 @@ public enum Event {
     ITEM_TOSS("item_toss"),
     SET_SYSTEM("set_system"),
     CUSTOM_PROMPT("custom_prompt"),
+    CUSTOM_TTS("custom_tts"),
     JOIN_WORLD("join_world");
 
     private final String value;

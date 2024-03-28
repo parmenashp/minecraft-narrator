@@ -31,6 +31,7 @@ class Event(StrEnum):
     CONFIG = "config"
     CUSTOM_PROMPT = "custom_prompt"
     SET_SYSTEM = "set_system"
+    CUSTOM_TTS = "custom_tts"
     VOICE_COMPLETE = "voice_complete"
     VOICE_ACTIVATE = "voice_activate"
 

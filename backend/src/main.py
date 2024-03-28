@@ -58,6 +58,8 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
                     await voice.handle_voice_complete(incoming_event)
                 case Event.SET_SYSTEM:
                     prompt_manager.set_current_prompt(incoming_event.data, False)
+                case Event.CUSTOM_TTS:
+                    event_handler.handle_custom_tts(incoming_event)
                 case _:
                     logger.info(f"Incoming event data: {incoming_event.data!r}")
                     await event_handler.handle_game_event(incoming_event)

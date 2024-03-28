@@ -11,6 +11,7 @@ public class NarratorCommands {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
                 Commands.literal("minecraftnarrator")
+                        .then(CustomTTSCommand.register())
                         .then(CustomPromptCommand.register())
                         .then(SystemPromptCommand.register())
                         .then(SetPlayerCommand.register())
