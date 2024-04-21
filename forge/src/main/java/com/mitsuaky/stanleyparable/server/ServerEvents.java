@@ -213,7 +213,7 @@ public class ServerEvents {
     @SubscribeEvent
     public static void onItemToss(ItemTossEvent event) {
         LOGGER.debug("ItemTossEvent triggered");
-        if (event.getPlayer() == null || event.getEntity() == null || !isTargetPlayer(event.getPlayer())) {
+        if (event.getPlayer() == null || event.getEntity() == null || !isTargetPlayer(event.getPlayer()) || !(event.getPlayer() instanceof ServerPlayer serverPlayer)) {
             LOGGER.debug("ItemTossEvent triggered without valid parameters");
             return;
         }
@@ -222,7 +222,6 @@ public class ServerEvents {
 
         String e = Event.ITEM_TOSS.getValue();
         //String msg = String.format("Jogador \"%s\" jogou \"%s\" no ar", player, itemName);
-        ServerPlayer serverPlayer = (ServerPlayer) event.getPlayer();
 
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         scheduler.schedule(() -> {
