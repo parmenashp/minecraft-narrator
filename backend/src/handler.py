@@ -11,6 +11,7 @@ from src.queue import Queue
 from src.tts import tts
 from src.websocket import ws
 from src.utils import singleton
+from src.context import context
 
 
 @singleton
@@ -70,6 +71,14 @@ class EventHandler:
         global_config.set_all(req_config)
         chat.set_config(global_config)
         global_config.save()
+
+    def handle_custom_tts(self, event: IncomingEvent):
+        text = event.data
+        logger.info(f"Custom TTS to queue: {text}")
+        context.put({"role": "assistant", "content": text})
+
+        loop = asyncio.get_event_loop()
+        tts.synthesize(text, loop)
 
 
 event_handler = EventHandler()

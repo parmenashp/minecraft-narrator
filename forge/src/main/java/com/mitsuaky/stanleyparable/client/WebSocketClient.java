@@ -1,4 +1,4 @@
-package com.mitsuaky.stanleyparable;
+package com.mitsuaky.stanleyparable.client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.function.Function;
-
 
 public class WebSocketClient {
     private static WebSocketClient instance;
@@ -59,7 +58,7 @@ public class WebSocketClient {
             WebSocket.Builder webSocketBuilder = httpClient.newWebSocketBuilder();
             webSocket = webSocketBuilder.buildAsync(URI.create(WebSocketClient.SERVER_URI), new WebSocketListener()).join();
         } catch (Exception ex) {
-            LOGGER.error("Could not connect to websocket: " + ex.getMessage(), ex);
+            LOGGER.error("Could not connect to websocket: " + ex.getMessage());
             LOGGER.info("Trying to reconnect...");
             ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
             executorService.schedule(this::connect, 5, TimeUnit.SECONDS);
@@ -67,6 +66,9 @@ public class WebSocketClient {
     }
 
     public static WebSocketClient getInstance() {
+        if (instance == null) {
+            instance = new WebSocketClient();
+        }
         return instance;
     }
 

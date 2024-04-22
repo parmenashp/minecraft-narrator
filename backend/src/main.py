@@ -4,12 +4,16 @@ from contextlib import asynccontextmanager
 import sys
 
 import fastapi
+
+from fastapi.staticfiles import StaticFiles
 from loguru import logger
 from src.handler import event_handler
 from src.models import Config, Event, IncomingEvent
+from src.prompts import prompt_manager
 from src.websocket import ws
 from src.dashboard import start_dashboard
 from src.components.tabs.logs import dashboard_sink
+from src.voice import voice
 
 # TODO: Add option to enable debug logs to stdout with backtrace and diagnose when developing
 logger.remove()  # Remove default logger
@@ -48,6 +52,14 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
                 case Event.CONFIG:
                     config: Config = json.loads(incoming_event.data, object_hook=lambda d: Config(**d))
                     event_handler.handle_config_event(config)
+                case Event.VOICE_ACTIVATE:
+                    await voice.handle_voice_activate()
+                case Event.VOICE_COMPLETE:
+                    await voice.handle_voice_complete(incoming_event)
+                case Event.SET_SYSTEM:
+                    prompt_manager.set_current_prompt(incoming_event.data, False)
+                case Event.CUSTOM_TTS:
+                    event_handler.handle_custom_tts(incoming_event)
                 case _:
                     logger.info(f"Incoming event data: {incoming_event.data!r}")
                     await event_handler.handle_game_event(incoming_event)
@@ -57,3 +69,7 @@ async def websocket_endpoint(websocket: fastapi.WebSocket):
         ws.disconnect(websocket)
         if not isinstance(e, fastapi.WebSocketDisconnect):
             raise e
+
+
+app.mount("/speech", StaticFiles(directory="src/speech"), name="speech")
+app.add_websocket_route("/mic", voice.handle_websocket_microphone)

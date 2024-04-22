@@ -1,4 +1,4 @@
-package com.mitsuaky.stanleyparable.screen.widget;
+package com.mitsuaky.stanleyparable.client.screen.widget;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
@@ -10,14 +10,11 @@ import net.minecraft.client.gui.navigation.CommonInputs;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
-@OnlyIn(Dist.CLIENT)
 public class PingWidget extends AbstractButton {
     protected static final WidgetSprites BUTTON_SPRITES = new WidgetSprites(new ResourceLocation("widget/button"), new ResourceLocation("widget/button_disabled"), new ResourceLocation("widget/button_highlighted"));
-    protected static final ResourceLocation RESTART_ICON = new ResourceLocation("stanleyparable","widget/restart_icon");
+    protected static final ResourceLocation RESTART_ICON = new ResourceLocation("stanleyparable", "widget/restart_icon");
 
     public PingWidget(int pX, int pY, int pWidth, int pHeight, Component pMessage) {
         super(pX, pY, pWidth, pHeight, pMessage);
@@ -56,5 +53,6 @@ public class PingWidget extends AbstractButton {
         this.defaultButtonNarrationText(pNarrationElementOutput);
     }
 
-    public void onPress() {}
+    public void onPress() {
+    }
 }

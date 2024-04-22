@@ -1,8 +1,8 @@
-package com.mitsuaky.stanleyparable.screen;
+package com.mitsuaky.stanleyparable.client.screen;
 
-import com.mitsuaky.stanleyparable.ClientConfig;
-import com.mitsuaky.stanleyparable.WebSocketClient;
-import com.mitsuaky.stanleyparable.screen.widget.PingWidget;
+import com.mitsuaky.stanleyparable.client.ClientConfig;
+import com.mitsuaky.stanleyparable.client.WebSocketClient;
+import com.mitsuaky.stanleyparable.client.screen.widget.PingWidget;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
@@ -10,13 +10,10 @@ import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-@OnlyIn(Dist.CLIENT)
 public class ConfigScreen extends Screen {
     private final Screen parent;
     private final int commonWidth = 250;

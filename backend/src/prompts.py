@@ -26,6 +26,9 @@ class PromptManager:
         return formatted
 
     def set_current_prompt(self, prompt_id: str, clear_context: bool = False):
+        if prompt_id not in self.prompts:
+            logger.warning(f"{prompt_id} is not a valid promptID, nothing changed")
+            return
         self.current_prompt_id = prompt_id
         if clear_context:
             context.clear()
