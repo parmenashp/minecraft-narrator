@@ -5,13 +5,11 @@ import com.mitsuaky.stanleyparable.server.commands.NarratorCommands;
 import com.mitsuaky.stanleyparable.common.events.Event;
 import com.mitsuaky.stanleyparable.common.network.PacketHandler;
 import com.mitsuaky.stanleyparable.common.network.PacketEventToClient;
-import com.mitsuaky.stanleyparable.server.player.PlayerData;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -19,7 +17,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
@@ -57,7 +54,7 @@ public class ServerEvents {
     }
 
     public static String getPlayerName(Player player) {
-        String vulgo = PlayerData.get(player).getVulgo();
+        String vulgo = StanleyParableMod.playerVulgo.get(player.getUUID().toString());
         if (vulgo == null || vulgo.isEmpty()) {
             return player.getName().getString();
         }
@@ -282,12 +279,5 @@ public class ServerEvents {
         String e = Event.MOB_KILLED.getValue();
         ServerPlayer serverPlayer = (ServerPlayer) player;
         PacketHandler.sendToPlayer(new PacketEventToClient(e, String.format("Jogador \"%s\" matou \"%s\" com \"%s\"", playerName, mob, weapon_name)), serverPlayer);
-    }
-
-    @SubscribeEvent
-    public static void onAttachCapabilities(AttachCapabilitiesEvent<Entity> event) {
-        if (event.getObject() instanceof Player) {
-            event.addCapability(new ResourceLocation(StanleyParableMod.MOD_ID, "player_data"), new PlayerData());
-        }
     }
 }

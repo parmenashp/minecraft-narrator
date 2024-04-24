@@ -11,10 +11,15 @@ import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Mod(StanleyParableMod.MOD_ID)
 public class StanleyParableMod {
 
     public static final String MOD_ID = "stanleyparable";
+
+    public static final Map<String, String> playerVulgo = new HashMap<>();
 
     public StanleyParableMod() {
         PacketHandler.register();

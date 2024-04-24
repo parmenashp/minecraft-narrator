@@ -1,9 +1,11 @@
 package com.mitsuaky.stanleyparable.client.screen;
 
+import com.mitsuaky.stanleyparable.StanleyParableMod;
 import com.mitsuaky.stanleyparable.client.ClientConfig;
 import com.mitsuaky.stanleyparable.client.WebSocketClient;
 import com.mitsuaky.stanleyparable.client.screen.widget.PingWidget;
-import com.mitsuaky.stanleyparable.server.player.PlayerData;
+import com.mitsuaky.stanleyparable.common.network.PacketHandler;
+import com.mitsuaky.stanleyparable.common.network.PacketSyncPlayerData;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
@@ -180,7 +182,8 @@ public class ConfigScreen extends Screen {
             ClientConfig.AKA.set(akaWidget.getValue());
             assert this.minecraft != null;
             assert this.minecraft.player != null;
-            PlayerData.get(this.minecraft.player).setVulgo(akaWidget.getValue());
+            StanleyParableMod.playerVulgo.put(this.minecraft.player.getUUID().toString(), akaWidget.getValue());
+            PacketHandler.sendToServer(new PacketSyncPlayerData(akaWidget.getValue()));
             this.minecraft.setScreen(new TokenScreen(this));
         }).pos(commonX, commonY).size(commonWidth, commonHeight).build());
 
@@ -199,7 +202,8 @@ public class ConfigScreen extends Screen {
             WebSocketClient.getInstance().setOnPong(null);
             assert this.minecraft != null;
             assert this.minecraft.player != null;
-            PlayerData.get(this.minecraft.player).setVulgo(akaWidget.getValue());
+            StanleyParableMod.playerVulgo.put(this.minecraft.player.getUUID().toString(), akaWidget.getValue());
+            PacketHandler.sendToServer(new PacketSyncPlayerData(akaWidget.getValue()));
             this.minecraft.setScreen(this.parent);
         }).pos(commonX, this.height - 30).size(commonWidth, commonHeight).build());
     }

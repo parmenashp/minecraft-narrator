@@ -5,8 +5,9 @@ import com.google.gson.JsonParser;
 import com.mitsuaky.stanleyparable.*;
 import com.mitsuaky.stanleyparable.client.screen.ConfigScreen;
 import com.mitsuaky.stanleyparable.common.events.Event;
+import com.mitsuaky.stanleyparable.common.network.PacketHandler;
+import com.mitsuaky.stanleyparable.common.network.PacketSyncPlayerData;
 import com.mitsuaky.stanleyparable.server.ServerEvents;
-import com.mitsuaky.stanleyparable.server.player.PlayerData;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -276,7 +277,8 @@ public class ClientEvents {
                 String playerName = getPlayerName(player);
                 wsClient.sendEvent(Event.JOIN_WORLD.getValue(), String.format("Jogador \"%s\" entrou no mundo \"%s\"", playerName, worldName));
             }
-            PlayerData.get(player).setVulgo(ClientConfig.AKA.get());
+            StanleyParableMod.playerVulgo.put(player.getUUID().toString(), ClientConfig.AKA.get());
+            PacketHandler.sendToServer(new PacketSyncPlayerData(ClientConfig.AKA.get()));
         }
 
         private enum TimeState {

@@ -1,10 +1,10 @@
 package com.mitsuaky.stanleyparable.server;
 
-import com.mitsuaky.stanleyparable.server.player.PlayerData;
+import com.mitsuaky.stanleyparable.StanleyParableMod;
 import net.minecraft.server.level.ServerPlayer;
 
 public class ServerSyncHandler {
     public static void handle(ServerPlayer player, String vulgo) {
-        PlayerData.get(player).updateFromPacket(vulgo);
+        StanleyParableMod.playerVulgo.put(player.getUUID().toString(), vulgo);
     }
 }
