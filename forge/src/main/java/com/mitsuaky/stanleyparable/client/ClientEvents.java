@@ -5,6 +5,8 @@ import com.google.gson.JsonParser;
 import com.mitsuaky.stanleyparable.*;
 import com.mitsuaky.stanleyparable.client.screen.ConfigScreen;
 import com.mitsuaky.stanleyparable.common.events.Event;
+import com.mitsuaky.stanleyparable.server.ServerEvents;
+import com.mitsuaky.stanleyparable.server.player.PlayerData;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -67,12 +69,8 @@ public class ClientEvents {
             return entity.getName().getString();
         }
 
-        public static String getPlayerName(Entity entity) {
-            if (ClientConfig.AKA.get().isEmpty()) {
-                return entity.getName().getString();
-            } else {
-                return ClientConfig.AKA.get();
-            }
+        public static String getPlayerName(Player player) {
+            return ServerEvents.getPlayerName(player);
         }
 
         @SubscribeEvent
@@ -217,7 +215,7 @@ public class ClientEvents {
             }
 
             String item_name = getAsName(event.getItem());
-            String player = getPlayerName(event.getEntity());
+            String player = getPlayerName((Player) event.getEntity());
             wsClient.sendEvent(Event.PLAYER_ATE.getValue(), String.format("Jogador \"%s\" comeu/bebeu \"%s\"", player, item_name));
         }
 
@@ -278,6 +276,7 @@ public class ClientEvents {
                 String playerName = getPlayerName(player);
                 wsClient.sendEvent(Event.JOIN_WORLD.getValue(), String.format("Jogador \"%s\" entrou no mundo \"%s\"", playerName, worldName));
             }
+            PlayerData.get(player).setVulgo(ClientConfig.AKA.get());
         }
 
         private enum TimeState {

@@ -9,12 +9,15 @@ import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
+@OnlyIn(Dist.CLIENT)
 public class TokenScreen extends Screen {
     private static final Logger LOGGER = LogManager.getLogger(ConfigScreen.class);
     private final Screen parent;

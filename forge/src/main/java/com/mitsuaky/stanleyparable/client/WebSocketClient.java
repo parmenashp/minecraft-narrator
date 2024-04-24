@@ -2,6 +2,8 @@ package com.mitsuaky.stanleyparable.client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.concurrent.*;
 import java.util.function.Function;
 
+@OnlyIn(Dist.CLIENT)
 public class WebSocketClient {
     private static WebSocketClient instance;
     private static final Logger LOGGER = LogManager.getLogger(WebSocketClient.class);
