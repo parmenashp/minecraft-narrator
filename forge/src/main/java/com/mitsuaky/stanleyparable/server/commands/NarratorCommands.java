@@ -14,7 +14,6 @@ public class NarratorCommands {
                         .then(CustomTTSCommand.register())
                         .then(CustomPromptCommand.register())
                         .then(SystemPromptCommand.register())
-                        .then(SetPlayerCommand.register())
         );
     }
 }

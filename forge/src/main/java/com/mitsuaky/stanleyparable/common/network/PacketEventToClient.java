@@ -1,7 +1,6 @@
 package com.mitsuaky.stanleyparable.common.network;
 
 import com.mitsuaky.stanleyparable.client.ClientEventHandler;
-import com.mitsuaky.stanleyparable.client.ClientEvents;
 import com.mitsuaky.stanleyparable.common.events.Event;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.event.network.CustomPayloadEvent;
