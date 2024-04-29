@@ -29,7 +29,7 @@ public class PacketSystemEventToClient implements Packet {
 
     public void handle(CustomPayloadEvent.Context ctx) {
         ctx.enqueueWork(() -> {
-            LOGGER.debug("Received packet for " + event);
+            LOGGER.debug("Received packet for {}", event);
             SystemEventType e = SystemEventType.valueOf(event.toUpperCase());
             ClientEventHandler.handle(e, msg);
         });

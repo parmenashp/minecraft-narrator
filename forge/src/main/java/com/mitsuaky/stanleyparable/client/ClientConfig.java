@@ -76,7 +76,7 @@ public class ClientConfig {
             request.addProperty("elevenlabs_voice_id", ELEVENLABS_VOICE_ID.get());
             WebSocketClient.getInstance().sendEvent(SystemEventType.CONFIG, request.toString());
         } catch (Exception ex) {
-            LOGGER.error("Could not send config to server: " + ex.getMessage(), ex);
+            LOGGER.error("Could not send config to server: {}", ex.getMessage(), ex);
         }
     }
 }

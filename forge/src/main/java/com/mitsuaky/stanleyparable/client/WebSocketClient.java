@@ -57,7 +57,7 @@ public class WebSocketClient {
         try {
             webSocket.sendText(jsonObject.toString(), true);
         } catch (Exception ex) {
-            LOGGER.error("Could not send event to websocket: " + ex.getMessage(), ex);
+            LOGGER.error("Could not send event to websocket: {}", ex.getMessage(), ex);
         }
     }
 
@@ -71,8 +71,6 @@ public class WebSocketClient {
             WebSocket.Builder webSocketBuilder = httpClient.newWebSocketBuilder();
             webSocket = webSocketBuilder.buildAsync(URI.create(WebSocketClient.SERVER_URI), new WebSocketListener()).join();
         } catch (Exception ex) {
-            LOGGER.error("Could not connect to websocket: " + ex.getMessage());
-            LOGGER.info("Trying to reconnect...");
             ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
             executorService.schedule(this::connect, 5, TimeUnit.SECONDS);
         }
@@ -105,7 +103,7 @@ public class WebSocketClient {
 
         @Override
         public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
-            LOGGER.info("Received websocket message: " + data);
+            LOGGER.info("Received websocket message: {}", data);
 
             try {
                 JsonObject jsonObject = JsonParser.parseString(data.toString()).getAsJsonObject();
@@ -116,7 +114,7 @@ public class WebSocketClient {
                     }
                 }
             } catch (Exception ex) {
-                LOGGER.error("Could not parse websocket message: " + ex.getMessage(), ex);
+                LOGGER.error("Could not parse websocket message: {}", ex.getMessage(), ex);
             }
 
             webSocket.request(1);
@@ -125,8 +123,6 @@ public class WebSocketClient {
 
         @Override
         public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
-            LOGGER.info("WebSocket closed: " + statusCode + ", " + reason);
-            LOGGER.info("Trying to reconnect...");
             ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
             executorService.schedule(() -> WebSocketClient.getInstance().connect(), 5, TimeUnit.SECONDS);
             webSocket.request(1);
@@ -135,8 +131,6 @@ public class WebSocketClient {
 
         @Override
         public void onError(WebSocket webSocket, Throwable error) {
-            LOGGER.error("WebSocket error: " + error.getMessage(), error);
-            LOGGER.info("Trying to reconnect...");
             ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
             executorService.schedule(() -> WebSocketClient.getInstance().connect(), 5, TimeUnit.SECONDS);
             webSocket.request(1);
@@ -144,9 +138,7 @@ public class WebSocketClient {
 
         @Override
         public CompletionStage<?> onPing(WebSocket webSocket, ByteBuffer message) {
-            LOGGER.info("WebSocket ping: " + message);
             webSocket.sendPong(message);
-
             webSocket.request(1);
             return null;
         }
