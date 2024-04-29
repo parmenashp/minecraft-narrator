@@ -4,9 +4,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mitsuaky.stanleyparable.*;
 import com.mitsuaky.stanleyparable.client.screen.ConfigScreen;
-import com.mitsuaky.stanleyparable.common.events.Event;
+import com.mitsuaky.stanleyparable.common.events.GameEventType;
+import com.mitsuaky.stanleyparable.common.events.SystemEventType;
 import com.mitsuaky.stanleyparable.common.network.PacketHandler;
-import com.mitsuaky.stanleyparable.common.network.PacketSyncPlayerData;
+import com.mitsuaky.stanleyparable.common.network.packets.PacketPlayerJoin;
+import com.mitsuaky.stanleyparable.common.network.packets.PacketSyncPlayerData;
 import com.mitsuaky.stanleyparable.server.ServerEvents;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.ChatFormatting;
@@ -17,7 +19,6 @@ import net.minecraft.commands.Commands;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -101,11 +102,11 @@ public class ClientEvents {
                     String player = getPlayerName(event.player);
 
                     if (!addedItems.isEmpty() && !removedItems.isEmpty()) {
-                        wsClient.sendEvent(Event.CHEST_CHANGE.getValue(), String.format("Jogador \"%s\" colocou \"%s\" e removeu \"%s\" de um baú", player, addedItemsString, removedItemsString));
+                        wsClient.sendEvent(GameEventType.CHEST_CHANGE, String.format("Jogador \"%s\" colocou \"%s\" e removeu \"%s\" de um baú", player, addedItemsString, removedItemsString));
                     } else if (!addedItems.isEmpty()) {
-                        wsClient.sendEvent(Event.CHEST_CHANGE.getValue(), String.format("Jogador \"%s\" removeu \"%s\" de um baú", player, addedItemsString));
+                        wsClient.sendEvent(GameEventType.CHEST_CHANGE, String.format("Jogador \"%s\" removeu \"%s\" de um baú", player, addedItemsString));
                     } else if (!removedItems.isEmpty()) {
-                        wsClient.sendEvent(Event.CHEST_CHANGE.getValue(), String.format("Jogador \"%s\" colocou \"%s\" em um baú", player, removedItemsString));
+                        wsClient.sendEvent(GameEventType.CHEST_CHANGE, String.format("Jogador \"%s\" colocou \"%s\" em um baú", player, removedItemsString));
                     }
                 }
                 isChestOpen = false;
@@ -120,9 +121,9 @@ public class ClientEvents {
                     String vehicle = getAsName(entity);
                     String vehiclePositionedInBlock = entity.getBlockStateOn().getBlock().getName().getString();
                     if (entity instanceof Mob) {
-                        wsClient.sendEvent(Event.RIDING.getValue(), String.format("Jogador \"%s\" montou em um(a) \"%s\"", player, vehicle));
+                        wsClient.sendEvent(GameEventType.RIDING, String.format("Jogador \"%s\" montou em um(a) \"%s\"", player, vehicle));
                     } else {
-                        wsClient.sendEvent(Event.RIDING.getValue(), String.format("Jogador \"%s\" montou em um(a) \"%s\" posicionado em um(a) \"%s\"", player, vehicle, vehiclePositionedInBlock));
+                        wsClient.sendEvent(GameEventType.RIDING, String.format("Jogador \"%s\" montou em um(a) \"%s\" posicionado em um(a) \"%s\"", player, vehicle, vehiclePositionedInBlock));
                     }
                 }
                 isRiding = true;
@@ -133,13 +134,13 @@ public class ClientEvents {
 
             long time = event.player.level().dayTime();
             if (0 == time && timeState != TimeState.DAY) {
-                wsClient.sendEvent(Event.TIME_CHANGED.getValue(), "O sol nasceu no minecraft");
+                wsClient.sendEvent(GameEventType.TIME_CHANGED, "O sol nasceu no minecraft");
                 timeState = TimeState.DAY;
             } else if (12000 == time && timeState != TimeState.SUNSET) {
-                wsClient.sendEvent(Event.TIME_CHANGED.getValue(), "O sol está se pondo no minecraft");
+                wsClient.sendEvent(GameEventType.TIME_CHANGED, "O sol está se pondo no minecraft");
                 timeState = TimeState.SUNSET;
             } else if (13000 == time && timeState != TimeState.NIGHT) {
-                wsClient.sendEvent(Event.TIME_CHANGED.getValue(), "O sol se pôs no minecraft e está escuro");
+                wsClient.sendEvent(GameEventType.TIME_CHANGED, "O sol se pôs no minecraft e está escuro");
                 timeState = TimeState.NIGHT;
             }
         }
@@ -154,7 +155,7 @@ public class ClientEvents {
 
             String item = getAsName(event.getCrafting());
             String player = getPlayerName(event.getEntity());
-            wsClient.sendEvent(Event.ITEM_CRAFTED.getValue(), String.format("Jogador \"%s\" craftou \"%s\"", player, item));
+            wsClient.sendEvent(GameEventType.ITEM_CRAFTED, String.format("Jogador \"%s\" craftou \"%s\"", player, item));
         }
 
         @SubscribeEvent
@@ -165,7 +166,7 @@ public class ClientEvents {
                 return;
             }
 
-            wsClient.sendEvent(Event.WAKE_UP.getValue(), String.format("Jogador \"%s\" foi dormir e acordou.", getPlayerName(event.getEntity())));
+            wsClient.sendEvent(GameEventType.WAKE_UP, String.format("Jogador \"%s\" foi dormir e acordou.", getPlayerName(event.getEntity())));
         }
 
         @SubscribeEvent
@@ -180,7 +181,7 @@ public class ClientEvents {
             String itemLeft = getAsName(event.getLeft());
             String itemRight = getAsName(event.getRight());
             String message = String.format("Jogador \"%s\" juntou \"%s\" e \"%s\" na bigorna", player, itemLeft, itemRight);
-            wsClient.sendEvent(Event.ITEM_REPAIR.getValue(), message);
+            wsClient.sendEvent(GameEventType.ITEM_REPAIR, message);
         }
 
         @SubscribeEvent
@@ -192,7 +193,7 @@ public class ClientEvents {
             }
             String dimension = event.getTo().location().toString();
             String player = getPlayerName(event.getEntity());
-            wsClient.sendEvent(Event.DIMENSION_CHANGED.getValue(), String.format("Jogador \"%s\" entrou na dimensão \"%s\"", player, dimension));
+            wsClient.sendEvent(GameEventType.DIMENSION_CHANGED, String.format("Jogador \"%s\" entrou na dimensão \"%s\"", player, dimension));
         }
 
         @SubscribeEvent
@@ -205,7 +206,7 @@ public class ClientEvents {
 
             String item = getAsName(event.getSmelting());
             String player = getPlayerName(event.getEntity());
-            wsClient.sendEvent(Event.ITEM_SMELTED.getValue(), String.format("Jogador \"%s\" fundiu/cozinhou \"%s\"", player, item));
+            wsClient.sendEvent(GameEventType.ITEM_SMELTED, String.format("Jogador \"%s\" fundiu/cozinhou \"%s\"", player, item));
         }
 
         @SubscribeEvent
@@ -217,7 +218,7 @@ public class ClientEvents {
 
             String item_name = getAsName(event.getItem());
             String player = getPlayerName((Player) event.getEntity());
-            wsClient.sendEvent(Event.PLAYER_ATE.getValue(), String.format("Jogador \"%s\" comeu/bebeu \"%s\"", player, item_name));
+            wsClient.sendEvent(GameEventType.PLAYER_ATE, String.format("Jogador \"%s\" comeu/bebeu \"%s\"", player, item_name));
         }
 
         @SubscribeEvent
@@ -228,14 +229,14 @@ public class ClientEvents {
             ClientConfig.applyServerConfig();
             wsClient.addEventListener("send_chat", jsonObject -> {
                 if (ClientConfig.SEND_TO_CHAT.get()) {
-                    player.sendSystemMessage(Component.nullToEmpty(jsonObject.get("data").getAsString()));
+                    player.sendSystemMessage(Component.literal(jsonObject.get("data").getAsString()));
                 }
                 return null;
             });
 
             wsClient.addEventListener("new_personality", jsonObject -> {
                 if (ClientConfig.SEND_TO_CHAT.get()) {
-                    player.sendSystemMessage(Component.nullToEmpty("Personalidade alterada!"));
+                    player.sendSystemMessage(Component.literal("Personalidade alterada!"));
                 }
                 String data = jsonObject.get("data").getAsString();
                 JsonObject personality = JsonParser.parseString(data).getAsJsonObject();
@@ -271,14 +272,9 @@ public class ClientEvents {
                 }
                 return null;
             });
-            MinecraftServer server = player.getServer();
-            if (server != null) {
-                String worldName = server.getWorldData().getLevelName();
-                String playerName = getPlayerName(player);
-                wsClient.sendEvent(Event.JOIN_WORLD.getValue(), String.format("Jogador \"%s\" entrou no mundo \"%s\"", playerName, worldName));
-            }
             StanleyParableMod.playerVulgo.put(player.getUUID().toString(), ClientConfig.AKA.get());
             PacketHandler.sendToServer(new PacketSyncPlayerData(ClientConfig.AKA.get()));
+            PacketHandler.sendToServer(new PacketPlayerJoin(ClientConfig.AKA.get()));
         }
 
         private enum TimeState {
@@ -307,7 +303,7 @@ public class ClientEvents {
                         player.sendSystemMessage(Component.literal(fullText).withStyle(ChatFormatting.GREEN));
                         String playerName = getPlayerName(player);
                         String msg = "Jogador " + playerName + " falou para você: " + fullText;
-                        wsClient.sendEvent("voice_complete", msg);
+                        wsClient.sendEvent(SystemEventType.VOICE_COMPLETE, msg);
                     }
                     fullText = "";
                 } else {
@@ -332,7 +328,7 @@ public class ClientEvents {
                         return null;
                     });
                     player.playSound(SoundEvents.NOTE_BLOCK_HARP.value(), 1.0F, 1.0F);
-                    wsClient.sendEvent("voice_activate", "");
+                    wsClient.sendEvent(SystemEventType.VOICE_ACTIVATE);
                     String key = KeyBinding.VOICE_KEY.getKey().getDisplayName().getString();
                     player.displayClientMessage(Component.literal("Escutando... Aperte " + key + " novamente para parar."), true);
                 }

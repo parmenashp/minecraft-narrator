@@ -1,23 +1,23 @@
-package com.mitsuaky.stanleyparable.common.network;
+package com.mitsuaky.stanleyparable.common.network.packets;
 
 import com.mitsuaky.stanleyparable.client.ClientEventHandler;
-import com.mitsuaky.stanleyparable.common.events.Event;
+import com.mitsuaky.stanleyparable.common.events.GameEventType;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.event.network.CustomPayloadEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class PacketEventToClient {
-    private static final Logger LOGGER = LogManager.getLogger(PacketEventToClient.class);
+public class PacketGameEventToClient implements Packet {
+    private static final Logger LOGGER = LogManager.getLogger(PacketGameEventToClient.class);
     private final String event;
     private final String msg;
 
-    public PacketEventToClient(String event, String msg) {
+    public PacketGameEventToClient(String event, String msg) {
         this.event = event;
         this.msg = msg;
     }
 
-    public PacketEventToClient(FriendlyByteBuf buf) {
+    public PacketGameEventToClient(FriendlyByteBuf buf) {
         event = buf.readUtf();
         msg = buf.readUtf();
     }
@@ -29,10 +29,10 @@ public class PacketEventToClient {
 
     public void handle(CustomPayloadEvent.Context ctx) {
         ctx.enqueueWork(() -> {
-            //Client-side
             LOGGER.debug("Received packet for " + event);
-            Event e = Event.valueOf(event.toUpperCase());
+            GameEventType e = GameEventType.valueOf(event.toUpperCase());
             ClientEventHandler.handle(e, msg);
         });
+        ctx.setPacketHandled(true);
     }
 }

@@ -2,6 +2,9 @@ package com.mitsuaky.stanleyparable.client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.mitsuaky.stanleyparable.StanleyParableMod;
+import com.mitsuaky.stanleyparable.common.events.GameEventType;
+import com.mitsuaky.stanleyparable.common.events.EventType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.logging.log4j.LogManager;
@@ -40,9 +43,16 @@ public class WebSocketClient {
         onPongCallback = callback;
     }
 
-    public void sendEvent(String event, String data) {
+    public void sendEvent(EventType event) {
+        sendEvent(event, "");
+    }
+
+    public void sendEvent(EventType event, String data) {
+        if (StanleyParableMod.adventureMode && event instanceof GameEventType) {
+            return;
+        }
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("event", event);
+        jsonObject.addProperty("event", event.getValue());
         jsonObject.addProperty("data", data);
         try {
             webSocket.sendText(jsonObject.toString(), true);
