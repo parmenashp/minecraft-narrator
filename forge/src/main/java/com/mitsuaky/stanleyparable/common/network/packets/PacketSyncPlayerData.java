@@ -1,4 +1,4 @@
-package com.mitsuaky.stanleyparable.common.network;
+package com.mitsuaky.stanleyparable.common.network.packets;
 
 import com.mitsuaky.stanleyparable.server.ServerSyncHandler;
 import net.minecraft.network.FriendlyByteBuf;
@@ -7,8 +7,8 @@ import net.minecraftforge.event.network.CustomPayloadEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class PacketSyncPlayerData {
-    private static final Logger LOGGER = LogManager.getLogger(PacketEventToClient.class);
+public class PacketSyncPlayerData implements Packet {
+    private static final Logger LOGGER = LogManager.getLogger(PacketGameEventToClient.class);
     private final String vulgo;
 
     public PacketSyncPlayerData(String vulgo) {
@@ -31,5 +31,6 @@ public class PacketSyncPlayerData {
                 ServerSyncHandler.handle(player, vulgo);
             }
         });
+        ctx.setPacketHandled(true);
     }
 }

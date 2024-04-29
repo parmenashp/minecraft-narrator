@@ -20,6 +20,8 @@ public class StanleyParableMod {
     public static final String MOD_ID = "stanleyparable";
 
     public static final Map<String, String> playerVulgo = new HashMap<>();
+    public static boolean debugMode = false;
+    public static boolean adventureMode = false;
 
     public StanleyParableMod() {
         PacketHandler.register();

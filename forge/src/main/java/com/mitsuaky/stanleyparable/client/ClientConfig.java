@@ -1,6 +1,7 @@
 package com.mitsuaky.stanleyparable.client;
 
 import com.google.gson.JsonObject;
+import com.mitsuaky.stanleyparable.common.events.SystemEventType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -73,7 +74,7 @@ public class ClientConfig {
             request.addProperty("openai_model", OPENAI_MODEL.get());
             request.addProperty("elevenlabs_api_key", ELEVENLABS_API_KEY.get());
             request.addProperty("elevenlabs_voice_id", ELEVENLABS_VOICE_ID.get());
-            WebSocketClient.getInstance().sendEvent("config", request.toString());
+            WebSocketClient.getInstance().sendEvent(SystemEventType.CONFIG, request.toString());
         } catch (Exception ex) {
             LOGGER.error("Could not send config to server: " + ex.getMessage(), ex);
         }

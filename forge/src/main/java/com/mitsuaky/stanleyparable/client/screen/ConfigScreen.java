@@ -5,7 +5,7 @@ import com.mitsuaky.stanleyparable.client.ClientConfig;
 import com.mitsuaky.stanleyparable.client.WebSocketClient;
 import com.mitsuaky.stanleyparable.client.screen.widget.PingWidget;
 import com.mitsuaky.stanleyparable.common.network.PacketHandler;
-import com.mitsuaky.stanleyparable.common.network.PacketSyncPlayerData;
+import com.mitsuaky.stanleyparable.common.network.packets.PacketSyncPlayerData;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
@@ -91,12 +91,12 @@ public class ConfigScreen extends Screen {
                         commonY,
                         commonWidth,
                         commonHeight,
-                        Component.nullToEmpty(Component.translatable("gui.stanleyparable.cooldown_event").getString() + coolDownIndividual),
+                        Component.literal(Component.translatable("gui.stanleyparable.cooldown_event").getString() + coolDownIndividual),
                         mapToSlideDouble(coolDownIndividual, 1, 20)
                 ) {
                     @Override
                     protected void updateMessage() {
-                        this.setMessage(Component.nullToEmpty(Component.translatable("gui.stanleyparable.cooldown_event").getString() + coolDownIndividual));
+                        this.setMessage(Component.literal(Component.translatable("gui.stanleyparable.cooldown_event").getString() + coolDownIndividual));
                     }
 
                     @Override
@@ -114,12 +114,12 @@ public class ConfigScreen extends Screen {
                         commonY,
                         commonWidth,
                         commonHeight,
-                        Component.nullToEmpty(Component.translatable("gui.stanleyparable.cooldown_global").getString() + coolDownGlobal),
+                        Component.literal(Component.translatable("gui.stanleyparable.cooldown_global").getString() + coolDownGlobal),
                         mapToSlideDouble(coolDownGlobal, 30, 600)
                 ) {
                     @Override
                     protected void updateMessage() {
-                        this.setMessage(Component.nullToEmpty(Component.translatable("gui.stanleyparable.cooldown_global").getString() + coolDownGlobal));
+                        this.setMessage(Component.literal(Component.translatable("gui.stanleyparable.cooldown_global").getString() + coolDownGlobal));
                     }
 
                     @Override
@@ -137,12 +137,12 @@ public class ConfigScreen extends Screen {
                         commonY,
                         commonWidth,
                         commonHeight,
-                        Component.nullToEmpty(Component.translatable("gui.stanleyparable.narrator_volume").getString() + narratorVolume + "%"),
+                        Component.literal(Component.translatable("gui.stanleyparable.narrator_volume").getString() + narratorVolume + "%"),
                         mapToSlideDouble(narratorVolume, 1, 130)
                 ) {
                     @Override
                     protected void updateMessage() {
-                        this.setMessage(Component.nullToEmpty(Component.translatable("gui.stanleyparable.narrator_volume").getString() + narratorVolume + "%"));
+                        this.setMessage(Component.literal(Component.translatable("gui.stanleyparable.narrator_volume").getString() + narratorVolume + "%"));
                     }
 
                     @Override
@@ -181,9 +181,10 @@ public class ConfigScreen extends Screen {
             ClientConfig.NARRATOR_VOLUME.set(narratorVolume);
             ClientConfig.AKA.set(akaWidget.getValue());
             assert this.minecraft != null;
-            assert this.minecraft.player != null;
-            StanleyParableMod.playerVulgo.put(this.minecraft.player.getUUID().toString(), akaWidget.getValue());
-            PacketHandler.sendToServer(new PacketSyncPlayerData(akaWidget.getValue()));
+            if (this.minecraft.player != null) {
+                StanleyParableMod.playerVulgo.put(this.minecraft.player.getUUID().toString(), akaWidget.getValue());
+                PacketHandler.sendToServer(new PacketSyncPlayerData(akaWidget.getValue()));
+            }
             this.minecraft.setScreen(new TokenScreen(this));
         }).pos(commonX, commonY).size(commonWidth, commonHeight).build());
 
@@ -201,9 +202,10 @@ public class ConfigScreen extends Screen {
             ClientConfig.applyServerConfig();
             WebSocketClient.getInstance().setOnPong(null);
             assert this.minecraft != null;
-            assert this.minecraft.player != null;
-            StanleyParableMod.playerVulgo.put(this.minecraft.player.getUUID().toString(), akaWidget.getValue());
-            PacketHandler.sendToServer(new PacketSyncPlayerData(akaWidget.getValue()));
+            if (this.minecraft.player != null) {
+                StanleyParableMod.playerVulgo.put(this.minecraft.player.getUUID().toString(), akaWidget.getValue());
+                PacketHandler.sendToServer(new PacketSyncPlayerData(akaWidget.getValue()));
+            }
             this.minecraft.setScreen(this.parent);
         }).pos(commonX, this.height - 30).size(commonWidth, commonHeight).build());
     }

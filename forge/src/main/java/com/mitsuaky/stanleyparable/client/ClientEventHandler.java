@@ -1,6 +1,6 @@
 package com.mitsuaky.stanleyparable.client;
 
-import com.mitsuaky.stanleyparable.common.events.Event;
+import com.mitsuaky.stanleyparable.common.events.EventType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.logging.log4j.LogManager;
@@ -12,8 +12,8 @@ public class ClientEventHandler {
 
     private static final WebSocketClient wsClient = WebSocketClient.getInstance();
 
-    public static void handle(Event event, String msg) {
+    public static void handle(EventType event, String msg) {
         LOGGER.debug("Sending {}:{} to backend", event.getValue(), msg);
-        wsClient.sendEvent(event.getValue(), msg);
+        wsClient.sendEvent(event, msg);
     }
 }

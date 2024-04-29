@@ -1,6 +1,7 @@
 package com.mitsuaky.stanleyparable.common.network;
 
 import com.mitsuaky.stanleyparable.StanleyParableMod;
+import com.mitsuaky.stanleyparable.common.network.packets.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.*;
@@ -24,9 +25,15 @@ public class PacketHandler {
 
         INSTANCE = net;
 
-        net.messageBuilder(PacketEventToClient.class, id(), NetworkDirection.PLAY_TO_CLIENT).decoder(PacketEventToClient::new).encoder(PacketEventToClient::toBytes).consumerMainThread(PacketEventToClient::handle).add();
+        net.messageBuilder(PacketGameEventToClient.class, id(), NetworkDirection.PLAY_TO_CLIENT).decoder(PacketGameEventToClient::new).encoder(PacketGameEventToClient::toBytes).consumerMainThread(PacketGameEventToClient::handle).add();
+
+        net.messageBuilder(PacketSystemEventToClient.class, id(), NetworkDirection.PLAY_TO_CLIENT).decoder(PacketSystemEventToClient::new).encoder(PacketSystemEventToClient::toBytes).consumerMainThread(PacketSystemEventToClient::handle).add();
 
         net.messageBuilder(PacketSyncPlayerData.class, id(), NetworkDirection.PLAY_TO_SERVER).decoder(PacketSyncPlayerData::new).encoder(PacketSyncPlayerData::toBytes).consumerMainThread(PacketSyncPlayerData::handle).add();
+
+        net.messageBuilder(PacketPlayerJoin.class, id(), NetworkDirection.PLAY_TO_SERVER).decoder(PacketPlayerJoin::new).encoder(PacketPlayerJoin::toBytes).consumerMainThread(PacketPlayerJoin::handle).add();
+
+        net.messageBuilder(PacketSyncServerData.class, id(), NetworkDirection.PLAY_TO_CLIENT).decoder(PacketSyncServerData::new).encoder(PacketSyncServerData::toBytes).consumerMainThread(PacketSyncServerData::handle).add();
     }
 
     public static <Packet> void sendToServer(Packet message) {

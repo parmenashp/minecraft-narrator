@@ -82,12 +82,12 @@ public class TokenScreen extends Screen {
                         commonY,
                         commonWidth,
                         commonHeight,
-                        Component.nullToEmpty(Component.translatable("gui.stanleyparable.buffer_elevenlabs").getString() + elevenLabsBufferSize),
+                        Component.literal(Component.translatable("gui.stanleyparable.buffer_elevenlabs").getString() + elevenLabsBufferSize),
                         mapToSlideDouble(bufferToInt(elevenLabsBufferSize), 8, 12)
                 ) {
                     @Override
                     protected void updateMessage() {
-                        this.setMessage(Component.nullToEmpty(Component.translatable("gui.stanleyparable.buffer_elevenlabs").getString() + elevenLabsBufferSize));
+                        this.setMessage(Component.literal(Component.translatable("gui.stanleyparable.buffer_elevenlabs").getString() + elevenLabsBufferSize));
                     }
 
                     @Override
@@ -104,12 +104,12 @@ public class TokenScreen extends Screen {
                 commonY,
                 commonWidth,
                 commonHeight,
-                Component.nullToEmpty(Component.translatable("gui.stanleyparable.buffer_chatgpt").getString() + chatGPTBufferSize),
+                Component.literal(Component.translatable("gui.stanleyparable.buffer_chatgpt").getString() + chatGPTBufferSize),
                 mapToSlideDouble(chatGPTBufferSize, 10, 500)
         ) {
             @Override
             protected void updateMessage() {
-                this.setMessage(Component.nullToEmpty(Component.translatable("gui.stanleyparable.buffer_chatgpt").getString() + chatGPTBufferSize));
+                this.setMessage(Component.literal(Component.translatable("gui.stanleyparable.buffer_chatgpt").getString() + chatGPTBufferSize));
             }
 
             @Override
