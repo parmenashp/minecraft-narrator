@@ -29,7 +29,7 @@ public class PacketGameEventToClient implements Packet {
 
     public void handle(CustomPayloadEvent.Context ctx) {
         ctx.enqueueWork(() -> {
-            LOGGER.debug("Received packet for " + event);
+            LOGGER.debug("Received packet for {}", event);
             GameEventType e = GameEventType.valueOf(event.toUpperCase());
             ClientEventHandler.handle(e, msg);
         });

@@ -22,9 +22,7 @@ public class PacketSyncServerData implements Packet {
 
     @Override
     public void handle(CustomPayloadEvent.Context ctx) {
-        ctx.enqueueWork(() -> {
-            ClientSyncHandler.handle(adventureMode);
-        });
+        ctx.enqueueWork(() -> ClientSyncHandler.handle(adventureMode));
         ctx.setPacketHandled(true);
     }
 }
