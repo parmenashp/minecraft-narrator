@@ -28,7 +28,6 @@ def customTTS_tab(loop):
                     def run_gpt(text: str) -> tuple[str, str]:
                         logger.info(f"Custom GPT prompt: {text}")
                         gpt = chat.ask(text, add_to_context=False)
-                        gpt = gpt()
 
                         if isinstance(gpt, str):
                             return gpt, "Response generated"

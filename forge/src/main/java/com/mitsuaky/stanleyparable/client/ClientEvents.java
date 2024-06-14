@@ -2,11 +2,12 @@ package com.mitsuaky.stanleyparable.client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.mitsuaky.stanleyparable.*;
+import com.mitsuaky.stanleyparable.StanleyParableMod;
 import com.mitsuaky.stanleyparable.client.screen.ConfigScreen;
 import com.mitsuaky.stanleyparable.common.events.GameEventType;
 import com.mitsuaky.stanleyparable.common.events.SystemEventType;
 import com.mitsuaky.stanleyparable.common.network.PacketHandler;
+import com.mitsuaky.stanleyparable.common.network.packets.PacketInteractionToServer;
 import com.mitsuaky.stanleyparable.common.network.packets.PacketPlayerJoin;
 import com.mitsuaky.stanleyparable.common.network.packets.PacketSyncPlayerData;
 import com.mitsuaky.stanleyparable.server.ServerEvents;
@@ -48,6 +49,9 @@ import org.apache.logging.log4j.Logger;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class ClientEvents {
     @Mod.EventBusSubscriber(modid = StanleyParableMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
@@ -243,6 +247,15 @@ public class ClientEvents {
                 String voiceID = personality.get("voice_id").getAsString();
                 ClientConfig.ELEVENLABS_VOICE_ID.set(voiceID);
                 player.level().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.PLAYER_LEVELUP, SoundSource.MASTER, 1.5F, 1.0F);
+                return null;
+            });
+
+            wsClient.addEventListener("interaction", jsonObject -> {
+                LOGGER.debug("Interaction received from backend");
+                String interactionType = jsonObject.get("data").getAsString();
+                PacketHandler.sendToServer(new PacketInteractionToServer(interactionType, true));
+                ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+                executor.schedule(() -> PacketHandler.sendToServer(new PacketInteractionToServer(interactionType, false)), 3, TimeUnit.SECONDS);
                 return null;
             });
 
