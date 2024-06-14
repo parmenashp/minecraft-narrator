@@ -254,8 +254,6 @@ public class ClientEvents {
                 LOGGER.debug("Interaction received from backend");
                 String interactionType = jsonObject.get("data").getAsString();
                 PacketHandler.sendToServer(new PacketInteractionToServer(interactionType, true));
-                ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-                executor.schedule(() -> PacketHandler.sendToServer(new PacketInteractionToServer(interactionType, false)), 3, TimeUnit.SECONDS);
                 return null;
             });
 
