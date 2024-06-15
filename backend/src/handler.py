@@ -1,4 +1,5 @@
 import asyncio
+from enum import Enum
 import random
 import threading
 from loguru import logger
@@ -6,7 +7,7 @@ from loguru import logger
 from src.chatgpt import chat
 from src.config import global_config
 from src.cooldown import CooldownManager
-from src.models import Action, Config, IncomingEvent, OutgoingAction
+from src.models import Action, Config, IncomingEvent, OutgoingAction, Response
 from src.queue import Queue
 from src.tts import tts
 from src.websocket import ws
@@ -55,12 +56,15 @@ class EventHandler:
             await ws.broadcast(outgoing.model_dump())
             return
 
-        gpt_response_generator = chat.ask(outgoing.data)
+        gpt_response_generator: Response | None = chat.ask(outgoing.data)
+        if gpt_response_generator is None:
+            logger.error("GPT response is None, ignoring event")
+            return
 
         threading.Thread(
             target=tts.synthesize,
             kwargs={
-                "gen": gpt_response_generator,
+                "res": gpt_response_generator,
                 "loop": asyncio.get_event_loop(),
             },
         ).start()
@@ -77,7 +81,10 @@ class EventHandler:
         context.put({"role": "assistant", "content": text})
 
         loop = asyncio.get_event_loop()
-        tts.synthesize(text, loop)
+        Interactions = Enum("Interactions", {"none": "none"})
+
+        r = Response.model_construct(mensagem=text, interacao=Interactions.none)
+        tts.synthesize(r, loop)
 
 
 event_handler = EventHandler()

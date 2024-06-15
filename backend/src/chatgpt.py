@@ -4,8 +4,7 @@ from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from loguru import logger
 import instructor
 
-from src.websocket import ws
-from src.models import Action, OutgoingAction, Response
+from src.models import Response
 from src.config import global_config, GlobalConfig
 from src.context import context
 from src.prompts import prompt_manager
@@ -30,7 +29,7 @@ class ChatGPT:
         system_prompt: list[dict[str, str]] | None = None,
         add_to_context: bool = True,
         response_model: Type[Response] = Response,
-    ) -> str | None:
+    ) -> Response | None:
         logger.debug(f"Sending prompt to GPT: {text!r}")
         user_prompt = {"role": "user", "content": text}
         if system_prompt is None:
@@ -58,14 +57,6 @@ class ChatGPT:
 
         struct_response, raw = response
 
-        if struct_response.interacao.value != "None":
-            action = OutgoingAction(
-                action=Action.INTERACTION,
-                data=struct_response.interacao.value,
-            )
-
-            ws.sync_broadcast(action.model_dump())
-
         if add_to_context:
             context.put(user_prompt)
 
@@ -76,7 +67,7 @@ class ChatGPT:
                 raw_msg = raw.choices[0].message.content
                 context.put({"role": "assistant", "content": raw_msg})
 
-        return struct_response.mensagem
+        return struct_response
 
     def set_config(self, config: GlobalConfig):
         if self.client.client is not None:

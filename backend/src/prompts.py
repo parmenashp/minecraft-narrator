@@ -35,7 +35,7 @@ class PromptManager:
         if len(interactions) == 0:
             return Response
 
-        interactions.append("None")
+        interactions.append("none")
         Interactions = Enum("Interactions", {interaction: interaction for interaction in interactions})
 
         responseInteraction = create_model(
