@@ -32,11 +32,10 @@ class PromptManager:
 
     def get_current_response_model(self) -> type[Response]:
         interactions: list[str] = self.prompts[self.current_prompt_id]["interactions"]
-        if len(interactions) == 0:
-            return Response
 
-        interactions.append("none")
-        Interactions = Enum("Interactions", {interaction: interaction for interaction in interactions})
+        interactions_dict = {interaction: interaction for interaction in interactions}
+        interactions_dict.update({"none": "none"})
+        Interactions = Enum("Interactions", interactions_dict)
 
         responseInteraction = create_model(
             "Response",
