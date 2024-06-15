@@ -1,15 +1,20 @@
+from enum import Enum
 import json
 import os
 from loguru import logger
+from pydantic import create_model
 from src.config import global_config
+from src.models import Response, SystemPrompt
 from src.utils import singleton
 from src.context import context
 
 
 @singleton
 class PromptManager:
-    def __init__(self, ):
-        self.prompts = {}
+    def __init__(
+        self,
+    ):
+        self.prompts: dict[str, SystemPrompt] = {}
         self.personalities = {}
         self.current_personality_id = "waldemar"
         self.current_prompt_id: str = "prompt0"
@@ -20,10 +25,25 @@ class PromptManager:
         formatted = [
             {
                 "role": "system",
-                "content": self.prompts[self.current_prompt_id],
+                "content": self.prompts[self.current_prompt_id]["system_message"],
             }
         ]
         return formatted
+
+    def get_current_response_model(self) -> type[Response]:
+        interactions: list[str] = self.prompts[self.current_prompt_id]["interactions"]
+
+        interactions_dict = {interaction: interaction for interaction in interactions}
+        interactions_dict.update({"none": "none"})
+        Interactions = Enum("Interactions", interactions_dict)
+
+        responseInteraction = create_model(
+            "Response",
+            interacao=(Interactions, ...),
+            __base__=Response,
+        )
+
+        return responseInteraction
 
     def set_current_prompt(self, prompt_id: str, clear_context: bool = False):
         if prompt_id not in self.prompts:
@@ -35,8 +55,8 @@ class PromptManager:
         self.save()
         logger.info(f"Current prompt set to {prompt_id}")
 
-    def new_custom_prompt(self, prompt_id: str, prompt: str):
-        self.prompts[prompt_id] = prompt
+    def new_custom_prompt(self, prompt_id: str, prompt: str, interactions: list[str]):
+        self.prompts[prompt_id] = SystemPrompt(system_message=prompt, interactions=interactions)
         logger.info(f"New prompt {prompt_id} added")
         self.save()
 
@@ -67,7 +87,6 @@ class PromptManager:
             pass
 
     def set_personality(self, personality_id: str, clear_context):
-
         self.current_personality_id = personality_id
         self.set_current_prompt(self.personalities[personality_id]["prompt_id"], clear_context)
         global_config.elevenlabs_voice_id = self.personalities[personality_id]["voice_id"]

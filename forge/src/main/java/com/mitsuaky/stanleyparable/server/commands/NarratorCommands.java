@@ -13,6 +13,7 @@ public class NarratorCommands {
                         .then(SystemPromptCommand.register())
                         .then(SetDebugModeCommand.register())
                         .then(SetAdventureModeCommand.register())
+                        .then(InteractionCheckCommand.register())
         );
     }
 }

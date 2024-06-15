@@ -1,94 +1,79 @@
-from typing import Callable, Generator, cast
+from typing import Type
 from openai import OpenAI, Stream
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from loguru import logger
+import instructor
 
+from src.models import Response
 from src.config import global_config, GlobalConfig
 from src.context import context
 from src.prompts import prompt_manager
 from src.utils import singleton
-
-gpt_config = {
-    "temperature": 1,
-    "max_tokens": 256,
-    "top_p": 1,
-    "frequency_penalty": 0,
-    "presence_penalty": 0,
-    "stop": ["\n"],
-}
 
 
 @singleton
 class ChatGPT:
     def __init__(self, api_key, base_url, model="gpt-3.5-turbo"):
         self.model = model
-        self.client = OpenAI(
-            api_key=api_key,
-            base_url=base_url,
+        self.client = instructor.from_openai(
+            OpenAI(
+                api_key=api_key,
+                base_url=base_url,
+            ),
+            mode=instructor.Mode.JSON,
         )
 
     def ask(
-        self, text: str, system_prompt: list[dict[str, str]] | None = None, add_to_context: bool = True
-    ) -> Callable[[], Generator[str, None, None]] | Callable[[], str | None]:
+        self,
+        text: str,
+        system_prompt: list[dict[str, str]] | None = None,
+        add_to_context: bool = True,
+        response_model: Type[Response] = Response,
+    ) -> Response | None:
         logger.debug(f"Sending prompt to GPT: {text!r}")
         user_prompt = {"role": "user", "content": text}
         if system_prompt is None:
             system_prompt = prompt_manager.get_current_prompt()
+
+        response_model = prompt_manager.get_current_response_model()
+
         messages: list = system_prompt + context.all() + [user_prompt]
 
-        response: ChatCompletion | Stream[ChatCompletionChunk] = self.client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            stream=global_config.openai_streaming,
-            **gpt_config,
+        response: tuple[response_model, ChatCompletion | Stream[ChatCompletionChunk]] = (
+            self.client.chat.completions.create_with_completion(
+                model=self.model,
+                messages=messages,
+                stream=False,
+                response_model=response_model,
+                max_retries=1,
+                temperature=1,
+                max_tokens=256,
+                top_p=1,
+                frequency_penalty=0,
+                presence_penalty=0,
+                stop=["\n"],
+            )
         )
+
+        struct_response, raw = response
 
         if add_to_context:
             context.put(user_prompt)
 
-        if global_config.openai_streaming:
+        logger.debug("Using OpenAI non-streaming mode")
+        logger.debug(f"Yielding GPT response: {struct_response!r}")
+        if add_to_context:
+            if isinstance(raw, ChatCompletion):
+                raw_msg = raw.choices[0].message.content
+                context.put({"role": "assistant", "content": raw_msg})
 
-            def response_gen() -> Generator[str, None, None]:
-                nonlocal response
-                response_text = ""
-                logger.debug("Using OpenAI streaming mode")
-                logger.info(f"Using {global_config.chatgpt_buffer_size} chatgpt buffer size")
-                response = cast(Stream[ChatCompletionChunk], response)
-                buffer = ""
-                for chunk in response:
-                    delta = chunk.choices[0].delta.content
-                    if delta:
-                        response_text += delta
-                        buffer += delta
-                        if len(buffer) >= global_config.chatgpt_buffer_size:
-                            logger.debug(f"Yielding GPT response: {buffer!r}")
-                            yield buffer
-                            buffer = ""
-                if buffer:
-                    logger.debug(f"Yielding GPT response: {buffer!r}")
-                    yield buffer
-                if add_to_context:
-                    context.put({"role": "assistant", "content": response_text})
-
-            return response_gen
-
-        else:
-
-            def response_str() -> str | None:
-                nonlocal response
-                logger.debug("Using OpenAI non-streaming mode")
-                response = cast(ChatCompletion, response)
-                response_text = response.choices[0].message.content
-                logger.debug(f"Yielding GPT response: {response_text!r}")
-                if add_to_context:
-                    context.put({"role": "assistant", "content": response_text})
-                return response_text
-
-            return response_str
+        return struct_response
 
     def set_config(self, config: GlobalConfig):
-        self.client.api_key = config.openai_api_key
-        self.client.base_url = config.openai_base_url
+        if self.client.client is not None:
+            self.client.client.api_key = config.openai_api_key
+            self.client.client.api_key = config.openai_api_key
+            self.client.client.base_url = config.openai_base_url
         self.model = config.openai_model
 
 

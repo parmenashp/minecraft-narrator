@@ -19,9 +19,10 @@ def change_prompt(prompt_id: str, voice_id: str, model: str, clear_context: bool
     return r
 
 
-def save_prompt(prompt_id: str, prompt: str):
+def save_prompt(prompt_id: str, prompt: str, interactions: str):
     logger.info(f"Saving prompt {prompt_id}")
-    prompt_manager.new_custom_prompt(prompt_id, prompt)
+    interactions_list = interactions.split(" ")
+    prompt_manager.new_custom_prompt(prompt_id, prompt, interactions_list)
 
 
 async def change_personality(personality_id: str, checkboxes: list):
@@ -162,7 +163,7 @@ def config_tab():
             def prompts_html():
                 return "\n".join(
                     [
-                        f"\n<details><summary>{id}</summary>\n<pre>\n{prompt}\n</pre>\n</details>"
+                        f"\n<details><summary>{id}</summary>\n<pre>\n{prompt["system_message"]}\n {prompt['interactions']}\n</pre>\n</details>"
                         for id, prompt in prompt_manager.prompts.items()
                     ]
                 )
@@ -184,10 +185,17 @@ def config_tab():
                 lines=10,
                 container=False,
             )
+            custom_interactions = gr.Textbox(
+                label="Interactions (separated by spaces)",
+                placeholder="Separated by spaces: interaction1 interaction2 ...",
+                max_lines=1,
+                lines=1,
+                container=False,
+            )
             gr.Button(
                 "Save Prompt",
             ).click(
                 save_prompt,
-                inputs=[custom_prompt_id, custom_prompt],
+                inputs=[custom_prompt_id, custom_prompt, custom_interactions],
             )
     return tab

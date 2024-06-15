@@ -21,8 +21,8 @@ public class CustomPromptCommand {
     static ArgumentBuilder<CommandSourceStack, ?> register() {
         return Commands.literal("prompt")
                 .then(Commands.argument("player", EntityArgument.player())
-                .then(Commands.argument("userMessage", StringArgumentType.greedyString())
-                        .executes(CustomPromptCommand::runCmd)));
+                        .then(Commands.argument("userMessage", StringArgumentType.greedyString())
+                                .executes(CustomPromptCommand::runCmd)));
     }
 
     private static int runCmd(CommandContext<CommandSourceStack> ctx) {

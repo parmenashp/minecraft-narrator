@@ -2,11 +2,11 @@ import asyncio
 import subprocess
 import threading
 import os
-from typing import Generator, Iterator
+from typing import Iterator
 from elevenlabs import generate, Voice, VoiceSettings, Voices, VoiceClone
 from loguru import logger
 
-from src.models import Action, OutgoingAction
+from src.models import Action, OutgoingAction, Response
 from src.websocket import ws
 from src.config import global_config
 from src.queue import Queue
@@ -17,7 +17,7 @@ from src.utils import singleton
 class TTS:
     def __init__(self):
         self.is_playing = False
-        self.queue: Queue[Generator | str] = Queue(maxsize=2)
+        self.queue: Queue[Response] = Queue(maxsize=2)
 
         if (
             not os.path.isfile("mpv.exe")
@@ -28,106 +28,26 @@ class TTS:
             logger.warning("mpv.exe or keys not found, TTS disabled")
             global_config.tts = False
 
-    def synthesize(self, gen: Generator[str, None, None] | str, loop: asyncio.AbstractEventLoop) -> None:
-        self.queue.put(gen)
+    def synthesize(self, res: Response, loop: asyncio.AbstractEventLoop) -> None:
+        self.queue.put(res)
         if not self.is_playing:
             self.is_playing = True
             next_gen = self.queue.get()
-            if isinstance(next_gen, str):
-                self.play_next_str(next_gen, loop)
-            else:
-                self.play_next(next_gen, loop)
+            self.play_next(next_gen, loop)
         else:
             logger.debug("TTS already playing, added to queue")
 
-    def play_next(self, text: Generator[str, None, None], loop: asyncio.AbstractEventLoop) -> None:
-        logger.debug("Playing next")
-        if global_config.tts is False:
-            try:
-                full_text = "".join([chunk for chunk in text])
-                response = OutgoingAction(
-                    action=Action.SEND_CHAT,
-                    data=full_text,
-                )
-                asyncio.run_coroutine_threadsafe(ws.broadcast(response.model_dump()), loop)
-            finally:
-                self.finished_playing(loop)
-            return
-
-        full_text = ""
-        generator_done = threading.Event()
-
-        def wrapped_generator():
-            nonlocal full_text
-            try:
-                for chunk in text:
-                    full_text += chunk
-                    yield chunk
-            finally:
-                generator_done.set()
-
-        def non_stream():
-            nonlocal full_text
-            try:
-                t = "".join([chunk for chunk in text])
-                full_text = t
-                return t
-            finally:
-                generator_done.set()
-
-        if global_config.elevenlabs_streaming is False or global_config.openai_streaming is False:
-            elevenlabs_text = non_stream()
-        else:
-            elevenlabs_text = wrapped_generator()
-        logger.info(f"Using {global_config.elevenlabs_buffer_size} elevenlabs buffer size")
-        voice = Voice(
-            voice_id=global_config.elevenlabs_voice_id,
-            settings=VoiceSettings(
-                stability=global_config.voice_stability,  # type: ignore
-                similarity_boost=global_config.voice_similarity_boost,  # type: ignore
-                style=global_config.voice_style,
-            ),
-        )
-
-        gen = generate(
-            text=elevenlabs_text,
-            voice=voice,
-            api_key=global_config.elevenlabs_api_key,
-            stream=global_config.elevenlabs_streaming,
-            model=global_config.elevenlabs_model,  # type: ignore
-            stream_chunk_size=global_config.elevenlabs_buffer_size,
-        )
-        stream_thread = threading.Thread(
-            target=self.stream,
-            kwargs={"audio": gen, "loop": loop},
-        )
-        stream_thread.start()
-        generator_done.wait()
-        if full_text == "":
-            response = OutgoingAction(
-                action=Action.IGNORE,
-                data="Não foi possível gerar texto",
-            )
-            self.finished_playing(loop)
-        else:
-            response = OutgoingAction(
-                action=Action.SEND_CHAT,
-                data=full_text,
-            )
-        asyncio.run_coroutine_threadsafe(
-            ws.broadcast(response.model_dump()),
-            loop,
-        )
-
-    def play_next_str(self, text: str, loop: asyncio.AbstractEventLoop) -> None:
+    def play_next(self, res: Response, loop: asyncio.AbstractEventLoop) -> None:
+        text = res.mensagem
         logger.debug("Playing next")
         if global_config.tts is False:
             try:
                 response = OutgoingAction(
                     action=Action.SEND_CHAT,
-                    data=text,
+                    data=repr(res),
                 )
                 asyncio.run_coroutine_threadsafe(ws.broadcast(response.model_dump()), loop)
+                self.dispatch_interaction(res.interacao.value, loop)
             finally:
                 self.finished_playing(loop)
             return
@@ -151,7 +71,7 @@ class TTS:
         )
         stream_thread = threading.Thread(
             target=self.stream,
-            kwargs={"audio": gen, "loop": loop},
+            kwargs={"audio": gen, "loop": loop, "res": res},
         )
         stream_thread.start()
         if text == "":
@@ -174,14 +94,21 @@ class TTS:
         if len(self.queue.all()) > 0:
             self.is_playing = True
             next_gen = self.queue.get()
-            if isinstance(next_gen, str):
-                self.play_next_str(next_gen, loop)
-            else:
-                self.play_next(next_gen, loop)
+            self.play_next(next_gen, loop)
         else:
             self.is_playing = False
 
-    def stream(self, audio: Iterator[bytes] | bytes, loop: asyncio.AbstractEventLoop):
+    def dispatch_interaction(self, interaction: str, loop: asyncio.AbstractEventLoop):
+        if interaction == "none":
+            return
+
+        action = OutgoingAction(
+            action=Action.INTERACTION,
+            data=interaction,
+        )
+        asyncio.run_coroutine_threadsafe(ws.broadcast(action.model_dump()), loop)
+
+    def stream(self, audio: Iterator[bytes] | bytes, loop: asyncio.AbstractEventLoop, res: Response):
         audio_stream = iter([audio]) if isinstance(audio, bytes) else audio
         assert isinstance(audio_stream, Iterator)
 
@@ -201,10 +128,14 @@ class TTS:
                 stderr=subprocess.DEVNULL,
             )
 
+            first_chunk = True
             for chunk in audio_stream:
                 if mpv_process.stdin and chunk:
                     mpv_process.stdin.write(chunk)
                     mpv_process.stdin.flush()
+                    if first_chunk:
+                        self.dispatch_interaction(res.interacao.value, loop)
+                        first_chunk = False
 
             if mpv_process.stdin:
                 mpv_process.stdin.close()

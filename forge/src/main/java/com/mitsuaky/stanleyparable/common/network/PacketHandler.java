@@ -34,9 +34,12 @@ public class PacketHandler {
         net.messageBuilder(PacketPlayerJoin.class, id(), NetworkDirection.PLAY_TO_SERVER).decoder(PacketPlayerJoin::new).encoder(PacketPlayerJoin::toBytes).consumerMainThread(PacketPlayerJoin::handle).add();
 
         net.messageBuilder(PacketSyncServerData.class, id(), NetworkDirection.PLAY_TO_CLIENT).decoder(PacketSyncServerData::new).encoder(PacketSyncServerData::toBytes).consumerMainThread(PacketSyncServerData::handle).add();
+
+        net.messageBuilder(PacketInteractionToServer.class, id(), NetworkDirection.PLAY_TO_SERVER).decoder(PacketInteractionToServer::new).encoder(PacketInteractionToServer::toBytes).consumerMainThread(PacketInteractionToServer::handle).add();
     }
 
     public static <Packet> void sendToServer(Packet message) {
+        LOGGER.debug("Sending {} to server", message);
         PacketDistributor.PacketTarget target = PacketDistributor.SERVER.noArg();
         INSTANCE.send(message, target);
     }

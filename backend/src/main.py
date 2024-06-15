@@ -26,6 +26,7 @@ logger.add("logs/{time}.log", rotation="1 day", level="DEBUG", compression="zip"
 async def lifespan_handler(_app: fastapi.FastAPI):
     logger.info("Starting server")
     start_dashboard(asyncio.get_event_loop())
+    logger.info("Open http://127.0.0.1:5000/speech/microphone.html to start capturing mic audio")
     yield
     logger.info("Stopping server")
 
