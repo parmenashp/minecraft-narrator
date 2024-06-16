@@ -36,11 +36,10 @@ def customTTS_tab(loop):
 
                     def run_tts(text: str, add_to_context: bool):
                         logger.info(f"Custom TTS to queue: {text}")
-                        if add_to_context:
-                            context.put({"role": "assistant", "content": text})
                         Interactions = Enum("Interactions", {"none": "none"})
-
                         r = Response.model_construct(mensagem=text, interacao=Interactions.none)
+                        if add_to_context:
+                            context.put({"role": "assistant", "content": r.model_dump_json()})
                         tts.synthesize(r, loop)
                         return "TTS audio added to queue"
 

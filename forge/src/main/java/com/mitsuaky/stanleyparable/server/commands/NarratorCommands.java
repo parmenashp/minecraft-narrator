@@ -14,6 +14,7 @@ public class NarratorCommands {
                         .then(SetDebugModeCommand.register())
                         .then(SetAdventureModeCommand.register())
                         .then(InteractionCheckCommand.register())
+                        .then(ForceInteractionCommand.register())
         );
     }
 }

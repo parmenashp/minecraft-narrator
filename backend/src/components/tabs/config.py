@@ -21,7 +21,10 @@ def change_prompt(prompt_id: str, voice_id: str, model: str, clear_context: bool
 
 def save_prompt(prompt_id: str, prompt: str, interactions: str):
     logger.info(f"Saving prompt {prompt_id}")
-    interactions_list = interactions.split(" ")
+    if interactions == "":
+        interactions_list = []
+    else:
+        interactions_list = interactions.split(" ")
     prompt_manager.new_custom_prompt(prompt_id, prompt, interactions_list)
 
 
