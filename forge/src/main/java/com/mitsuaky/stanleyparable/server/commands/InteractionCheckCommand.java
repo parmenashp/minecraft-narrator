@@ -34,7 +34,6 @@ public class InteractionCheckCommand {
             interactionMap.put(interactionType, false);
             return 1;
         } else {
-            ctx.getSource().sendFailure(Component.literal("Interaction " + interactionType + " not detected"));
             throw new SimpleCommandExceptionType(Component.translatable("commands.execute.conditional.fail")).create();
         }
     }

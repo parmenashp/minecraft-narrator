@@ -14,16 +14,13 @@ public class ForceInteractionCommand {
     static ArgumentBuilder<CommandSourceStack, ?> register() {
         return Commands.literal("forceinteraction")
                 .then(Commands.argument("interactionType", StringArgumentType.word())
-                        .then(Commands.argument("interactionValue", BoolArgumentType.bool())
-                                .executes(ForceInteractionCommand::runCmdForced)));
+                        .executes(ForceInteractionCommand::runCmdForced));
     }
-
 
     private static int runCmdForced(CommandContext<CommandSourceStack> ctx) {
         String interactionType = StringArgumentType.getString(ctx, "interactionType");
-        Boolean interactionValue = BoolArgumentType.getBool(ctx, "interactionValue");
-        interactionMap.put(interactionType, interactionValue);
-        ctx.getSource().sendSuccess(() -> Component.literal("Interaction " + interactionType + " setado para " + interactionValue), false);
+        interactionMap.put(interactionType, true);
+        ctx.getSource().sendSuccess(() -> Component.literal("Interaction " + interactionType + " ativado"), false);
         return 1;
     }
 }
