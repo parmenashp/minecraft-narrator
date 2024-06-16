@@ -1,13 +1,8 @@
 package com.mitsuaky.stanleyparable.common.network.packets;
 
-import com.mitsuaky.stanleyparable.common.network.PacketHandler;
 import com.mitsuaky.stanleyparable.server.commands.InteractionCheckCommand;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.event.network.CustomPayloadEvent;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class PacketInteractionToServer implements Packet {
 
@@ -32,11 +27,7 @@ public class PacketInteractionToServer implements Packet {
 
     @Override
     public void handle(CustomPayloadEvent.Context ctx) {
-        ctx.enqueueWork(() -> {
-            InteractionCheckCommand.interactionMap.put(interactionType, interactionValue);
-            ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-            executor.schedule(() -> InteractionCheckCommand.interactionMap.put(interactionType, false), 3, TimeUnit.SECONDS);
-        });
+        ctx.enqueueWork(() -> InteractionCheckCommand.interactionMap.put(interactionType, interactionValue));
         ctx.setPacketHandled(true);
     }
 }

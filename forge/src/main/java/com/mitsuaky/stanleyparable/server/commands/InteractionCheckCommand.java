@@ -26,15 +26,15 @@ public class InteractionCheckCommand {
     private static int runCmd(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         String interactionType = StringArgumentType.getString(ctx, "interactionType");
 
-        if (interactionMap.containsKey(interactionType) && interactionMap.get(interactionType)) {
+        if (interactionMap.get(interactionType)) {
             if (StanleyParableMod.debugMode) {
-                ctx.getSource().sendSuccess(() -> Component.literal("Interaction detected"), true);
+                ctx.getSource().getServer().getPlayerList().broadcastSystemMessage(Component.literal("Interaction " + interactionType + " detected"), false);
             }
+            ctx.getSource().sendSuccess(() -> Component.literal("Interaction detected"), false);
+            interactionMap.put(interactionType, false);
             return 1;
         } else {
-            if (StanleyParableMod.debugMode) {
-                ctx.getSource().sendFailure(Component.literal("Interaction not detected"));
-            }
+            ctx.getSource().sendFailure(Component.literal("Interaction " + interactionType + " not detected"));
             throw new SimpleCommandExceptionType(Component.translatable("commands.execute.conditional.fail")).create();
         }
     }
