@@ -284,7 +284,6 @@ public class ClientEvents {
                 return null;
             });
             StanleyParableMod.playerVulgo.put(player.getUUID().toString(), ClientConfig.AKA.get());
-            PacketHandler.sendToServer(new PacketSyncPlayerData(ClientConfig.AKA.get()));
             PacketHandler.sendToServer(new PacketPlayerJoin(ClientConfig.AKA.get()));
         }
 
